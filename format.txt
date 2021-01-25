@@ -1,0 +1,5 @@
+2		# number of queries
+1 2		# Query interestingness
+3 8		# Query runtime
+0 27	# Distance matrix
+27 0
