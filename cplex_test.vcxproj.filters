@@ -50,4 +50,9 @@
       <Filter>Resource Files\instances</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="instances\tap_500.dat">
+      <Filter>Resource Files\instances</Filter>
+    </None>
+  </ItemGroup>
 </Project>
