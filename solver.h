@@ -19,15 +19,17 @@ namespace cplex_tap {
         // Prints the solution from CPLEX to stdout
         void print_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x) const;
 
+        // dump decision variables
+        void print_X(const IloCplex& cplex, const IloArray<IloNumVarArray>& x) const;
+
     public:
 
         // Builds a solver the specified instance
         explicit Solver(const Instance& tap) : tap{ tap } {}
 
         // Run solver and dump result to stdout
-        void solve_and_print(int int_bound, int time_bound) const;
+        double solve_and_print(int int_bound, int time_bound) const;
 
-        // dump decision variables
     };
 }
 

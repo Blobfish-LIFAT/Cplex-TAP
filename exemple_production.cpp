@@ -8,7 +8,7 @@
 // combo will not compile with sdl check sue to several C4703 warnings when initializing stuff in switches
 // item : profit/wheight/keep
 bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
-	cout << "Filtering Nodes" << endl;
+	std::cout << "Filtering Nodes" << endl;
 	int maxDist = 0;
 	for (auto i = 0; i < tap.size(); ++i) {
 		for (auto j = i + 1; j < tap.size(); ++j) {
@@ -34,24 +34,33 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 	bool out[3]; // out[tap.size()]
 	for (auto i = 0; i < 3; ++i) { //i < tap.size()
 		out[i] = items[i].x;
-		cout << out[i];
+		std::cout << out[i];
 	}
-	cout << endl;
+	std::cout << endl;
 	return out;
 }
 
 int main() {
 	using namespace cplex_tap;
 
-	std::cout << "Loading TAP instance\n";
-	//const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_500.dat");
-	const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
+	int budget = 1000;
+	int interestingness_lb = 10000;
+	int sizes[] = {500, 1000, 1500, 2000, 3000, 4000, 5000};
 
-	exclude_nodes(tap, 5);
+	for(const int &size : sizes){
+		std::cout << "Loading TAP instance " << size << endl;
+		std::stringstream fname;
+		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_" << size << ".dat";
+		const auto tap = Instance(fname.str());
+		//const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
 
-	const auto solver = Solver(tap);
+		//exclude_nodes(tap, 5);
 
-	solver.solve_and_print(5, 1000);
+		const auto solver = Solver(tap);
+
+		double time = solver.solve_and_print(interestingness_lb, budget);
+		std::cout << endl << "TIME TO SOLVE " << time << endl;
+	}
 
 	return 0;
 }

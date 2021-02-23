@@ -1,9 +1,11 @@
 #include "solver.h"
 #include <cmath>
+#include <time.h>
 #include <limits>
 
 namespace cplex_tap {
-    void Solver::solve_and_print(int int_bound, int time_bound) const {
+    double Solver::solve_and_print(int int_bound, int time_bound) const {
+        bool const debug = false;
         std::cout << "Starting Solver\n";
 
         // Init CPLEX environment and model objects
@@ -183,6 +185,9 @@ namespace cplex_tap {
         cplex.exportModel("tap_debug_model.lp");
 
         bool solved = false;
+        time_t start, end;
+        double total_time;
+        start = clock();
         try {
             solved = cplex.solve();
         }
@@ -192,6 +197,8 @@ namespace cplex_tap {
             env.end();
             throw;
         }
+        end = clock();
+        double time_to_sol = (double)(end - start) / (double)CLK_TCK;
 
         if (solved) {
             // If CPLEX successfully solved the model, print the results
@@ -199,28 +206,19 @@ namespace cplex_tap {
             std::cout << "    Status: " << cplex.getStatus() << "\n";
             std::cout << "    Objective: " << cplex.getObjValue() << "\n";
 
-            IloNumArray vals(env);
-            cplex.getValues(vals, s);
-            env.out() << "s = " << vals << endl;
+            if (debug) {
+                IloNumArray vals_s(env);
+                cplex.getValues(vals_s, s);
+                env.out() << "s = " << vals_s << endl;
 
-            //IloNumArray vals(env);
-            //cplex.getValues(vals, u);
-            //env.out() << "u = " << vals << endl;
-            
-            for (IloInt i = 0; i <= n+1; ++i) {
-                for (IloInt j = 0; j <= n+1; ++j) {
-                    if (j == i)
-                        cout << 0 << ", ";
-                    else {
-                        cout << cplex.getValue(x[i][j]) << ", ";
-                    }
-                }
-                cout << endl;
-                //cplex.getValues(vals, x[i]);
-                //env.out() << vals << endl;
+                IloNumArray vals_u(env);
+                cplex.getValues(vals_u, u);
+                env.out() << "u = " << vals_u << endl;
+
+                print_X(cplex, x);
             }
-            
-            
+            print_solution(cplex, x);
+
         }
         else {
             std::cerr << "\n--- Solver Error ---\n";
@@ -229,7 +227,44 @@ namespace cplex_tap {
         }
 
         env.end();
+        return time_to_sol;
     }
 
+    void Solver::print_X(const IloCplex& cplex, const IloArray<IloNumVarArray>& x) const {
+        const uint64_t n = tap.size();
 
+        for (IloInt i = 0; i <= n + 1; ++i) {
+            for (IloInt j = 0; j <= n + 1; ++j) {
+                if (j == i) {
+                    cout << "X" << ", ";
+                }
+                else {
+                    cout << cplex.getValue(x[i][j]) << ", ";
+                }
+            }
+            cout << endl;
+        }
+    }
+
+    void Solver::print_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
+        const uint64_t n = tap.size();
+        const auto start_node = 0u;
+        bool first = true;
+        auto current_node = start_node;
+        
+
+        while (current_node != n + 1) {
+            if (first)
+                first = false;
+            else
+                std::cout << current_node << " ";
+            for (auto i = 0u; i <= n+1; ++i) {
+                if (cplex.getValue(x[current_node][i]) > 0) {
+                    current_node = i;
+                    break;
+                }
+            }
+        }
+    
+    }
 }
