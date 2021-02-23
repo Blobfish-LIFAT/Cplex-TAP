@@ -21,11 +21,14 @@ namespace cplex_tap {
         std::stringstream vname;
 
         // Init variables x for arcs
-        for (auto i = 0; i < n+1; ++i) {
+        for (auto i = 0; i <= n+1; ++i) {
             x[i] = IloNumVarArray(env, n + 2u);
             for (auto j = 0u; j <= n + 1; ++j) {
                 vname << "x_" << i << "_" << j;
-                x[i][j] = IloNumVar(env, 0, 1, IloNumVar::Bool, vname.str().c_str());
+                if (i == j )
+                    x[i][j] = IloNumVar(env, 0, 0, IloNumVar::Bool, vname.str().c_str());
+                else
+                    x[i][j] = IloNumVar(env, 0, 1, IloNumVar::Bool, vname.str().c_str());
                 vname.str("");
             }
         }
@@ -49,8 +52,7 @@ namespace cplex_tap {
         // Constraints
         IloRangeArray inbound_arcs(env, n);  // Constraints (5)
         IloRangeArray outbound_arcs(env, n); // Constraints (6)
-        IloRange path_start(env, 1, 1, "path_start"); // Constraint (7)
-        IloRange path_end(env, 1, 1, "path_end"); // Constraint (7)
+        
         
 
         // Expresion object for constraints/objective
@@ -79,11 +81,11 @@ namespace cplex_tap {
         // Create constraints (5)
         // queqlues soit j de 1 a n
         for (auto j = 1u; j <= n; ++j) {
-            for (auto i = 1u; i <= n; ++i) {
+            for (auto i = 0u; i <= n; ++i) {
                 if (j != i)
                     expr += x[i][j];
             }
-            expr += -s[j - 1];
+            expr -= s[j - 1];
 
             vname << "inbound_" << j;
             inbound_arcs[j-1] = IloRange(env, 0, expr, 0, vname.str().c_str()); // = 0
@@ -97,7 +99,7 @@ namespace cplex_tap {
         // Create constraints (6)
         // queqlues soit i de 1 a n
         for (auto i = 1u; i <= n; ++i) {
-            for (auto j = 1u; j <= n; ++j) {
+            for (auto j = 1u; j <= n+1; ++j) {
                 if (j != i)
                     expr += x[i][j];
             }
@@ -115,6 +117,7 @@ namespace cplex_tap {
         for (auto i = 1u; i <= n; ++i) {
             expr += x[0][i];          
         }
+        IloRange path_start(env, 1, 1, "path_start");
         path_start.setExpr(expr);
         expr.clear();
         // Add constraints (7s) to the model
@@ -125,26 +128,36 @@ namespace cplex_tap {
         for (auto i = 1u; i <= n; ++i) {
             expr += x[i][n+1u];
         }
+        IloRange path_end(env, 1, 1, "path_end"); // Constraint (7)
         path_end.setExpr(expr);
         expr.clear();
         // Add constraints (7e) to the model
         model.add(path_end);
         std::cout << "Added (7e) to model\n";
 
+        //Forbidden links (start to end, end to start ...)
+        for (auto i = 0; i <= n + 1; ++i) {
+            expr += x[i][0];
+            expr += x[n+1][i];
+        }
+        expr += x[0][n + 1];
+        IloRange path_form(env, 0, expr, 0, "path_structure");
+        expr.clear();
+        model.add(path_form);
+        
         // Create subtour elimination constraints (8)
         IloArray<IloRangeArray> mtz(env, n);
         for (auto i = 1u; i <= n; ++i) {
             mtz[i-1] = IloRangeArray(env, n);
             for (auto j = 1u; j <= n; ++j) {
-                expr = ((n-1) * (1 - x[i][j])) - u[i-1] + u[j-1]; // >= 1
-
+                expr = ((n - 1) * (1 - x[i][j])) - u[i - 1] + u[j - 1]; // >= 1
                 vname << "mtz_" << i << "_" << j;
-                mtz[i-1][j-1] = IloRange(env, 1, expr, IloInfinity, vname.str().c_str());
+                mtz[i - 1][j - 1] = IloRange(env, 1, expr, IloInfinity, vname.str().c_str());
                 vname.str("");
                 expr.clear();
             }
             // Add constraints (8)_i to the model
-            //model.add(mtz[i-1]);
+            model.add(mtz[i-1]);
         }
         std::cout << "Added (8) to model\nConstraint building complete.\n";
 
@@ -185,24 +198,34 @@ namespace cplex_tap {
             std::cout << "\n--- Solver success ---\n";
             std::cout << "    Status: " << cplex.getStatus() << "\n";
             std::cout << "    Objective: " << cplex.getObjValue() << "\n";
+
+            IloNumArray vals(env);
+            cplex.getValues(vals, s);
+            env.out() << "s = " << vals << endl;
+
+            //IloNumArray vals(env);
+            //cplex.getValues(vals, u);
+            //env.out() << "u = " << vals << endl;
+            
+            for (IloInt i = 0; i <= n+1; ++i) {
+                for (IloInt j = 0; j <= n+1; ++j) {
+                    if (j == i)
+                        cout << 0 << ", ";
+                    else {
+                        cout << cplex.getValue(x[i][j]) << ", ";
+                    }
+                }
+                cout << endl;
+                //cplex.getValues(vals, x[i]);
+                //env.out() << vals << endl;
+            }
+            
+            
         }
         else {
             std::cerr << "\n--- Solver Error ---\n";
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
-        }
-
-        IloNumArray vals(env);
-        cplex.getValues(vals, s);
-        env.out() << "s = " << vals << endl;
-
-        IloNumArray vals_u(env);
-        cplex.getValues(vals_u, u);
-        env.out() << "u = " << vals_u << endl;
-
-        for (IloInt i = 1; i <= n; ++i) {
-            cplex.getValues(vals, x[i]);
-            env.out() << vals << endl;
         }
 
         env.end();
