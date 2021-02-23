@@ -43,20 +43,22 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 int main() {
 	using namespace cplex_tap;
 
-	int budget = 1000;
-	int interestingness_lb = 10000;
-	int sizes[] = {500, 1000, 1500, 2000, 3000, 4000, 5000};
+	
+	int sizes[] = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
 
 	for(const int &size : sizes){
 		std::cout << "Loading TAP instance " << size << endl;
 		std::stringstream fname;
-		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_" << size << ".dat";
+		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_1_" << size << ".dat";
 		const auto tap = Instance(fname.str());
 		//const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
 
 		//exclude_nodes(tap, 5);
 
 		const auto solver = Solver(tap);
+
+		int budget = 5 * size;
+		int interestingness_lb = 100 * size;
 
 		double time = solver.solve_and_print(interestingness_lb, budget);
 		std::cout << endl << "TIME TO SOLVE " << time << endl;
