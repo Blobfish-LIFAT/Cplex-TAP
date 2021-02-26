@@ -49,7 +49,7 @@ int main() {
 	for(const int &size : sizes){
 		std::cout << "Loading TAP instance " << size << endl;
 		std::stringstream fname;
-		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_1_" << size << ".dat";
+		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_6_" << size << ".dat";
 		const auto tap = Instance(fname.str());
 		//const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
 
