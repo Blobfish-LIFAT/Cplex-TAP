@@ -21,14 +21,14 @@ namespace cplex_tap {
         cout << nbQueries << " Queries to load" << endl;
         
         // Load interestingness
-        vector<int> interests_(nbQueries);
+        vector<double> interests_(nbQueries);
         getline(tapFile, line);
         size_t pos = 0;
         int i = 0;
         string token;
         while ((pos = line.find(" ")) != string::npos) {
             token = line.substr(0, pos);
-            interests_[i++] = stoi(token, nullptr);
+            interests_[i++] = stod(token, nullptr);
             line.erase(0, pos + 1);
         }
         interests_[i++] = stoi(line, nullptr);

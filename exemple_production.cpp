@@ -3,6 +3,7 @@
 #include "combo.h"
 #include <iostream>
 #include <string>
+#include <math.h>
 
 
 // combo will not compile with sdl check sue to several C4703 warnings when initializing stuff in switches
@@ -40,7 +41,18 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 	return out;
 }
 
-int main() {
+int run_debug() {
+	using namespace cplex_tap;
+
+	const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
+
+	const auto solver = Solver(tap);
+
+	double time = solver.solve_and_print(200, 50);
+	return 0;
+}
+
+int run_scale_test() {
 	using namespace cplex_tap;
 
 	
@@ -49,7 +61,7 @@ int main() {
 	for(const int &size : sizes){
 		std::cout << "Loading TAP instance " << size << endl;
 		std::stringstream fname;
-		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_6_" << size << ".dat";
+		fname << "C:\\Users\\achan\\source\\repos\\cplex_test\\instances\\tap_7_" << size << ".dat";
 		const auto tap = Instance(fname.str());
 		//const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
 
@@ -57,13 +69,17 @@ int main() {
 
 		const auto solver = Solver(tap);
 
-		int budget = 5 * size;
-		int interestingness_lb = 100 * size;
+		int budget = lround(0.33333f * size * 27.5f);
+		int dist_bound = lround( 0.3333f * size * 4.5);
 
-		double time = solver.solve_and_print(interestingness_lb, budget);
+		double time = solver.solve_and_print(dist_bound, budget);
 		std::cout << endl << "TIME TO SOLVE " << time << endl;
 	}
 
 	return 0;
+}
+
+int main() {
+	return run_scale_test();
 }
 

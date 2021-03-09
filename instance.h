@@ -16,7 +16,7 @@ namespace cplex_tap {
         std::vector<std::uint32_t> times;
 
         // Interstingness of a query
-        std::vector<int> interests;
+        std::vector<double> interests;
 
 
 
@@ -31,7 +31,7 @@ namespace cplex_tap {
         // Getters
         std::uint32_t dist(std::uint32_t i, std::uint32_t j) const { return distances[i][j]; }
         std::uint32_t time(std::uint32_t i) const { return times[i]; }
-        int interest(std::uint32_t i) const { return interests[i]; }
+        double interest(std::uint32_t i) const { return interests[i]; }
 
 
     };

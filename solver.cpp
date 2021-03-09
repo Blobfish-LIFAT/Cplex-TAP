@@ -4,7 +4,7 @@
 #include <limits>
 
 namespace cplex_tap {
-    double Solver::solve_and_print(int int_bound, int time_bound) const {
+    double Solver::solve_and_print(int dist_bound, int time_bound) const {
         bool const debug = false;
         std::cout << "Starting Solver\n";
 
@@ -60,15 +60,16 @@ namespace cplex_tap {
         // Expresion object for constraints/objective
         IloExpr expr(env);
 
-        // Create constraint (1)
-        for (auto i = 0; i < n; ++i) {
-           expr += s[i] * tap.interest(i);  
+        // Create constraint (2)
+        for (auto i = 1; i <= n; ++i) {
+            for(auto j = 1; j <= n; ++j)
+                expr += x[i][j] * (int) tap.dist(i-1, j-1);  
         }
-        IloRange interestingness(env, int_bound, expr, IloInfinity, "interestingness_epsilon");
+        IloRange interestingness(env, -IloInfinity, expr, dist_bound, "distance_epsilon");
         expr.clear();
-        // Add constraints (1) to the model
+        // Add constraints (2) to the model
         model.add(interestingness);
-        std::cout << "Added (1) to model\n";
+        std::cout << "Added (2) to model\n";
 
         // Create constraint (4)
         for (auto i = 0; i < n; ++i) {
@@ -164,15 +165,12 @@ namespace cplex_tap {
         std::cout << "Added (8) to model\nConstraint building complete.\n";
 
         //
-        // --- Objective (2) ---
+        // --- Objective (1) ---
         //
-        for (auto i = 1u; i <= n; ++i) {
-            for (auto j = 1u; j <= n; ++j) {
-                if (i != j)
-                    expr += (int) tap.dist(i-1, j-1) * x[i][j];
-            }
+        for (auto i = 0u; i < n; ++i) {
+            expr += tap.interest(i) * s[i];
         }
-        IloObjective obj(env, expr, IloObjective::Minimize);
+        IloObjective obj(env, expr, IloObjective::Maximize);
         model.add(obj);
         std::cout << "Added Objective to model\n";
 
@@ -181,12 +179,12 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
+        cplex.setParam(IloCplex::TiLim, 3600);
         // Export model to file
         cplex.exportModel("tap_debug_model.lp");
 
         bool solved = false;
         time_t start, end;
-        double total_time;
         start = clock();
         try {
             solved = cplex.solve();
@@ -217,7 +215,7 @@ namespace cplex_tap {
 
                 print_X(cplex, x);
             }
-            print_solution(cplex, x);
+            //print_solution(cplex, x);
 
         }
         else {

@@ -28,7 +28,7 @@ namespace cplex_tap {
         explicit Solver(const Instance& tap) : tap{ tap } {}
 
         // Run solver and dump result to stdout
-        double solve_and_print(int int_bound, int time_bound) const;
+        double solve_and_print(int dist_bound, int time_bound) const;
 
     };
 }
