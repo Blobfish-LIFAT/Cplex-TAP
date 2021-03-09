@@ -50,7 +50,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
-#include <string>
+#include <string.h>
 #include <math.h>
 #include <malloc.h>
 

@@ -196,7 +196,7 @@ namespace cplex_tap {
             throw;
         }
         end = clock();
-        double time_to_sol = (double)(end - start) / (double)CLK_TCK;
+        double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
 
         if (solved) {
             // If CPLEX successfully solved the model, print the results
