@@ -44,11 +44,14 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 int run_debug() {
 	using namespace cplex_tap;
 
-	const auto tap = Instance("C:\\Users\\achan\\source\\repos\\cplex_test\\small_test_instance.txt");
+	const auto tap = Instance("/users/21500078t/cplex_test/instances/tap_1_100.dat");
 
 	const auto solver = Solver(tap);
 
-	double time = solver.solve_and_print(200, 50);
+	double time = solver.solve_and_print(200, 50, false);
+    std::cout << endl << "TIME TO SOLVE " << time << endl;
+
+
 	return 0;
 }
 
@@ -78,7 +81,7 @@ int run_scale_test(int series_id) {
                 int budget = lround(eptime * size * 27.5f);
                 int dist_bound = lround( epdist * size * 4.5);
 
-                double time = solver.solve_and_print(dist_bound, budget);
+                double time = solver.solve_and_print(dist_bound, budget, false);
                 std::cout << endl << "TIME TO SOLVE " << time << endl;
                 res << series_id << ";" << eptime << ";" << epdist << ";" << size << ";" << time << endl;
                 res.flush();
@@ -92,7 +95,9 @@ int run_scale_test(int series_id) {
 }
 
 int main(int argc, char* argv[]) {
-    int tap_series = stoi(argv[1]);
-	return run_scale_test(tap_series);
+    //int tap_series = stoi(argv[1]);
+	//return run_scale_test(tap_series);
+
+	return run_debug();
 }
 
