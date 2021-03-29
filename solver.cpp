@@ -130,7 +130,7 @@ namespace cplex_tap {
             int p_size = 0;
             int current_pos = ei;
             bool init = false;
-            do {
+            while (true) {
                 if (init){
                     p_size = subtour.size();
                     if (std::none_of(subtour.begin(), subtour.end(), compare(current_pos))){
@@ -148,13 +148,18 @@ namespace cplex_tap {
                         break;
                     }
                 }
-            } while (p_size != subtour.size());
+                if (p_size == subtour.size())
+                    break;
+            } //while (p_size != subtour.size());
+            cout << endl;
             //Prune from matrix
+            cout << "Pruning ...";
             for (int i = 0; i < subtour.size()-1; ++i) {
                 //should catch the loop ?
-                mutableX[solution.at(i)][solution.at(i+1)] = 0;
-                mutableX[solution.at(i+1)][solution.at(i)] = 0;
+                mutableX[subtour.at(i)][subtour.at(i+1)] = 0;
             }
+            mutableX[subtour.at(subtour.size()-1)][subtour.at(0)] = 0;
+            cout << " done." << endl;
             //Add to collection
             subtours.push_back(subtour);
         }
