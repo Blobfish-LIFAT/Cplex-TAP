@@ -48,7 +48,7 @@ int run_debug() {
 
 	const auto solver = Solver(tap);
 
-	double time = solver.solve_and_print(200, 50, false);
+	double time = solver.solve_and_print(200, 50, true, false);
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -81,7 +81,7 @@ int run_scale_test(int series_id) {
                 int budget = lround(eptime * size * 27.5f);
                 int dist_bound = lround( epdist * size * 4.5);
 
-                double time = solver.solve_and_print(dist_bound, budget, false);
+                double time = solver.solve_and_print(dist_bound, budget, false, false);
                 std::cout << endl << "TIME TO SOLVE " << time << endl;
                 res << series_id << ";" << eptime << ";" << epdist << ";" << size << ";" << time << endl;
                 res.flush();

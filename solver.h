@@ -16,7 +16,7 @@ namespace cplex_tap {
         // The TAP instance
         const Instance& tap;
 
-
+        // Ids from 1
         vector<int> get_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
             const uint64_t n = tap.size();
             const auto start_node = 0u;
@@ -39,6 +39,7 @@ namespace cplex_tap {
             return path;
         }
 
+        // Ids from 1
         void print_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
             cout << "SOLUTION: ";
             vector<int> path = get_solution(cplex, x);
@@ -110,7 +111,7 @@ namespace cplex_tap {
         explicit Solver(const Instance& tap) : tap{ tap } {}
 
         // Run solver and dump result to stdout
-        double solve_and_print(int dist_bound, int time_bound, bool debug) const;
+        double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug) const;
 
         void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
                        IloNumVarArray &u) const;

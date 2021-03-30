@@ -1,22 +1,21 @@
 #include "solver.h"
+#include "utils.h"
 #include <cmath>
 #include <time.h>
 #include <limits>
 #include <algorithm>
 
 namespace cplex_tap {
-    struct compare
-    {
+
+    struct compare{
         int key;
         compare(int const &i): key(i) { }
-
         bool operator()(int const &i)
         {
             return (i == key);
-        }
-    };
+        }};
 
-    double Solver::solve_and_print(int dist_bound, int time_bound, bool debug) const {
+    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug) const {
         std::cout << "Starting Model generation ...\n";
 
         // Init CPLEX environment and model objects
@@ -35,7 +34,8 @@ namespace cplex_tap {
 
         // Init Constraints
         build_constraints(dist_bound, time_bound, env, model, n, x, s);
-        //build_subtour_const_all(env, model, n, x, u);
+        if (!progressive)
+            build_subtour_const_all(env, model, n, x, u);
 
         //
         // --- Objective (1) ---
@@ -82,9 +82,35 @@ namespace cplex_tap {
             if (debug)
                 dump(cplex, x, env, s, u);
             print_solution(cplex, x);
-            cout << "Looking for subtours in solution" << endl;
-            vector<vector<int>> subtours = getSubtours(n, x, cplex);
 
+            if (progressive) {
+                cout << "Looking for subtours in solution" << endl;
+                vector<vector<int>> subtours = getSubtours(n, x, cplex);
+                //std::vector<bool> flag(n, false);
+                while (!subtours.empty()) {
+                    vector<int> nodes = flatten(subtours);
+                    IloExpr exp(env);
+                    IloModel toUpdate = cplex.getModel();
+                    stringstream vname;
+                    cout << "Adding constraints" << endl;
+                    for (auto k = 0u; k < nodes.size(); ++k) {
+                        for (auto l = 0u; l < nodes.size(); ++l) {
+                            int i = nodes.at(k), j = nodes.at(l);
+                            exp = ((n - 1) * (1 - x[i + 1][j + 1])) - u[i] + u[j]; // >= 1
+                            vname << "mtz_" << i << "_" << j;
+                            toUpdate.add(IloRange(env, 1, exp, IloInfinity, vname.str().c_str()));
+                            vname.str("");
+                            exp.clear();
+                        }
+                    }
+                    start = clock();
+                    cplex.solve();
+                    end = clock();
+                    time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
+                    subtours = getSubtours(n, x, cplex);
+                }
+                print_solution(cplex, x);
+            }
         }
         else {
             std::cerr << "\n--- Solver Error ---\n";
@@ -96,6 +122,7 @@ namespace cplex_tap {
         return time_to_sol;
     }
 
+    //query indexes start at 0
     vector<vector<int>> Solver::getSubtours(const uint64_t n, const IloArray<IloNumVarArray> &x,
                                             const IloCplex &cplex) const {
         vector<vector<int>> subtours;
