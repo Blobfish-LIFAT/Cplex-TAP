@@ -15,7 +15,7 @@ namespace cplex_tap {
             return (i == key);
         }};
 
-    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug) const {
+    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const {
         std::cout << "Starting Model generation ...\n";
 
         // Init CPLEX environment and model objects
@@ -54,7 +54,10 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 3600);
-        cplex.setParam(IloCplex::Param::Threads, 1);
+        if (!production)
+            cplex.setParam(IloCplex::Param::Threads, 1);
+        else
+            cplex.setParam(IloCplex::Param::Threads, 8);
         // Export model to file
         if (debug)
             cplex.exportModel("tap_debug_model.lp");

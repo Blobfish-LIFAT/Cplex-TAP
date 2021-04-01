@@ -52,7 +52,7 @@ int run_debug() {
     int budget = lround(0.35 * 200 * 27.5f);
     int dist_bound = lround( 0.5 * 200 * 4.5);
 
-	double time = solver.solve_and_print(dist_bound, budget, true, false);
+	double time = solver.solve_and_print(dist_bound, budget, true, false, false);
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -85,7 +85,7 @@ int run_scale_test(int series_id) {
                 int budget = lround(eptime * size * 27.5f);
                 int dist_bound = lround( epdist * size * 4.5);
 
-                double time = solver.solve_and_print(dist_bound, budget, false, false);
+                double time = solver.solve_and_print(dist_bound, budget, false, false, false);
                 std::cout << endl << "TIME TO SOLVE " << time << endl;
                 res << series_id << ";" << eptime << ";" << epdist << ";" << size << ";" << time << endl;
                 res.flush();
@@ -100,18 +100,12 @@ int run_scale_test(int series_id) {
 
 int production(char* argv[]) {
     using namespace cplex_tap;
-
     const auto tap = Instance(argv[1]);
-
     const auto solver = Solver(tap);
-
-    // Easy
     int budget = stoi(argv[2]);
     int dist_bound = stoi(argv[2]);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false);
-    std::cout << endl << "TIME TO SOLVE " << time << endl;
-
+    double time = solver.solve_and_print(dist_bound, budget, false, false, true);
 
     return 0;
 }

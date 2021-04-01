@@ -111,7 +111,7 @@ namespace cplex_tap {
         explicit Solver(const Instance& tap) : tap{ tap } {}
 
         // Run solver and dump result to stdout
-        double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug) const;
+        double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const;
 
         void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
                        IloNumVarArray &u) const;
