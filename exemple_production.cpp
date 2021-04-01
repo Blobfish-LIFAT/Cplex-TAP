@@ -48,7 +48,11 @@ int run_debug() {
 
 	const auto solver = Solver(tap);
 
-	double time = solver.solve_and_print(200, 50, true, false);
+	// Easy
+    int budget = lround(0.35 * 200 * 27.5f);
+    int dist_bound = lround( 0.5 * 200 * 4.5);
+
+	double time = solver.solve_and_print(dist_bound, budget, true, false);
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -94,10 +98,28 @@ int run_scale_test(int series_id) {
 	return 0;
 }
 
+int production(char* argv[]) {
+    using namespace cplex_tap;
+
+    const auto tap = Instance(argv[1]);
+
+    const auto solver = Solver(tap);
+
+    // Easy
+    int budget = stoi(argv[2]);
+    int dist_bound = stoi(argv[2]);
+
+    double time = solver.solve_and_print(dist_bound, budget, false, false);
+    std::cout << endl << "TIME TO SOLVE " << time << endl;
+
+
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     //int tap_series = stoi(argv[1]);
 	//return run_scale_test(tap_series);
 
-	return run_debug();
+	return production(argv);
 }
 
