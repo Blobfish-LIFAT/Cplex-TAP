@@ -43,8 +43,7 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 
 int run_debug() {
 	using namespace cplex_tap;
-
-	const auto tap = Instance("/users/21500078t/cplex_test/instances/tap_1_100.dat");
+	const auto tap = Instance("/users/21500078t/cplex_test/instances/tap_2_100.dat");
 
 	const auto solver = Solver(tap);
 
@@ -59,7 +58,8 @@ int run_debug() {
 	return 0;
 }
 
-int run_scale_test(int series_id) {
+int run_epsilon_test(char* argv[]) {
+    int series_id = stoi(argv[1]);
 	using namespace cplex_tap;
 
 	ofstream res;
@@ -68,9 +68,9 @@ int run_scale_test(int series_id) {
 	res.open(outname.str());
 	res << "series_id;size;epsilon_time;epsilon_distance;time_solve" << endl;
 
-	float eptimes[] = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95};
-	float epdists[] = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95};
-	int sizes[] = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+	float eptimes[] = {0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90};
+	float epdists[] = {0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90};
+	int sizes[] = {200, 400, 600, 800, 1000 };
 
 	for (const float &eptime : eptimes){
 	    for (const float &epdist : epdists){
@@ -111,9 +111,7 @@ int production(char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    //int tap_series = stoi(argv[1]);
-	//return run_scale_test(tap_series);
-
-	return production(argv);
+	return run_epsilon_test(argv);
+	//return run_debug();
 }
 

@@ -109,7 +109,9 @@ namespace cplex_tap {
                     start = clock();
                     cplex.solve();
                     end = clock();
+                    dump(cplex, x, env, s, u);
                     time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
+                    cout << "Looking for subtours in solution" << endl;
                     subtours = getSubtours(n, x, cplex);
                 }
                 print_solution(cplex, x);
@@ -128,6 +130,7 @@ namespace cplex_tap {
     //query indexes start at 0
     vector<vector<int>> Solver::getSubtours(const uint64_t n, const IloArray<IloNumVarArray> &x,
                                             const IloCplex &cplex) const {
+        cout << "Subtour routine started" << endl;
         vector<vector<int>> subtours;
         vector<int> solution = get_solution(cplex, x);
         int** mutableX = getX_center(cplex, x);
@@ -135,6 +138,7 @@ namespace cplex_tap {
         for (int i = 0; i < solution.size()-1; ++i) {
             mutableX[solution.at(i)-1][solution.at(i+1)-1] = 0;
         }
+        cout << "  prunning" << endl;
         //check sum if > 0 must be subtours
         cout << "|Offending edges| = " << getSumX(n, mutableX) << endl;
         // find the subtour(s)
@@ -198,6 +202,7 @@ namespace cplex_tap {
             delete mutableX[i];
         }
         delete mutableX;
+        cout << "Subtour routine is done" << endl;
         return subtours;
     }
 

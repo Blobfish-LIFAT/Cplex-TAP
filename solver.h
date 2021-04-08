@@ -24,7 +24,11 @@ namespace cplex_tap {
             auto current_node = start_node;
             vector<int> path;
 
+            uint64_t iter = 0;
+            uint64_t max_iter = n+2;
+
             while (current_node != n + 1) {
+                //std::cout << current_node << "|" << n+1 << std::endl;
                 if (first)
                     first = false;
                 else
@@ -34,6 +38,10 @@ namespace cplex_tap {
                         current_node = i;
                         break;
                     }
+                }
+                iter++;
+                if (iter >= max_iter) {
+                    //break;
                 }
             }
             return path;
