@@ -105,13 +105,14 @@ int production(char* argv[]) {
     int budget = stoi(argv[2]);
     int dist_bound = stoi(argv[2]);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false, true);
+    double time = solver.solve_and_print(dist_bound, budget, true, false, true);
 
     return 0;
 }
 
 int main(int argc, char* argv[]) {
-	//return run_epsilon_test(argv);
-	return run_debug(true, 0.15, 0.05,"/users/21500078t/cplex_test/instances/tap_1_500.dat");
+    return production(argv);
+    //return run_epsilon_test(argv);
+	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat");
 }
 

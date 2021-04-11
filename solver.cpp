@@ -86,7 +86,6 @@ namespace cplex_tap {
             if (debug)
                 dump(cplex, x, env, s, u);
             print_solution(cplex, x);
-            cplex.writeMIPStarts("current_solution.mips");
 
             if (progressive) {
                 cout << "Looking for subtours in solution" << endl;
@@ -108,11 +107,9 @@ namespace cplex_tap {
                             exp.clear();
                         }
                     }
-                    cplex.readMIPStarts("current_solution.mips");
                     start = clock();
                     cplex.solve();
                     end = clock();
-                    cplex.writeMIPStarts("current_solution.mips");
                     time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
                     cout << "Looking for subtours in solution" << endl;
                     subtours = getSubtours(n, x, cplex);
