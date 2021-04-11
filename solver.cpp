@@ -4,6 +4,7 @@
 #include <time.h>
 #include <limits>
 #include <algorithm>
+#include <bitset>
 
 namespace cplex_tap {
 
@@ -85,11 +86,12 @@ namespace cplex_tap {
             if (debug)
                 dump(cplex, x, env, s, u);
             print_solution(cplex, x);
+            cplex.writeMIPStarts("current_solution.mips");
 
             if (progressive) {
                 cout << "Looking for subtours in solution" << endl;
                 vector<vector<int>> subtours = getSubtours(n, x, cplex);
-                //std::vector<bool> flag(n, false);
+                int p_iters = 0;
                 while (!subtours.empty()) {
                     vector<int> nodes = flatten(subtours);
                     IloExpr exp(env);
@@ -106,15 +108,18 @@ namespace cplex_tap {
                             exp.clear();
                         }
                     }
+                    cplex.readMIPStarts("current_solution.mips");
                     start = clock();
                     cplex.solve();
                     end = clock();
-                    dump(cplex, x, env, s, u);
+                    cplex.writeMIPStarts("current_solution.mips");
                     time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
                     cout << "Looking for subtours in solution" << endl;
                     subtours = getSubtours(n, x, cplex);
+                    p_iters++;
                 }
                 print_solution(cplex, x);
+                cout << "Progressive Mode : iterations = " << p_iters << endl;
             }
         }
         else {

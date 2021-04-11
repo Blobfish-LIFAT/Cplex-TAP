@@ -13,48 +13,9 @@ ILOSTLBEGIN
 
 namespace cplex_tap {
     class Solver {
+    protected:
         // The TAP instance
         const Instance& tap;
-
-        // Ids from 1
-        vector<int> get_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
-            const uint64_t n = tap.size();
-            const auto start_node = 0u;
-            bool first = true;
-            auto current_node = start_node;
-            vector<int> path;
-
-            uint64_t iter = 0;
-            uint64_t max_iter = n+2;
-
-            while (current_node != n + 1) {
-                //std::cout << current_node << "|" << n+1 << std::endl;
-                if (first)
-                    first = false;
-                else
-                    path.push_back(current_node);
-                for (auto i = 0u; i <= n+1; ++i) {
-                    if (i!= current_node && cplex.getValue(x[current_node][i]) > 0) {
-                        current_node = i;
-                        break;
-                    }
-                }
-                iter++;
-                if (iter >= max_iter) {
-                    //break;
-                }
-            }
-            return path;
-        }
-
-        // Ids from 1
-        void print_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
-            cout << "SOLUTION: ";
-            vector<int> path = get_solution(cplex, x);
-            for (int i : path)
-                std::cout << i << ' ';
-            std::cout << std::endl;
-        }
 
         // dump decision variables
         void dump(const IloCplex& cplex, const IloArray<IloNumVarArray>& x, const IloEnv& env, const IloNumVarArray &s, const IloNumVarArray &u) const {
@@ -98,7 +59,7 @@ namespace cplex_tap {
                     if (i != j){
                         int temp = 0;
                         try {
-                            temp = ((int) cplex.getValue(x[i][j]) > 0.000005);
+                            temp = ((int) cplex.getValue(x[i][j]) > 0.005);
                         } catch (IloException& e) {
                             cerr << "Concert Exception: " << e << endl;
                         }
@@ -113,13 +74,6 @@ namespace cplex_tap {
             return out;
         }
 
-    public:
-
-        // Builds a solver the specified instance
-        explicit Solver(const Instance& tap) : tap{ tap } {}
-
-        // Run solver and dump result to stdout
-        double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const;
 
         void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
                        IloNumVarArray &u) const;
@@ -137,6 +91,56 @@ namespace cplex_tap {
 
         //find subtours in a relaxed solution
         vector<vector<int>> getSubtours(const uint64_t n, const IloArray<IloNumVarArray> &x, const IloCplex &cplex) const;
+
+    public:
+
+        // Builds a solver the specified instance
+        explicit Solver(const Instance& tap) : tap{ tap } {}
+
+        // Run solver and dump result to stdout
+        virtual double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const;
+
+        // Ids from 1
+        vector<int> get_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
+            const uint64_t n = tap.size();
+            const auto start_node = 0u;
+            bool first = true;
+            auto current_node = start_node;
+            vector<int> path;
+
+            uint64_t iter = 0;
+            uint64_t max_iter = n+2;
+
+            while (current_node != n + 1) {
+                //std::cout << current_node << "|" << n+1 << std::endl;
+                if (first)
+                    first = false;
+                else
+                    path.push_back(current_node);
+                for (auto i = 0u; i <= n+1; ++i) {
+                    if (i!= current_node && cplex.getValue(x[current_node][i]) > 0.5) {
+                        current_node = i;
+                        break;
+                    }
+                }
+                iter++;
+                //no valid solution: eg cycle
+                if (iter >= max_iter) {
+                    return vector<int>();
+                }
+            }
+            return path;
+        }
+
+        // Ids from 1
+        void print_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
+            cout << "SOLUTION: ";
+            vector<int> path = get_solution(cplex, x);
+            for (int i : path)
+                std::cout << i << ' ';
+            std::cout << std::endl;
+        }
+
     };
 }
 
