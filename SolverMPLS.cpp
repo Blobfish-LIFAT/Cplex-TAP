@@ -93,7 +93,7 @@ namespace cplex_tap {
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;
                 if(iter > 0){
                     for (const auto& f: current_fixed) {
-                        model.remove(f);
+                        cplex.getModel().remove(f);
                     }
                     current_fixed.clear();
                     cout << "  clear ok" <<endl;
@@ -105,7 +105,7 @@ namespace cplex_tap {
                     if (!(j >= wstart && j <= wend)) {
                         int value = vals_s[j] > 0.5;
                         IloRange fixed(env, value, s[j], value);
-                        model.add(obj);
+                        model.add(fixed);
                         current_fixed.push_back(fixed);
                     }
                 }
