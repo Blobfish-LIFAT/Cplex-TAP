@@ -101,8 +101,17 @@ namespace cplex_tap {
                 }
 
                 IloNumArray vals_s(env);
-                cplex.getValues(vals_s, s);
-                cout << vals_s << endl;
+                try {
+                    cplex.getValues(vals_s, s);
+                    cout << vals_s << endl;
+                }
+                catch (const IloException &e) {
+                    std::cerr << "\n\n--- CPLEX Exception ---\n";
+                    std::cerr << e << "\n";
+                    env.end();
+                    throw;
+                }
+                cout << "truc" << endl;
                 for (auto j = 0u; j < solution.size(); ++j) {
                     if (!(j >= wstart && j <= wend)) {
                         int value = vals_s[solution.at(j)-1] > 0.5;
