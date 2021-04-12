@@ -5,6 +5,12 @@
 
 namespace cplex_tap {
     class SolverMPLS : public Solver {
+    public:
+        // Builds a solver the specified instance
+        explicit SolverMPLS(const Instance& tap)
+        : Solver{ tap }
+        {}
+
         double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const;
     };
 }

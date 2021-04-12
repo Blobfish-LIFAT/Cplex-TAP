@@ -1,5 +1,6 @@
 ﻿#include "instance.h"
 #include "solver.h"
+#include "SolverMPLS.h"
 #include "combo.h"
 #include <iostream>
 #include <string>
@@ -58,6 +59,22 @@ int run_debug(bool progressive, double temps, double dist, std::string path) {
 	return 0;
 }
 
+int run_debug_mpls(double temps, double dist, std::string path) {
+    using namespace cplex_tap;
+    const auto tap = Instance(path);
+
+    const auto solver = SolverMPLS(tap);
+
+    int budget = lround(temps * tap.size() * 27.5f);
+    int dist_bound = lround( dist * tap.size() * 4.5);
+
+    double time = solver.solve_and_print(dist_bound, budget, false, false, false);
+    std::cout << endl << "TIME TO SOLVE " << time << endl;
+
+
+    return 0;
+}
+
 int run_epsilon_test(char* argv[]) {
     int series_id = stoi(argv[1]);
 	using namespace cplex_tap;
@@ -111,8 +128,9 @@ int production(char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    return production(argv);
+    //return production(argv);
     //return run_epsilon_test(argv);
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat");
+	return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_300.dat");
 }
 
