@@ -79,7 +79,6 @@ namespace cplex_tap {
             // use rd() instead of seed for non determinism
             //std::random_device rd;
             std::mt19937 mt(42);
-            std::uniform_int_distribution<int> dist(1, n-1 - h);
             std::vector<IloRange> current_fixed;
 
             cplex.setParam(IloCplex::Param::TimeLimit, 600);
@@ -88,6 +87,8 @@ namespace cplex_tap {
             cout << "Starting MPLS heurisitc max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter){
                 cout << "  Starting iteration " << iter << endl;
+                vector<int> solution = get_solution(cplex, x);
+                std::uniform_int_distribution<int> dist(1, solution.size() - h);
                 int wstart = dist(mt);
                 int wend = wstart + h;
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;
@@ -101,16 +102,18 @@ namespace cplex_tap {
 
                 IloNumArray vals_s(env);
                 cplex.getValues(vals_s, s);
-                for (auto j = 0u; j < n; ++j) {
+                cout << vals_s << endl;
+                for (auto j = 0u; j < solution.size(); ++j) {
                     if (!(j >= wstart && j <= wend)) {
-                        int value = vals_s[j] > 0.5;
-                        IloRange fixed(env, value, s[j], value);
-                        model.add(fixed);
+                        int value = vals_s[solution.at(j)-1] > 0.5;
+                        IloRange fixed(env, value, s[solution.at(j)-1], value);
+                        cplex.getModel().add(fixed);
                         current_fixed.push_back(fixed);
                     }
                 }
+                cout << "  set ok" << endl;
 
-                cplex.solve();
+                solved = cplex.solve();
                 print_solution(cplex, x);
                 cout << "  Z=" << cplex.getObjValue() << endl;
             }
