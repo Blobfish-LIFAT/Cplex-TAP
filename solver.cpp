@@ -55,6 +55,7 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 3600);
+        cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 16000);
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
@@ -86,6 +87,10 @@ namespace cplex_tap {
             if (debug)
                 dump(cplex, x, env, s, u);
             print_solution(cplex, x);
+
+            if (cplex.getStatus() == IloAlgorithm::Feasible && time_to_sol < 3595){
+                return - time_to_sol;
+            }
 
             if (progressive) {
                 cout << "Looking for subtours in solution" << endl;

@@ -122,7 +122,7 @@ int production(char* argv[]) {
     int budget = stoi(argv[2]);
     int dist_bound = stoi(argv[2]);
 
-    double time = solver.solve_and_print(dist_bound, budget, true, false, true);
+    double time = solver.solve_and_print(dist_bound, budget, false, false, true);
 
     return 0;
 }

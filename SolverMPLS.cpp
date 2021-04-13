@@ -102,6 +102,7 @@ namespace cplex_tap {
 
                 IloNumArray vals_s(env);
                 try {
+                    cout << "Status:" << cplex.getStatus() << endl;
                     cplex.getValues(vals_s, s);
                     cout << vals_s << endl;
                 }
@@ -111,13 +112,14 @@ namespace cplex_tap {
                     env.end();
                     throw;
                 }
-                cout << "truc" << endl;
+
                 for (auto j = 0u; j < solution.size(); ++j) {
                     if (!(j >= wstart && j <= wend)) {
                         int value = vals_s[solution.at(j)-1] > 0.5;
                         IloRange fixed(env, value, s[solution.at(j)-1], value);
                         cplex.getModel().add(fixed);
                         current_fixed.push_back(fixed);
+
                     }
                 }
                 cout << "  set ok" << endl;
