@@ -42,7 +42,7 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 60);
-        cplex.setParam(IloCplex::IntSolLim, 5);
+        cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
@@ -79,10 +79,9 @@ namespace cplex_tap {
             // use rd() instead of seed for non determinism
             //std::random_device rd;
             std::mt19937 mt(42);
-            std::vector<IloRange> current_fixed;
-
+            std::vector<int> current_fixed;
             cplex.setParam(IloCplex::Param::TimeLimit, 600);
-            cplex.setParam(IloCplex::IntSolLim, 9223372036800000000);
+            //cplex.setParam(IloCplex::IntSolLim, 9223372036800000000);
 
             cout << "Starting MPLS heurisitc max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter){
@@ -92,33 +91,32 @@ namespace cplex_tap {
                 int wstart = dist(mt);
                 int wend = wstart + h;
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;
-                if(iter > 0){
-                    for (const auto& f: current_fixed) {
-                        cplex.getModel().remove(f);
-                    }
-                    current_fixed.clear();
-                    cout << "  clear ok" <<endl;
-                }
 
                 IloNumArray vals_s(env);
                 try {
-                    cout << "Status:" << cplex.getStatus() << endl;
+                    cout << "  Status:" << cplex.getStatus() << endl;
                     cplex.getValues(vals_s, s);
-                    cout << vals_s << endl;
                 }
                 catch (const IloException &e) {
-                    std::cerr << "\n\n--- CPLEX Exception ---\n";
+                    std::cerr << "\n\n--- CPLEX Exception (VPLS) ---\n";
                     std::cerr << e << "\n";
                     env.end();
                     throw;
                 }
 
+                if(iter > 0){
+                    for (const auto& f: current_fixed) {
+                        s[f].setBounds(0,1);
+                    }
+                    current_fixed.clear();
+                    cout << "  clear ok" <<endl;
+                }
+
                 for (auto j = 0u; j < solution.size(); ++j) {
                     if (!(j >= wstart && j <= wend)) {
                         int value = vals_s[solution.at(j)-1] > 0.5;
-                        IloRange fixed(env, value, s[solution.at(j)-1], value);
-                        cplex.getModel().add(fixed);
-                        current_fixed.push_back(fixed);
+                        current_fixed.push_back(solution.at(j)-1);
+                        s[solution.at(j)-1].setBounds(value, value);
 
                     }
                 }
