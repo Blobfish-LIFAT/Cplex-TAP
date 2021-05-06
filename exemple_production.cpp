@@ -87,11 +87,11 @@ int run_epsilon_test(char* argv[]) {
 
 	float eptimes[] = {0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90};
 	float epdists[] = {0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90};
-	int sizes[] = {200, 400, 600, 800, 1000 };
+	int sizes[] = {100, 300, 500, 700};
 
-	for (const float &eptime : eptimes){
+    for(const int &size : sizes){
 	    for (const float &epdist : epdists){
-            for(const int &size : sizes){
+            for (const float &eptime : eptimes){
                 std::cout << "Loading TAP instance " << size << endl;
                 std::stringstream fname;
                 fname << "/users/21500078t/cplex_test/instances/tap_" << series_id << "_" << size << ".dat";
@@ -130,7 +130,7 @@ int production(char* argv[]) {
 int main(int argc, char* argv[]) {
     //return production(argv);
     //return run_epsilon_test(argv);
-	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat");
-	return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_300.dat");
+	return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_8_500.dat");
+	//return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_300.dat");
 }
 
