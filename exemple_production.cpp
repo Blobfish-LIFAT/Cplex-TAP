@@ -42,28 +42,11 @@ bool* exclude_nodes(cplex_tap::Instance tap, int lb_interest) {
 	return out;
 }
 
-int run_debug(bool progressive, double temps, double dist, std::string path) {
-	using namespace cplex_tap;
-	const auto tap = Instance(path);
-
-	const auto solver = Solver(tap);
-
-	// Easy
-    int budget = lround(temps * tap.size() * 27.5f);
-    int dist_bound = lround( dist * tap.size() * 4.5);
-
-	double time = solver.solve_and_print(dist_bound, budget, progressive, false, false);
-    std::cout << endl << "TIME TO SOLVE " << time << endl;
-
-
-	return 0;
-}
-
 int run_debug_mpls(double temps, double dist, std::string path) {
     using namespace cplex_tap;
     const auto tap = Instance(path);
 
-    const auto solver = SolverMPLS(tap);
+    const auto solver = SolverMPLS(tap, 25, 10);
 
     int budget = lround(temps * tap.size() * 27.5f);
     int dist_bound = lround( dist * tap.size() * 4.5);
@@ -127,11 +110,27 @@ int production(char* argv[]) {
     return 0;
 }
 
+int run_debug(bool progressive, double temps, double dist, std::string path) {
+    using namespace cplex_tap;
+    const auto tap = Instance(path);
+
+    const auto solver = Solver(tap);
+
+    // Easy
+    int budget = lround(temps * tap.size() * 27.5f);
+    int dist_bound = lround( dist * tap.size() * 4.5);
+
+    double time = solver.solve_and_print(dist_bound, budget, progressive, false, false);
+    std::cout << endl << "TIME TO SOLVE " << time << endl;
+
+
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
-    //test
-    return production(argv);
+    //return production(argv);
     //return run_epsilon_test(argv);
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_8_500.dat");
-	//return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_300.dat");
+	return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_8_1000.dat");
 }
 

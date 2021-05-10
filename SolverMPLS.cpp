@@ -41,7 +41,7 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 60);
+        cplex.setParam(IloCplex::Param::TimeLimit, 120);
         cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
@@ -73,15 +73,14 @@ namespace cplex_tap {
                 dump(cplex, x, env, s, u);
             print_solution(cplex, x);
 
-            //TODO move parameters
-            int h = 10;
-            int max_iter = 20;
             // use rd() instead of seed for non determinism
             //std::random_device rd;
             std::mt19937 mt(42);
             std::vector<int> current_fixed;
-            cplex.setParam(IloCplex::Param::TimeLimit, 600);
+            cplex.setParam(IloCplex::Param::TimeLimit, 60);
             //cplex.setParam(IloCplex::IntSolLim, 9223372036800000000);
+
+            vector<double> zvalues;
 
             cout << "Starting MPLS heurisitc max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter){
@@ -109,7 +108,7 @@ namespace cplex_tap {
                         s[f].setBounds(0,1);
                     }
                     current_fixed.clear();
-                    cout << "  clear ok" <<endl;
+                    if (debug) cout << "  clear ok" << endl;
                 }
 
                 for (auto j = 0u; j < solution.size(); ++j) {
@@ -120,11 +119,14 @@ namespace cplex_tap {
 
                     }
                 }
-                cout << "  set ok" << endl;
-
+                if (debug) cout << "  set ok" << endl;
+                //Report
                 solved = cplex.solve();
                 print_solution(cplex, x);
+                zvalues.push_back(cplex.getObjValue());
                 cout << "  Z=" << cplex.getObjValue() << endl;
+
+                //Check convergence criterion
             }
 
 
