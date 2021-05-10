@@ -120,7 +120,7 @@ int production(char* argv[]) {
     const auto tap = Instance(argv[1]);
     const auto solver = Solver(tap);
     int budget = stoi(argv[2]);
-    int dist_bound = stoi(argv[2]);
+    int dist_bound = stoi(argv[3]);
 
     double time = solver.solve_and_print(dist_bound, budget, false, false, true);
 
@@ -128,9 +128,9 @@ int production(char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    //return production(argv);
+    return production(argv);
     //return run_epsilon_test(argv);
-	return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_8_500.dat");
+	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_8_500.dat");
 	//return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_300.dat");
 }
 

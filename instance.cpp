@@ -33,6 +33,7 @@ namespace cplex_tap {
         }
         interests_[i++] = stoi(line, nullptr);
         interests = interests_;
+        cout << "  Interest loaded" << endl;
 
         // Load time to run
         vector<uint32_t> times_(nbQueries);
@@ -47,28 +48,28 @@ namespace cplex_tap {
         }
         times_[i++] = stoi(line, nullptr);
         times = times_;
+        cout << "  Time loaded" << endl;
 
-        vector<vector<uint32_t>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
+        vector<vector<double>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
         // Load distnces
         for (auto j = 0; j < nbQueries; j++)
         {
-            vector<uint32_t>  line_vec(nbQueries);
+            vector<double>  line_vec(nbQueries);
             getline(tapFile, line);
             pos = 0;
             i = 0;
             token = "";
             while ((pos = line.find(" ")) != string::npos) {
                 token = line.substr(0, pos);
-                line_vec[i++] = stoi(token, nullptr);
+                line_vec[i++] = stod(token, nullptr);
                 line.erase(0, pos + 1);
             }
-            line_vec[i++] = stoi(line, nullptr);
+            line_vec[i++] = stod(line, nullptr);
             distances_.push_back(line_vec);
            
         }
         distances = distances_;
-
-        
+        cout << "  Distances loaded" << endl;
 
 
         tapFile.close();
