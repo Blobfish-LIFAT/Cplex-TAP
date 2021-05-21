@@ -16,8 +16,21 @@ namespace cplex_tap {
             return (i == key);
         }};
 
+    ILOMIPINFOCALLBACK1(MyCallback, IloInt, num) {
+        IloEnv env = getEnv();
+        double this_z = getIncumbentObjValue();
+        double best_z = getBestObjValue();
+        //TODO only print if we have better solution ....
+        if (1)
+            env.out() << "[INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
+    }
+
     double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const {
-        std::cout << "Starting Model generation ...\n";
+        std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
+        std::cout << "Starting Model generation ..." << std::endl;
+
+        bool seed = false;
+        std::string warm_file = "warm_start.dat";
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -63,10 +76,73 @@ namespace cplex_tap {
         // Export model to file
         if (debug)
             cplex.exportModel("tap_debug_model.lp");
+        IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
+
+        if (seed) {
+            //Read file
+            vector<int> ssol;
+            std::ifstream ifs(warm_file);
+            std::string line;
+            std::getline(ifs, line);
+            ifs.close();
+            // Load starting solution
+            string token;
+            size_t pos = 0;
+            while ((pos = line.find(" ")) != string::npos) {
+                token = line.substr(0, pos);
+                ssol.push_back(std::stoi(token, nullptr));
+                line.erase(0, pos + 1);
+            }
+            // Build MIP Start
+            IloNumVarArray startVar(env);
+            IloNumArray startVal(env);
+            // Build S vector
+            for (int i = 0; i < n; ++i) {
+                startVar.add(s[i]);
+                startVal.add(std::find(ssol.begin(), ssol.end(), i) != ssol.cend());
+            }
+            // Build X matrix
+            // First line - start node
+            int sn = ssol.at(0) + 1;
+            for (int j = 1; j <= n; ++j) {
+                startVar.add(x[0][j]);
+                startVal.add(sn == j);
+            }
+            // Last column - finish node
+            int en = ssol.at(ssol.size()-1) + 1;
+            for (int j = 1; j <= n; ++j) {
+                startVar.add(x[j][n+1]);
+                startVal.add(en == j);
+            }
+            for (int i = 1; i <= n; ++i) {
+                for (int j = 1; j <= n; ++j) {
+                    if (i != j){
+                        startVar.add(x[i][j]);
+                        std::vector<int>::iterator jit = std::find(ssol.begin(), ssol.end(), j-1);
+                        // first node or not in solution
+                        if (jit == ssol.begin() || jit == ssol.end()){
+                            startVal.add(0);
+                        }
+                        else{
+                            // if we are on the right line
+                            if(true){
+                                //TODO
+                            } else {
+                                startVal.add(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            IloCplex::MIPStartEffort effort = IloCplex::MIPStartCheckFeas;
+            cplex.addMIPStart(startVar, startVal, effort);
+        }
 
         bool solved = false;
         time_t start, end;
         start = clock();
+        std::cout << "CLK_START " << start << std::endl;
         try {
             solved = cplex.solve();
         }

@@ -42,7 +42,7 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 120);
-        cplex.setParam(IloCplex::IntSolLim, 4);// remove
+        //cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
@@ -86,6 +86,7 @@ namespace cplex_tap {
             for (auto iter = 0; iter < max_iter; ++iter){
                 cout << "  Starting iteration " << iter << endl;
                 vector<int> solution = get_solution(cplex, x);
+                //if (solution.)
                 std::uniform_int_distribution<int> dist(1, solution.size() - h);
                 int wstart = dist(mt);
                 int wend = wstart + h;
@@ -108,7 +109,7 @@ namespace cplex_tap {
                         s[f].setBounds(0,1);
                     }
                     current_fixed.clear();
-                    if (debug) cout << "  clear ok" << endl;
+                    cout << "  clear ok" << endl;
                 }
 
                 for (auto j = 0u; j < solution.size(); ++j) {
@@ -119,14 +120,28 @@ namespace cplex_tap {
 
                     }
                 }
-                if (debug) cout << "  set ok" << endl;
+                cout << "  set ok" << endl;
                 //Report
+                start = clock();
                 solved = cplex.solve();
+                end = clock();
+                time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
                 print_solution(cplex, x);
                 zvalues.push_back(cplex.getObjValue());
                 cout << "  Z=" << cplex.getObjValue() << endl;
 
-                //Check convergence criterion
+                //Check convergence criterion, no significant change in Z in the last 5 iterations
+                if (iter >= 4){
+                    bool check = true;
+                    for (int i = iter; i > iter - 4 ; --i) {
+                        check = check && (zvalues.at(i) - zvalues.at(i-1) < 0.001);
+
+                    }
+                    if (check) {
+                        cout << "  VPLS Converged at iteration " << iter << endl;
+                        break;
+                    }
+                }
             }
 
 

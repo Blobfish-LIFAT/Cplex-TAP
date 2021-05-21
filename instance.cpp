@@ -50,18 +50,18 @@ namespace cplex_tap {
         times = times_;
         cout << "  Time loaded" << endl;
 
-        vector<vector<double>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
+        vector<vector<std::uint32_t>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
         // Load distnces
         for (auto j = 0; j < nbQueries; j++)
         {
-            vector<double>  line_vec(nbQueries);
+            vector<std::uint32_t>  line_vec(nbQueries);
             getline(tapFile, line);
             pos = 0;
             i = 0;
             token = "";
             while ((pos = line.find(" ")) != string::npos) {
                 token = line.substr(0, pos);
-                line_vec[i++] = stod(token, nullptr);
+                line_vec[i++] = stoi(token, nullptr);
                 line.erase(0, pos + 1);
             }
             line_vec[i++] = stod(line, nullptr);
