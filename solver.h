@@ -102,6 +102,8 @@ namespace cplex_tap {
         // Run solver and dump result to stdout
         virtual double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const;
 
+        //void warm_start(const std::string &warm_file, const IloEnv &env, const uint64_t &n,  const IloArray <IloNumVarArray> &x, const IloNumVarArray &s, const IloCplex &cplex);
+
         // Ids from 1
         vector<int> get_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
             const uint64_t n = tap.size();

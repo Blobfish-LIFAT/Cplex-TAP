@@ -29,8 +29,8 @@ namespace cplex_tap {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ..." << std::endl;
 
-        bool seed = false;
-        std::string warm_file = "warm_start.dat";
+        bool seed = true;
+        std::string warm_file = "/works/tmp.iMWgfyXwCT/warm_start.dat";
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -79,11 +79,13 @@ namespace cplex_tap {
         IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
 
         if (seed) {
+            cout << "loading warm start from " << warm_file << endl;
             //Read file
             vector<int> ssol;
             std::ifstream ifs(warm_file);
             std::string line;
             std::getline(ifs, line);
+            cout << "  Warm solution :" << line << endl;
             ifs.close();
             // Load starting solution
             string token;
@@ -125,8 +127,8 @@ namespace cplex_tap {
                         }
                         else{
                             // if we are on the right line
-                            if(true){
-                                //TODO
+                            if(*std::prev(jit) == (i-1)){
+                                startVal.add(1);
                             } else {
                                 startVal.add(0);
                             }
@@ -135,8 +137,9 @@ namespace cplex_tap {
                 }
             }
 
-            IloCplex::MIPStartEffort effort = IloCplex::MIPStartCheckFeas;
-            cplex.addMIPStart(startVar, startVal, effort);
+            //IloCplex::MIPStartEffort effort = IloCplex::MIPStartCheckFeas;
+            IloCplex::MIPStartEffort effort = IloCplex::MIPStartSolveFixed;
+            cplex.addMIPStart(startVar, startVal);
         }
 
         bool solved = false;
