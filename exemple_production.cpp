@@ -116,7 +116,7 @@ int run_debug_mpls(double temps, double dist, std::string path) {
     using namespace cplex_tap;
     const auto tap = Instance(path);
 
-    const auto solver = SolverMPLS(tap, 25, 15);
+    const auto solver = SolverMPLS(tap, 25, 8);
 
     int budget = lround(temps * tap.size() * 27.5f);
     int dist_bound = lround( dist * tap.size() * 4.5);
@@ -131,7 +131,7 @@ int run_debug_mpls(double temps, double dist, std::string path) {
 int main(int argc, char* argv[]) {
     //return production(argv);
     //return run_epsilon_test(argv);
-	return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
-	//return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_10_500.dat");
+	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
+	return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat");
 }
 

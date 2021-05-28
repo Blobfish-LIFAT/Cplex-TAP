@@ -3,9 +3,22 @@
 
 namespace cplex_tap {
 
+    ILOMIPINFOCALLBACK1(MyCallbackVPLS, IloInt, num) {
+        IloEnv env = getEnv();
+        double this_z = getIncumbentObjValue();
+        double best_z = getBestObjValue();
+        //TODO only print if we have better solution ....
+        if (1)
+        env.out() << "  [INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
+    }
+
     double
     SolverMPLS::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const{
+        std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
+
+        bool seed = true;
+        std::string warm_file = "/works/tmp.iMWgfyXwCT/warm_start.dat";
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -41,13 +54,17 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 120);
+        cplex.setParam(IloCplex::Param::TimeLimit, 60);
+        IloCplex::Callback mycallback = cplex.use(MyCallbackVPLS(env, 10));
         //cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
             cplex.setParam(IloCplex::Param::Threads, 8);
 
+        if (seed) {
+            warm_start(warm_file, env, n, x, s, cplex);
+        }
 
         bool solved = false;
         time_t start, end;
@@ -77,14 +94,20 @@ namespace cplex_tap {
             //std::random_device rd;
             std::mt19937 mt(42);
             std::vector<int> current_fixed;
-            cplex.setParam(IloCplex::Param::TimeLimit, 60);
+            cplex.setParam(IloCplex::Param::TimeLimit, 100);
+            //cplex.setParam(IloCplex::Param::Emphasis::MIP, 4);
             //cplex.setParam(IloCplex::IntSolLim, 9223372036800000000);
 
             vector<double> zvalues;
 
+            time_t clk = clock();
+            std::cout << "  CLK_START " << start << std::endl;
+
             cout << "Starting MPLS heurisitc max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter){
                 cout << "  Starting iteration " << iter << endl;
+                time_t clk = clock();
+                std::cout << "  CLK_START_ITER " << start << std::endl;
                 vector<int> solution = get_solution(cplex, x);
                 //if (solution.)
                 std::uniform_int_distribution<int> dist(1, solution.size() - h);
