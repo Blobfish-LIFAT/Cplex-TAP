@@ -3,7 +3,7 @@ import subprocess
 from matplotlib import pyplot as plt
 
 
-args = ("/works/tmp.iMWgfyXwCT/build/bin/tap")
+args = ("logs/res3.log")
 popen = subprocess.Popen(args, stdout=subprocess.PIPE)
 
 clk_start = 0

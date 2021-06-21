@@ -2,11 +2,11 @@ import os
 import subprocess
 from matplotlib import pyplot as plt
 
-log = "C:\\Users\\chanson\\Desktop\\log_12_500_120s_8w.txt"
+log = "logs/res_det_20_180.log"
+
+#OPT 12/500
 optimal = 99.3478
 
-#log = "C:\\Users\\chanson\\Desktop\\log_22_500_120s_8w.txt"
-#optimal = 98.978
 
 clk_start = 0
 clk_rate = 0
@@ -15,11 +15,27 @@ absolutes = []
 times = []
 iterations = []
 vpls_started = False
-
+params = ""
+conv = "max"
+stop_type = []
+solutions = []
+cplex_init = 0
 
 with open(log) as file:
+    lnum = 0
     for line in file:
         line = line.strip()
+        if "PARAMS:" in line:
+            tmp = line.split(" ")
+            params = "Ep. " + tmp[1] + "/" + tmp[2] + " | h=" + tmp[3] + " | times " + tmp[4] + "/" + tmp[5]
+            cplex_init = int(tmp[4])
+        if vpls_started and "SOLUTION: " in line:
+            solutions.append(line.replace("SOLUTION: ", ""))
+        if vpls_started and "Status:" in line:
+            stop_type.append(line.split("Status:")[1].strip())
+            print(lnum)
+        if vpls_started and "VPLS Converged at iteration" in line:
+            conv = line.split("VPLS Converged at iteration")[1]
         if "CLK_RATE" in line:
             clk_rate = float(line.split(' ')[1])
         if "CLK_START" in line and "CLK_START_ITER" not in line:
@@ -27,28 +43,14 @@ with open(log) as file:
             vpls_started = True
         if "CLK_START_ITER" in line:
             iterations.append(float(line.split(' ')[1]))
-        if "[INFO MIP Callback]" in line and vpls_started:
+        if vpls_started and "[INFO MIP Callback]" in line:
             tmp = line.split(" ")
             times.append((float(tmp[4]) - clk_start)/clk_rate)
             #values.append((float(tmp[6])/optimal)*100)
             values.append( ((optimal - float(tmp[6]))/optimal)*100 )
             absolutes.append(float(tmp[6]))
+        lnum += 1
 
-
-
-plt.scatter(times, values)
-#plt.plot([], [], ' ', label="Opt Z =" + str(optimal))
-#plt.axhline(y=optimal, label="Optimal " + str(optimal), ls='dotted')
-
-for i in iterations:
-    t = (i - clk_start)/clk_rate
-    plt.axvline(x=t, ls='dashed', color="red")
-
-
-plt.xlabel("Time (s)", fontsize=14)
-plt.ylabel("Objective value (% from optimal)", fontsize=14)
-plt.legend()
-plt.show()
 
 print("iteration,time (absolute),time (relative),gap to optimal")
 for i, tstart in enumerate(iterations):
@@ -59,3 +61,32 @@ for i, tstart in enumerate(iterations):
                 continue
             if absolutes[j] > absolutes[j-1]:
                 print(",".join(map(str, [i, time, time - tstart, values[j]])))
+
+plt.scatter(times, values)
+#plt.plot([], [], ' ', label="Opt Z =" + str(optimal))
+#plt.axhline(y=optimal, label="Optimal " + str(optimal), ls='dotted')
+
+#plt.axvline(x=0, ls='dotted')
+#plt.axvline(x=cplex_init, ls='dotted')
+for c, i in enumerate(iterations[1:]):
+    if c == 0:
+        continue
+    t = (i - clk_start)/clk_rate
+    color = ''
+    if stop_type[c] == "Feasible":
+        color = "blue"
+    elif stop_type[c] == "Optimal":
+        color = "green"
+    if c > 0 and solutions[c-1] == solutions[c] and color == "green":
+        color = "black"
+    elif c > 0 and solutions[c-1] == solutions[c] and color == "blue":
+        color = "red"
+    plt.axvline(x=t + cplex_init, ls='dashed', color=color)
+
+
+plt.xlabel("Time (s)", fontsize=14)
+plt.ylabel("Objective value (% from optimal)", fontsize=14)
+plt.title(params + " | Conv. " + conv + " | Zf gap=" + str(values[-1]))
+plt.legend()
+plt.show()
+
