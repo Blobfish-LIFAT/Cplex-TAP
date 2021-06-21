@@ -1,8 +1,9 @@
 import os
 import subprocess
+import numpy as np
 from matplotlib import pyplot as plt
 
-log = "logs/res_det_20_180.log"
+log = "logs/res_det_20_120.log"
 
 #OPT 12/500
 optimal = 99.3478
@@ -62,12 +63,12 @@ for i, tstart in enumerate(iterations):
             if absolutes[j] > absolutes[j-1]:
                 print(",".join(map(str, [i, time, time - tstart, values[j]])))
 
-plt.scatter(times, values)
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+
 #plt.plot([], [], ' ', label="Opt Z =" + str(optimal))
 #plt.axhline(y=optimal, label="Optimal " + str(optimal), ls='dotted')
 
-#plt.axvline(x=0, ls='dotted')
-#plt.axvline(x=cplex_init, ls='dotted')
 for c, i in enumerate(iterations[1:]):
     if c == 0:
         continue
@@ -83,10 +84,19 @@ for c, i in enumerate(iterations[1:]):
         color = "red"
     plt.axvline(x=t + cplex_init, ls='dashed', color=color)
 
+plt.scatter(times, values, s=5, color="black")
 
 plt.xlabel("Time (s)", fontsize=14)
 plt.ylabel("Objective value (% from optimal)", fontsize=14)
 plt.title(params + " | Conv. " + conv + " | Zf gap=" + str(values[-1]))
+plt.ylim(ymin=0)
+
+major_ticks = np.arange(0, np.max(times)+1, 100)
+minor_ticks = np.arange(0, np.max(times)+1, 50)
+ax.set_xticks(major_ticks)
+ax.set_xticks(minor_ticks, minor=True)
+ax.set_yticks(np.arange(0, np.max(values) + 1, 1), minor=True)
+
 plt.legend()
 plt.show()
 
