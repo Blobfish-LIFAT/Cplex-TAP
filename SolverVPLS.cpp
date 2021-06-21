@@ -1,4 +1,4 @@
-#include "SolverMPLS.h"
+#include "SolverVPLS.h"
 #include "random"
 
 namespace cplex_tap {
@@ -13,12 +13,9 @@ namespace cplex_tap {
     }
 
     double
-    SolverMPLS::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const{
+    SolverVPLS::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const{
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
-
-        bool seed = true;
-        std::string warm_file = "/works/tmp.iMWgfyXwCT/warm_start.dat";
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -54,7 +51,7 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 60);
+        cplex.setParam(IloCplex::Param::TimeLimit, max_init_time);
         IloCplex::Callback mycallback = cplex.use(MyCallbackVPLS(env, 10));
         //cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
@@ -63,7 +60,7 @@ namespace cplex_tap {
             cplex.setParam(IloCplex::Param::Threads, 8);
 
         if (seed) {
-            warm_start(warm_file, env, n, x, s, cplex);
+            warm_start(warmStart, env, n, x, s, cplex);
         }
 
         bool solved = false;
@@ -94,7 +91,7 @@ namespace cplex_tap {
             //std::random_device rd;
             std::mt19937 mt(42);
             std::vector<int> current_fixed;
-            cplex.setParam(IloCplex::Param::TimeLimit, 100);
+            cplex.setParam(IloCplex::Param::TimeLimit, max_epoch_time);
             //cplex.setParam(IloCplex::Param::Emphasis::MIP, 4);
             //cplex.setParam(IloCplex::IntSolLim, 9223372036800000000);
 

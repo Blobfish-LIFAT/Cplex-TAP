@@ -1,6 +1,6 @@
 ﻿#include "instance.h"
 #include "solver.h"
-#include "SolverMPLS.h"
+#include "SolverVPLS.h"
 #include "combo.h"
 #include <iostream>
 #include <string>
@@ -69,7 +69,7 @@ int run_epsilon_test(char* argv[]) {
                 int budget = lround(eptime * size * 27.5f);
                 int dist_bound = lround( epdist * size * 4.5);
 
-                double time = solver.solve_and_print(dist_bound, budget, false, false, false);
+                double time = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
                 std::cout << endl << "TIME TO SOLVE " << time << endl;
                 res << series_id << ";" << size << ";" << eptime << ";" << epdist << ";" << time << endl;
                 res.flush();
@@ -89,7 +89,7 @@ int production(char* argv[]) {
     int budget = stoi(argv[2]);
     int dist_bound = stoi(argv[3]);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false, true);
+    double time = solver.solve_and_print(dist_bound, budget, false, false, true, false, "");
 
     return 0;
 }
@@ -104,7 +104,7 @@ int run_debug(bool progressive, double temps, double dist, std::string path) {
     int budget = lround(temps * tap.size() * 27.5f);
     int dist_bound = lround( dist * tap.size() * 4.5);
 
-    double time = solver.solve_and_print(dist_bound, budget, progressive, false, false);
+    double time = solver.solve_and_print(dist_bound, budget, progressive, false, false, false, "");
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -112,16 +112,16 @@ int run_debug(bool progressive, double temps, double dist, std::string path) {
 }
 
 
-int run_debug_mpls(double temps, double dist, std::string path) {
+int run_debug_vpls(double temps, double dist, std::string path, bool seed, std::string warm_path) {
     using namespace cplex_tap;
     const auto tap = Instance(path);
 
-    const auto solver = SolverMPLS(tap, 25, 8);
+    const auto solver = SolverVPLS(tap, 25, 8, 30, 180);
 
     int budget = lround(temps * tap.size() * 27.5f);
     int dist_bound = lround( dist * tap.size() * 4.5);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false, false);
+    double time = solver.solve_and_print(dist_bound, budget, false, false, false, seed, warm_path);
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -132,6 +132,7 @@ int main(int argc, char* argv[]) {
     //return production(argv);
     //return run_epsilon_test(argv);
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
-	return run_debug_mpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat");
+	return run_debug_vpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat",
+                          true,"/users/21500078t/cplex_test/instances/warm_start_12_500.dat");
 }
 

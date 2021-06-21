@@ -25,12 +25,9 @@ namespace cplex_tap {
             env.out() << "[INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production) const {
+    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ..." << std::endl;
-
-        bool seed = true;
-        std::string warm_file = "/works/tmp.iMWgfyXwCT/warm_start.dat";
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -79,7 +76,7 @@ namespace cplex_tap {
         IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
 
         if (seed) {
-            warm_start(warm_file, env, n, x, s, cplex);
+            warm_start(warmStart, env, n, x, s, cplex);
         }
 
         bool solved = false;
