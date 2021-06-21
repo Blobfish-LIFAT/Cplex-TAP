@@ -6,9 +6,7 @@ namespace cplex_tap {
     ILOMIPINFOCALLBACK1(MyCallbackVPLS, IloInt, num) {
         IloEnv env = getEnv();
         double this_z = getIncumbentObjValue();
-        double best_z = getBestObjValue();
         //TODO only print if we have better solution ....
-        if (1)
         env.out() << "  [INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
@@ -16,7 +14,7 @@ namespace cplex_tap {
     SolverVPLS::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const{
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
-
+        int win_starts[] = {8, 20, 52, 12, 23, 30, 12, 29, 40, 31, 6, 46, 9, 48, 57, 31, 33, 18, 53, 57, 42, 48, 29, 14, 27, 7, 42, 22, 10, 2, 45, 5, 17, 3, 30, 19, 47, 36, 28, 49, 11, 39, 54, 44, 20, 39, 29, 55, 11, 44};
         // Init CPLEX environment and model objects
         IloEnv env;
         IloModel model(env);
@@ -88,8 +86,8 @@ namespace cplex_tap {
             print_solution(cplex, x);
 
             // use rd() instead of seed for non determinism
-            //std::random_device rd;
-            std::mt19937 mt(42);
+            std::random_device rd;
+            std::mt19937 mt(rd());
             std::vector<int> current_fixed;
             cplex.setParam(IloCplex::Param::TimeLimit, max_epoch_time);
             //cplex.setParam(IloCplex::Param::Emphasis::MIP, 4);
@@ -106,9 +104,10 @@ namespace cplex_tap {
                 time_t clk = clock();
                 std::cout << "  CLK_START_ITER " << start << std::endl;
                 vector<int> solution = get_solution(cplex, x);
-                //if (solution.)
+
+                // Draw window start
                 std::uniform_int_distribution<int> dist(1, solution.size() - h);
-                int wstart = dist(mt);
+                int wstart = win_starts[iter]; //dist(mt);
                 int wend = wstart + h;
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;
 
