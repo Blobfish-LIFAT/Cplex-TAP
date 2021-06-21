@@ -111,17 +111,21 @@ int run_debug(bool progressive, double temps, double dist, std::string path) {
     return 0;
 }
 
-
-int run_debug_vpls(double temps, double dist, std::string path, bool seed, std::string warm_path) {
+//bin tbound dbound h initTime epochTime instanceFile warmFile
+int run_debug_vpls(char* argv[]) {
     using namespace cplex_tap;
-    const auto tap = Instance(path);
+    const auto tap = Instance(argv[6]);
 
-    const auto solver = SolverVPLS(tap, 25, 8, 30, 180);
+    const auto solver = SolverVPLS(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
 
-    int budget = lround(temps * tap.size() * 27.5f);
-    int dist_bound = lround( dist * tap.size() * 4.5);
+    int budget = lround( stod(argv[1]) * tap.size() * 27.5f);
+    int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false, false, seed, warm_path);
+    bool seed = true;
+    if (string(argv[7]) == "none"){
+        seed = false;
+    }
+    double time = solver.solve_and_print(dist_bound, budget, false, false, false, seed, argv[7]);
     std::cout << endl << "TIME TO SOLVE " << time << endl;
 
 
@@ -132,7 +136,13 @@ int main(int argc, char* argv[]) {
     //return production(argv);
     //return run_epsilon_test(argv);
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
-	return run_debug_vpls(0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_12_500.dat",
-                          true,"/users/21500078t/cplex_test/instances/warm_start_12_500.dat");
+
+    if (argc < 7){
+        cout << "USE; ./binary tbound dbound h initTime epochTime instanceFile warmFile" << endl;
+        exit(2);
+    } else {
+        std::cout << "PARAMS: " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
+    }
+	return run_debug_vpls(argv);
 }
 
