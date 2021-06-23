@@ -159,7 +159,12 @@ SolverVPLSDet::solve_and_print(int dist_bound, int time_bound, bool progressive,
             zvalues.push_back(cplex.getObjValue());
             cout << "  Z=" << cplex.getObjValue() << endl;
 
-            if (cplex.getCplexStatus())
+            // We don't restart if first position successful or else infinite loop ...
+            if (cplex.getCplexStatus() == IloCplex::Optimal && prev_start_pos != 0){
+                prev_success = true;
+            } else {
+                prev_success = false;
+            }
 
         }
 
