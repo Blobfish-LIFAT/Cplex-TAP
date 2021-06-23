@@ -1,6 +1,7 @@
 ﻿#include "instance.h"
 #include "solver.h"
 #include "SolverVPLS.h"
+#include "SolverVPLSDet.h"
 #include "combo.h"
 #include <iostream>
 #include <string>
@@ -116,7 +117,7 @@ int run_debug_vpls(char* argv[]) {
     using namespace cplex_tap;
     const auto tap = Instance(argv[6]);
 
-    const auto solver = SolverVPLS(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
+    const auto solver = SolverVPLSDet(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
 
     int budget = lround( stod(argv[1]) * tap.size() * 27.5f);
     int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
