@@ -47,23 +47,31 @@ if __name__ == '__main__':
 
     plt.scatter(times, values, s=5, color="black", label="CPLEX")
 
-    log = "logs/procedural_90_16.log"
+    log = "logs/procedural_45_8.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="green", label="24")
+    plt.scatter(times, values, s=5, color="green", label="8")
 
-    log = "logs/procedural_90.log"
+    log = "logs/procedural_45_10.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
     plt.scatter(times, values, s=5, color="red", label="10")
 
-    log = "logs/procedural_90_20.log"
+    log = "logs/procedural_45_12.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="orange", label="20")
+    plt.scatter(times, values, s=5, color="orange", label="12")
+
+    log = "logs/procedural_45_14.log"
+    iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
+    plt.scatter(times, values, s=5, color="blue", label="14")
+
+    log = "logs/procedural_45_16.log"
+    iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
+    plt.scatter(times, values, s=5, color="purple", label="16")
 
     plt.xlabel("Time (s)", fontsize=14)
     plt.ylabel("Objective value (% from optimal)", fontsize=14)
     plt.ylim(ymin=0)
     
-    plt.title("Ist 12 - 90s")
+    plt.title("Ist 12 - 45s")
 
     major_ticks = np.arange(0, np.max(times)+1, 100)
     minor_ticks = np.arange(0, np.max(times)+1, 50)
