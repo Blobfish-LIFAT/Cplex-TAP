@@ -38,32 +38,32 @@ def read_log(log, optimal):
 
 if __name__ == '__main__':
 
-    log = "logs/res_det_20_120-alt.log"
+    log = "logs/ist12_full.log"
     optimal = 99.3478
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
 
-    plt.scatter(times, values, s=5, color="black", label="120s")
+    plt.scatter(times, values, s=5, color="black", label="CPLEX")
 
-    log = "logs/res_det_20_180-alt.log"
+    log = "logs/procedural_90_16.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="blue", label="180s")
+    plt.scatter(times, values, s=5, color="green", label="24")
 
-    log = "logs/res_det_20_60-alt.log"
+    log = "logs/procedural_90.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="red", label="60s")
+    plt.scatter(times, values, s=5, color="red", label="10")
 
-    log = "logs/res_det_20_30-alt.log"
+    log = "logs/procedural_90_20.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="orange", label="30s")
+    plt.scatter(times, values, s=5, color="orange", label="20")
 
     plt.xlabel("Time (s)", fontsize=14)
     plt.ylabel("Objective value (% from optimal)", fontsize=14)
     plt.ylim(ymin=0)
     
-    plt.title("Ist 22 - Window 20")
+    plt.title("Ist 12 - 90s")
 
     major_ticks = np.arange(0, np.max(times)+1, 100)
     minor_ticks = np.arange(0, np.max(times)+1, 50)

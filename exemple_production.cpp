@@ -85,12 +85,13 @@ int run_epsilon_test(char* argv[]) {
 
 int production(char* argv[]) {
     using namespace cplex_tap;
-    const auto tap = Instance(argv[1]);
+    const auto tap = Instance(argv[3]);
     const auto solver = Solver(tap);
-    int budget = stoi(argv[2]);
-    int dist_bound = stoi(argv[3]);
 
-    double time = solver.solve_and_print(dist_bound, budget, false, false, true, false, "");
+    int budget = lround(stof(argv[1]) * tap.size() * 27.5f);
+    int dist_bound = lround( stof(argv[2]) * tap.size() * 4.5);
+
+    double time = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
 
     return 0;
 }
@@ -117,7 +118,7 @@ int run_debug_vpls(char* argv[]) {
     using namespace cplex_tap;
     const auto tap = Instance(argv[6]);
 
-    const auto solver = SolverVPLSDet(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
+    const auto solver = SolverVPLSDet(tap, 100, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
 
     int budget = lround( stod(argv[1]) * tap.size() * 27.5f);
     int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);

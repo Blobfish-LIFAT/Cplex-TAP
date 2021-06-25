@@ -3,7 +3,7 @@ import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 
-log = "logs/procedural__toend.log"
+log = "logs/procedural_1.log"
 
 #OPT 12/500
 optimal = 99.3478
@@ -28,7 +28,7 @@ with open(log) as file:
         line = line.strip()
         if "PARAMS:" in line:
             tmp = line.split(" ")
-            params = "Ep. " + tmp[1] + "/" + tmp[2] + " | h=" + tmp[3] + " | times " + tmp[4] + "/" + tmp[5]
+            params = "Ep. " + tmp[1] + "/" + tmp[2] + " | h=" + tmp[3]
             cplex_init = int(tmp[4])
         if vpls_started and "SOLUTION: " in line:
             solutions.append(line.replace("SOLUTION: ", ""))
@@ -63,39 +63,30 @@ for i, tstart in enumerate(iterations):
             if absolutes[j] > absolutes[j-1]:
                 print(",".join(map(str, [i, time, time - tstart, values[j]])))
 
+selected = 10
+
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
-#plt.plot([], [], ' ', label="Opt Z =" + str(optimal))
-#plt.axhline(y=optimal, label="Optimal " + str(optimal), ls='dotted')
+sel_times = []
+sel_values = []
+for i, tstart in enumerate(iterations):
+    tstart = (tstart - clk_start)/clk_rate
+    if i == selected:
+        for j, time in enumerate(times):
+            if time > tstart:
+                if len(iterations) - 1 > i and time > (iterations[i+1]- clk_start)/clk_rate:
+                    continue
+                sel_times.append(time - tstart)
+                sel_values.append(values[j])
 
-for c, i in enumerate(iterations[1:]):
-    if c == 0:
-        continue
-    t = (i - clk_start)/clk_rate
-    color = ''
-    if stop_type[c] == "Feasible":
-        color = "blue"
-    elif stop_type[c] == "Optimal":
-        color = "green"
-    if c > 0 and solutions[c-1] == solutions[c] and color == "green":
-        color = "black"
-    elif c > 0 and solutions[c-1] == solutions[c] and color == "blue":
-        color = "red"
-    plt.axvline(x=t + cplex_init, ls='dashed', color=color)
 
-plt.scatter(times, values, s=5, color="black")
+plt.scatter(sel_times, sel_values, s=5, color="black")
 
 plt.xlabel("Time (s)", fontsize=14)
 plt.ylabel("Objective value (% from optimal)", fontsize=14)
-plt.title(params + " | Conv. " + conv + " | Zf gap=" + str(values[-1]))
+plt.title(params + " | Iteration = " + str(selected))
 plt.ylim(ymin=0)
-
-major_ticks = np.arange(0, np.max(times)+1, 100)
-minor_ticks = np.arange(0, np.max(times)+1, 50)
-ax.set_xticks(major_ticks)
-ax.set_xticks(minor_ticks, minor=True)
-ax.set_yticks(np.arange(0, np.max(values) + 1, 1), minor=True)
 
 plt.legend()
 plt.show()

@@ -90,6 +90,7 @@ SolverVPLSDet::solve_and_print(int dist_bound, int time_bound, bool progressive,
         bool prev_success = true;
         bool prev_final_subseq = false;
         int prev_start_pos = -1;
+        double prev_Z = -1;
 
         time_t clk = clock();
         std::cout << "  CLK_START " << start << "\nStarting MPLS heurisitc max iterations " << max_iter << endl;
@@ -118,6 +119,11 @@ SolverVPLSDet::solve_and_print(int dist_bound, int time_bound, bool progressive,
                 prev_final_subseq = true;
             else
                 prev_final_subseq = false;
+            // If we went past solution size go back to start
+            if (window_start + h >= solution.size()){
+                window_start = 0;
+                wend = std::min(window_start + h, (int) solution.size() - 1);
+            }
             cout << "  window=[" << window_start << "," << wend << "]" << endl;
 
             IloNumArray vals_s(env);
@@ -160,11 +166,12 @@ SolverVPLSDet::solve_and_print(int dist_bound, int time_bound, bool progressive,
             cout << "  Z=" << cplex.getObjValue() << endl;
 
             // We don't restart if first position successful or else infinite loop ...
-            if (cplex.getCplexStatus() == IloCplex::Optimal && prev_start_pos != 0){
+            if (cplex.getCplexStatus() == IloCplex::Optimal && prev_start_pos != 0 && cplex.getObjValue() - prev_Z > 0.01){
                 prev_success = true;
             } else {
                 prev_success = false;
             }
+            prev_Z = cplex.getObjValue();
 
         }
 
