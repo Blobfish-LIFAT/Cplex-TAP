@@ -3,7 +3,7 @@ import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 
-log = "logs/procedural__toend.log"
+log = "logs/hamming_12.log"
 
 #OPT 12/500
 optimal = 99.3478

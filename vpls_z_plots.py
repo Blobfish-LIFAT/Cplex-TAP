@@ -38,7 +38,7 @@ def read_log(log, optimal):
 
 if __name__ == '__main__':
 
-    log = "logs/ist12_full.log"
+    log = "logs/ist22_full.log"
     optimal = 99.3478
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
 
