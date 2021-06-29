@@ -136,7 +136,7 @@ int run_debug_vpls(char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    return production(argv);
+    //return production(argv);
     //return run_epsilon_test(argv);
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
 

@@ -3,10 +3,10 @@ import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 
-log = "logs/hamming_12.log"
+log = "logs/ist23_hamming.log"
+optimals = {"12": 99.3478, "21": 103.49, "22": 98.978, "23": 122.711, "24": 122.961}
+optimal = optimals["23"]
 
-#OPT 12/500
-optimal = 99.3478
 
 
 clk_start = 0
