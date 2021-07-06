@@ -7,16 +7,17 @@
 
 #include "instance.h"
 #include "Element.h"
+#include "algorithm"
 
 namespace cplex_tap {
 
     class GreedyHeuristic {
     public:
-        std::vector<int> getBasicSolution(Instance &ist, double eptime, double epdist) {
+        static std::vector<int> getBasicSolution(const Instance &ist, double eptime, double epdist) {
             std::vector<int> solution;
 
-            vector<Element> order = new ArrayList<>();
-            for (int i = 0; i < ist.size; i++) {
+            std::vector<Element> order;
+            for (int i = 0; i < ist.size(); i++) {
                 order.push_back(Element(i, ist.interest(i)/ist.time(i)));
             }
             std::sort(order.begin(), order.end());
@@ -26,29 +27,35 @@ namespace cplex_tap {
             double total_time = 0;
             double z = 0;
 
-            for (int i = 0; i < ist.size; i++)
+            for (int i = 0; i < ist.size(); i++)
             {
                 int current = order.at(i).index;
 
-                if (eptime - (total_time + ist.costs[current]) > 0){
+                if (eptime - (total_time + ist.time(current)) > 0){
                     double backup = total_dist;
-                    total_dist += insert_opt(solution, current, ist.distances, total_dist);
+                    total_dist += insert_opt(solution, current, ist.getDistances(), total_dist);
                     if (total_dist > epdist){
+                        //std::cout << "ping" << std::endl;
                         //rollback and check next querry
-                        solution.remove(Integer.valueOf(current));
+                        solution.erase(std::remove(solution.begin(), solution.end(), current), solution.end());
                         total_dist = backup;
                         continue;
                     }
-                    total_time += ist.costs[current];
+                    total_time += ist.time(current);
 
 
-                    z += ist.interest[current];
+                    z += ist.interest(current);
                 }
-            }*/
+            }
+            std::cout << z << std::endl;
+            for (int i : solution) {
+                std::cout << i << " ";
+            }
+            std::cout << std::endl;
             return solution;
         }
     protected:
-    double insert_opt(std::vector<int> solution, int candidate, std::vector<std::vector<std::uint32_t>> distances, double base_dist) {
+    static double insert_opt(std::vector<int> &solution, int candidate, std::vector<std::vector<std::uint32_t>> distances, double base_dist) {
             if (solution.empty()){
                 solution.push_back(candidate);
                 return 0;
@@ -73,6 +80,7 @@ namespace cplex_tap {
                     best_insert_pos = i;
                 }
             }
+            //std::cout << std::endl << best_insert_pos << std::endl;
         if (best_insert_pos != solution.size() - 1) {
             auto it = solution.begin();
             solution.insert(it + best_insert_pos + 1, candidate);

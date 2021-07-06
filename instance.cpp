@@ -75,4 +75,8 @@ namespace cplex_tap {
         tapFile.close();
     }
 
+    const std::vector<std::vector<std::uint32_t>> &Instance::getDistances() const {
+        return distances;
+    }
+
 }

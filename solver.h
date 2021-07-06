@@ -65,6 +65,7 @@ namespace cplex_tap {
                             temp = ((int) cplex.getValue(x[i][j]) > 0.005);
                         } catch (IloException& e) {
                             cerr << "Concert Exception: " << e << endl;
+                            exit(-1);
                         }
                         out[i-1][j-1] = temp;
                     }
@@ -195,6 +196,55 @@ namespace cplex_tap {
                 }
             }
             return path;
+        }
+
+        void warm_start(std::vector<int> warm_sol, IloEnv &env, uint64_t n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
+            // Build MIP Start
+            IloNumVarArray startVar(env);
+            IloNumArray startVal(env);
+            // Build S vector
+            for (int i = 0; i < n; ++i) {
+                startVar.add(s[i]);
+                startVal.add(std::find(warm_sol.begin(), warm_sol.end(), i) != warm_sol.cend());
+            }
+            cout << "build s" << endl;
+            // Build X matrix
+            // First line - start node
+            int sn = warm_sol.at(0) + 1;
+            for (int j = 1; j <= n; ++j) {
+                startVar.add(x[0][j]);
+                startVal.add(sn == j);
+            }
+            cout << "build start" << endl;
+            // Last column - finish node
+            int en = warm_sol.at(warm_sol.size()-1) + 1;
+            for (int j = 1; j <= n; ++j) {
+                startVar.add(x[j][n+1]);
+                startVal.add(en == j);
+            }
+            cout << "build end" << endl;
+            for (int i = 1; i <= n; ++i) {
+                for (int j = 1; j <= n; ++j) {
+                    if (i != j){
+                        startVar.add(x[i][j]);
+                        std::vector<int>::iterator jit = std::find(warm_sol.begin(), warm_sol.end(), j-1);
+                        // first node or not in solution
+                        if (jit == warm_sol.begin() || jit == warm_sol.end()){
+                            startVal.add(0);
+                        }
+                        else{
+                            // if we are on the right line
+                            if(*std::prev(jit) == (i-1)){
+                                startVal.add(1);
+                            } else {
+                                startVal.add(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            cplex.addMIPStart(startVar, startVal);
         }
 
         // Ids from 1

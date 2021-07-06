@@ -3,9 +3,9 @@ import subprocess
 import numpy as np
 from matplotlib import pyplot as plt
 
-log = "logs/ist22_hamming_5.log"
+log = "logs_local/ist22_hamming.log"
 #log = "logs/hamming_12.log"
-optimals = {"12": 99.3478, "21": 103.49, "22": 98.978, "23": 122.711, "24": 122.961}
+optimals = {"12": 99.3478, "21": 103.49, "22": 98.978, "23": 122.715, "24": 122.961}
 optimal = optimals["22"]
 
 
@@ -90,7 +90,7 @@ plt.scatter(times, values, s=5, color="black")
 plt.xlabel("Time (s)", fontsize=14)
 plt.ylabel("Objective value (% from optimal)", fontsize=14)
 plt.title(params + " | Conv. " + conv + " | Zf gap=" + str(values[-1]))
-plt.ylim(ymin=0)
+plt.ylim(ymin=-0.01)
 
 major_ticks = np.arange(0, np.max(times)+1, 100)
 minor_ticks = np.arange(0, np.max(times)+1, 50)

@@ -21,6 +21,7 @@ namespace cplex_tap {
 
 
     public:
+        const std::vector<std::vector<std::uint32_t>> &getDistances() const;
 
         // Load instance from a text file
         Instance(std::string file_path);

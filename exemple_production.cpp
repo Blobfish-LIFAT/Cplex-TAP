@@ -3,6 +3,7 @@
 #include "SolverVPLS.h"
 #include "SolverVPLSDet.h"
 #include "SolverVPLSHamming.h"
+#include "SolverVPLSHammingSX.h"
 #include "combo.h"
 #include <iostream>
 #include <string>
@@ -89,8 +90,8 @@ int production(char* argv[]) {
     const auto tap = Instance(argv[3]);
     const auto solver = Solver(tap);
 
-    int budget = lround(stof(argv[1]) * tap.size() * 27.5f);
-    int dist_bound = lround( stof(argv[2]) * tap.size() * 4.5);
+    int budget = lround(stod(argv[1]) * tap.size() * 27.5f);
+    int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
 
     double time = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
 
@@ -119,7 +120,7 @@ int run_debug_vpls(char* argv[]) {
     using namespace cplex_tap;
     const auto tap = Instance(argv[6]);
 
-    const auto solver = SolverVPLSHamming(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
+    const auto solver = SolverVPLSHammingSX(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
 
     int budget = lround( stod(argv[1]) * tap.size() * 27.5f);
     int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
 	//return run_debug(false, 0.15, 0.20,"/users/21500078t/cplex_test/instances/tap_22_500.dat");
 
     if (argc < 7){
-        cout << "USE; ./binary tbound dbound h initTime epochTime instanceFile warmFile" << endl;
+        cout << "USE: ./binary tbound dbound h initTime epochTime instanceFile warmFile" << endl;
         exit(2);
     } else {
         std::cout << "PARAMS: " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
