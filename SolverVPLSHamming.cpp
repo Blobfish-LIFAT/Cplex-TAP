@@ -10,7 +10,7 @@ namespace cplex_tap {
         env.out() << "  [INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    double
+    Solution
     SolverVPLSHamming::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
                                        bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
@@ -50,7 +50,7 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, max_init_time);
-        IloCplex::Callback mycallback = cplex.use(VPLS_HAMMING_INFO_CBK(env, 10));
+        if (debug) IloCplex::Callback mycallback = cplex.use(VPLS_HAMMING_INFO_CBK(env, 10));
         //cplex.setParam(IloCplex::IntSolLim, 4);// remove
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
@@ -149,8 +149,8 @@ namespace cplex_tap {
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-
+        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
         env.end();
-        return time_to_sol;
+        return result;
     }
 }

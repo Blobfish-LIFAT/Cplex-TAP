@@ -38,40 +38,37 @@ def read_log(log, optimal):
 
 if __name__ == '__main__':
 
-    log = "logs/ist22_full.log"
+    log = "logs/ist12_full.log"
     optimal = 99.3478
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
+    taille = 10
 
-    plt.scatter(times, values, s=5, color="black", label="CPLEX")
+    #plt.scatter(times, values, s=taille, color="black", label="CPLEX")
 
-    log = "logs/procedural_45_8.log"
+    log = "logs/ist12_best_procedural.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="green", label="8")
+    plt.scatter(times, values, s=taille, color="green", label="Left/Right")
 
-    log = "logs/procedural_45_10.log"
+    log = "logs/ist12_best_random.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="red", label="10")
+    plt.scatter(times, values, s=taille, color="red", label="Random")
 
-    log = "logs/procedural_45_12.log"
+    log = "logs/hamming_12.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="orange", label="12")
+    plt.scatter(times, values, s=taille, color="orange", label="Hamming S")
 
-    log = "logs/procedural_45_14.log"
+    log = "logs/hamming_sx_ist12.log"
     iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="blue", label="14")
-
-    log = "logs/procedural_45_16.log"
-    iterations, values, clk_start, clk_rate, times, absolutes = read_log(log, optimal)
-    plt.scatter(times, values, s=5, color="purple", label="16")
+    plt.scatter(times, values, s=taille, color="blue", label="Hamming SX")
 
     plt.xlabel("Time (s)", fontsize=14)
     plt.ylabel("Objective value (% from optimal)", fontsize=14)
     plt.ylim(ymin=0)
     
-    plt.title("Ist 12 - 45s")
+    plt.title("Istance 12")
 
     major_ticks = np.arange(0, np.max(times)+1, 100)
     minor_ticks = np.arange(0, np.max(times)+1, 50)
@@ -79,6 +76,6 @@ if __name__ == '__main__':
     #ax.set_xticks(minor_ticks, minor=True)
     ax.set_yticks(np.arange(0, np.max(values) + 1, 1), minor=True)
 
-    plt.legend()
+    plt.legend(fontsize=18)
     plt.show()
 

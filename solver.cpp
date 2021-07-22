@@ -25,7 +25,7 @@ namespace cplex_tap {
             env.out() << "[INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    double Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const {
+    Solution Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ..." << std::endl;
 
@@ -72,9 +72,10 @@ namespace cplex_tap {
         else
             cplex.setParam(IloCplex::Param::Threads, 8);
         // Export model to file
-        if (debug)
+        if (debug) {
             cplex.exportModel("tap_debug_model.lp");
-        IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
+            IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
+        }
 
         if (seed) {
             warm_start(warmStart, env, n, x, s, cplex);
@@ -106,7 +107,7 @@ namespace cplex_tap {
             print_solution(cplex, x);
 
             if (cplex.getStatus() == IloAlgorithm::Feasible && time_to_sol < 3595){
-                return - time_to_sol;
+                return Solution(-time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
             }
 
             if (progressive) {
@@ -146,9 +147,9 @@ namespace cplex_tap {
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-
+        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
         env.end();
-        return time_to_sol;
+        return result;
     }
 
     //query indexes start at 0

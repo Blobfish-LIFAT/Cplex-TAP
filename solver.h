@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <ilcplex/ilocplex.h>
+#include "Solution.h"
 ILOSTLBEGIN
 
 namespace cplex_tap {
@@ -102,7 +103,7 @@ namespace cplex_tap {
         explicit Solver(const Instance& tap) : tap{ tap } {}
 
         // Run solver and dump result to stdout
-        virtual double solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const;
+        virtual Solution solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const;
 
         void warm_start(std::string warm_file, IloEnv &env, uint64_t n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
             cout << "loading warm start from " << warm_file << endl;

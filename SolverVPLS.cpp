@@ -10,11 +10,10 @@ namespace cplex_tap {
         env.out() << "  [INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    double
+    Solution
     SolverVPLS::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const{
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
-        //int win_starts[] = {8, 20, 52, 12, 23, 30, 12, 29, 40, 31, 6, 46, 9, 48, 57, 31, 33, 18, 53, 57, 42, 48, 29, 14, 27, 7, 42, 22, 10, 2, 45, 5, 17, 3, 30, 19, 47, 36, 28, 49, 11, 39, 54, 44, 20, 39, 29, 55, 11, 44};
         // Init CPLEX environment and model objects
         IloEnv env;
         IloModel model(env);
@@ -50,8 +49,7 @@ namespace cplex_tap {
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, max_init_time);
-        IloCplex::Callback mycallback = cplex.use(MyCallbackVPLS(env, 10));
-        //cplex.setParam(IloCplex::IntSolLim, 4);// remove
+        if (debug) IloCplex::Callback mycallback = cplex.use(MyCallbackVPLS(env, 10));
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
@@ -106,9 +104,17 @@ namespace cplex_tap {
                 vector<int> solution = get_solution(cplex, x);
 
                 // Draw window start
-                std::uniform_int_distribution<int> dist(1, solution.size() - h);
-                int wstart = dist(mt);
-                int wend = wstart + h;
+                int wstart, wend;
+                if (h > solution.size()){
+                    std::uniform_int_distribution<int> dist(1, solution.size() - 1);
+                    wstart = dist(mt);
+                    wend = solution.size() - 1;
+                } else {
+                    std::uniform_int_distribution<int> dist(1, solution.size() - h);
+                    wstart = dist(mt);
+                    wend = wstart + h;
+                }
+
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;
 
                 IloNumArray vals_s(env);
@@ -170,8 +176,8 @@ namespace cplex_tap {
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-
+        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
         env.end();
-        return time_to_sol;
+        return result;
     }
 }
