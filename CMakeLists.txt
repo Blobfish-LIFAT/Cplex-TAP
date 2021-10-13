@@ -34,7 +34,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/lib)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_STANDARD 11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ldl")
 endif ()
 
 ######## find all the source files.
@@ -44,7 +44,7 @@ file(GLOB SOURCE_FILES *.cpp)
 add_executable(tap ${SOURCE_FILES} utils.h SolverVPLS.cpp SolverVPLS.h GreedyHeuristic.h SolverVPLSDet.cpp SolverVPLSDet.h SolverVPLSHamming.cpp SolverVPLSHamming.h Element.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h)
 
 ######## Add Dependency Library
-target_link_libraries(tap cplex-library cplex-concert ilocplex ${CMAKE_DL_LIBS})
+target_link_libraries(tap ilocplex cplex-library cplex-concert)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 
