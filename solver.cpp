@@ -64,7 +64,7 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 3600);
+        cplex.setParam(IloCplex::Param::TimeLimit, 1800);
         //cplex.setParam(IloCplex::Param::MIP::Tolerances::MIPGap	, 0.00001);
         cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 16000);
         if (!production)

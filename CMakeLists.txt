@@ -45,5 +45,6 @@ add_executable(tap ${SOURCE_FILES} utils.h SolverVPLS.cpp SolverVPLS.h GreedyHeu
 
 ######## Add Dependency Library
 target_link_libraries(tap cplex-library cplex-concert ilocplex ${CMAKE_DL_LIBS})
+set(CMAKE_VERBOSE_MAKEFILE on)
 
 
