@@ -14,13 +14,13 @@ int run_exact_test() {
 
 	ofstream res;
 	std::stringstream outname;
-	outname << "/users/21500078t/res_cplex_exact_vtkpaper.csv";
+	outname << "/users/21500078t/res_cplex_exact_vtkpaper_600_500.csv";
 	res.open(outname.str());
 	res << "series_id;size;epsilon_time;epsilon_distance;time_solve;z;solution" << endl;
 
 	float eptimes[] = {0.25};
 	float epdists[] = {0.35};
-	int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+	int sizes[] = {500};
 
     for(const int &size : sizes){
 	    for (const float &epdist : epdists){
@@ -115,7 +115,7 @@ int experiments_vpls(char* argv[]){
     ofstream csv;
     csv.open (argv[2]);
     if (stoi(argv[1]) == 0) csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
-    int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+    int sizes[] = {700};
     for (int size : sizes){
         if (stoi(argv[1]) > size)
             continue;
@@ -146,10 +146,10 @@ int experiments_vpls(char* argv[]){
 
 int main(int argc, char* argv[]) {
     // uncomment for test campaign binary
-    return experiments_vpls(argv);
-    //return production(argv);
-    run_exact_test();
-	exit(0);
+    //return experiments_vpls(argv);
+    return production(argv);
+    //run_exact_test();
+	//exit(0);
     // uncomment for VPLS binary
     if (argc < 7){
         cout << "USE: ./binary tbound dbound h initTime epochTime instanceFile warmFile" << endl;
