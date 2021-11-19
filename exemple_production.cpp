@@ -60,12 +60,12 @@ int run_exact_test() {
 int experiments_vpls(char* argv[]){
     using namespace cplex_tap;
     ofstream csv;
-    csv.open (argv[2]);
-    if (stoi(argv[1]) == 0) csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
+    csv.open (argv[3]);
+    csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
     csv.precision(17);
     int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
     for (int size : sizes){
-        if (stoi(argv[1]) > size)
+        if (stoi(argv[1]) > size || size > stoi(argv[2]))
             continue;
         for (int i = 0; i < 30; ++i) {
             if (size == 40 && (i == 9 || i == 13 || i == 19 || i == 21)) continue;
