@@ -14,13 +14,14 @@ int run_exact_test() {
 
 	ofstream res;
 	std::stringstream outname;
-	outname << "/users/21500078t/res_cplex_exact_vtkpaper_600_500.csv";
+	outname << "/users/21500078t/res_cplex_exact_vtkpaper_600.csv";
 	res.open(outname.str());
 	res << "series_id;size;epsilon_time;epsilon_distance;time_solve;z;solution" << endl;
+    res.precision(17);
 
 	float eptimes[] = {0.25};
 	float epdists[] = {0.35};
-	int sizes[] = {500};
+	int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
 
     for(const int &size : sizes){
 	    for (const float &epdist : epdists){
@@ -56,66 +57,13 @@ int run_exact_test() {
 	return 0;
 }
 
-int production(char* argv[]) {
-    using namespace cplex_tap;
-    const auto tap = Instance(argv[3]);
-    const auto solver = Solver(tap);
-
-    //int budget = lround(stod(argv[1]) * tap.size() * 27.5f);
-    int budget = lround(stod(argv[1]));
-    //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
-    int dist_bound = lround( stod(argv[2]));
-
-    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
-
-    return 0;
-}
-
-int run_debug(bool progressive, double temps, double dist, std::string path) {
-    using namespace cplex_tap;
-    const auto tap = Instance(path);
-
-    const auto solver = Solver(tap);
-
-    // Easy
-    int budget = lround(temps * tap.size() * 27.5f);
-    int dist_bound = lround( dist * tap.size() * 4.5);
-
-    Solution sol = solver.solve_and_print(dist_bound, budget, progressive, false, false, false, "");
-    std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
-
-
-    return 0;
-}
-
-//bin tbound dbound h initTime epochTime instanceFile warmFile
-int run_debug_vpls(char* argv[]) {
-    using namespace cplex_tap;
-    const auto tap = Instance(argv[6]);
-
-    //const auto solver = SolverVPLSHammingSX(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
-    const auto solver = SolverVPLSDet(tap, 25, stoi(argv[3]), stoi(argv[4]), stoi(argv[5]));
-
-    int budget = lround( stod(argv[1]) * tap.size() * 27.5f);
-    int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
-
-    bool seed = true;
-    if (string(argv[7]) == "none"){
-        seed = false;
-    }
-    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, seed, argv[7]);
-    std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
-
-
-    return 0;
-}
-
 int experiments_vpls(char* argv[]){
     using namespace cplex_tap;
     ofstream csv;
     csv.open (argv[2]);
     if (stoi(argv[1]) == 0) csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
-    int sizes[] = {700};
+    csv.precision(17);
+    int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
     for (int size : sizes){
         if (stoi(argv[1]) > size)
             continue;
@@ -144,19 +92,46 @@ int experiments_vpls(char* argv[]){
     csv.close();
 }
 
+int production(char* argv[]) {
+    using namespace cplex_tap;
+    const auto tap = Instance(argv[3]);
+    const auto solver = Solver(tap);
+
+    //int budget = lround(stod(argv[1]) * tap.size() * 27.5f);
+    int budget = lround(stod(argv[1]));
+    //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
+    int dist_bound = lround( stod(argv[2]));
+
+    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
+
+    return 0;
+}
+
+int run_debug() {
+    std::string fname = "/home/alex/instances/tap_1_300.dat";
+
+    using namespace cplex_tap;
+    const auto tap = Instance(fname);
+
+    const auto solver = SolverVPLSHammingSX(tap, 5, 50, 20, 120);
+
+    // Easy
+    int budget = lround( 0.25 * tap.size() * 27.5f);
+    int dist_bound = lround( 0.35 * tap.size() * 4.5);
+
+    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, true, "/home/alex/instances/tap_1_300.warm");
+    std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
+    std::cout << sol.time << ";" << sol.z << ";"  << endl;
+
+
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
-    // uncomment for test campaign binary
-    //return experiments_vpls(argv);
-    return production(argv);
+    std::cout.precision(17);
+    //run_debug();
+    return experiments_vpls(argv);
+    //return production(argv);
     //run_exact_test();
-	//exit(0);
-    // uncomment for VPLS binary
-    if (argc < 7){
-        cout << "USE: ./binary tbound dbound h initTime epochTime instanceFile warmFile" << endl;
-        exit(2);
-    } else {
-        std::cout << "PARAMS: " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
-    }
-	return run_debug_vpls(argv);
 }
 

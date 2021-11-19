@@ -112,7 +112,7 @@ namespace cplex_tap {
             std::ifstream ifs(warm_file);
             std::string line;
             std::getline(ifs, line);
-            cout << "  Warm solution :" << line << endl;
+
             ifs.close();
             // Load starting solution
             string token;
@@ -122,6 +122,14 @@ namespace cplex_tap {
                 ssol.push_back(std::stoi(token, nullptr));
                 line.erase(0, pos + 1);
             }
+            ssol.push_back(std::stoi(line, nullptr));
+            //check fire read properly
+            /*cout << "  Warm solution :";
+            for (int i = 0; i < ssol.size(); ++i) {
+                cout << ssol.at(i) << " ";
+            }*/
+
+            cout << endl;
             // Build MIP Start
             IloNumVarArray startVar(env);
             IloNumArray startVal(env);
