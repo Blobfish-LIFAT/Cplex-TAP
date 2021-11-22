@@ -62,8 +62,8 @@ int experiments_vpls(char* argv[]){
     ofstream csv;
     csv.open (argv[3]);
     csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
-    csv.precision(17);
-    int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+    csv.precision(17); // avoid systematic rounding
+    int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700};
     for (int size : sizes){
         if (stoi(argv[1]) > size || size > stoi(argv[2]))
             continue;
