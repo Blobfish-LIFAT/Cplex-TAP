@@ -31,7 +31,7 @@ namespace cplex_tap {
             interests_[i++] = stod(token, nullptr);
             line.erase(0, pos + 1);
         }
-        interests_[i++] = stoi(line, nullptr);
+        interests_[i++] = stod(line, nullptr);
         interests = interests_;
         cout << "  Interest loaded" << endl;
 
