@@ -34,6 +34,7 @@ namespace cplex_tap {
         IloModel model(env);
 
         const uint64_t n = tap.size();
+        const bool gen_dom_cstr = true;
 
         // Variables
         IloArray<IloNumVarArray> x(env, n + 2u);
@@ -47,6 +48,24 @@ namespace cplex_tap {
         build_constraints(dist_bound, time_bound, env, model, n, x, s);
         if (!progressive)
             build_subtour_const_all(env, model, n, x, u);
+
+        if (gen_dom_cstr){
+            //IloExpr cut_expr(env);
+            stringstream cut_name;
+            for (auto i = 0u; i < n; ++i) {
+                for (auto j = 0u; j < n; ++j) {
+                    // if true add s_i <= s_j
+                    if (i != j && tap.interest(i) < tap.interest(j) && tap.time(i) > tap.time(j)){
+                        cut_name << "cut_" << i << "_" << j;
+                        model.add(IloRange(env, -IloInfinity, s[i] - s[j], 0, cut_name.str().c_str()));
+                        //cut_expr.clear();
+                        cout << "added " << cut_name.str() << endl;
+                        cut_name.str("");
+                    }
+                }
+            }
+
+        }
 
         //
         // --- Objective (1) ---
@@ -64,9 +83,9 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 600);
-        //cplex.setParam(IloCplex::Param::MIP::Tolerances::MIPGap	, 0.00001);
-        cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 16000);
+        cplex.setParam(IloCplex::Param::TimeLimit, 3600);
+        //cplex.setParam(IloCplex::Param::MIP::Tolerances::MIPGap, 1e-05);
+        //cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 16000);
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else

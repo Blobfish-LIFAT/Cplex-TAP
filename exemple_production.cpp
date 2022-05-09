@@ -14,14 +14,14 @@ int run_exact_test() {
 
 	ofstream res;
 	std::stringstream outname;
-	outname << "/users/21500078t/res_cplex_exact_vtkpaper_600.csv";
+	outname << "/users/21500078t/cut_cstr_large.csv";
 	res.open(outname.str());
 	res << "series_id;size;epsilon_time;epsilon_distance;time_solve;z;solution" << endl;
     res.precision(17);
 
 	float eptimes[] = {0.25};
 	float epdists[] = {0.35};
-	int sizes[] = {20, 40, 60, 80, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+	int sizes[] = {300, 350, 400, 450, 500};
 
     for(const int &size : sizes){
 	    for (const float &epdist : epdists){
@@ -108,18 +108,20 @@ int production(char* argv[]) {
 }
 
 int run_debug() {
-    std::string fname = "/home/alex/instances/tap_1_300.dat";
+    std::string fname = "/users/21500078t/instances/tap_7_60.dat";
 
     using namespace cplex_tap;
     const auto tap = Instance(fname);
 
-    const auto solver = SolverVPLSHammingSX(tap, 5, 50, 20, 120);
+    const auto solver = Solver(tap);
 
     // Easy
     int budget = lround( 0.25 * tap.size() * 27.5f);
     int dist_bound = lround( 0.35 * tap.size() * 4.5);
 
-    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, true, "/home/alex/instances/tap_1_300.warm");
+    //std::cout << budget << "/" << dist_bound << std::endl;
+
+    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, false, "/home/alex/instances/tap_1_300.warm");
     std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
     std::cout << sol.time << ";" << sol.z << ";"  << endl;
 
@@ -130,8 +132,8 @@ int run_debug() {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     //run_debug();
-    return experiments_vpls(argv);
+    //return experiments_vpls(argv);
     //return production(argv);
-    //run_exact_test();
+    run_exact_test();
 }
 
