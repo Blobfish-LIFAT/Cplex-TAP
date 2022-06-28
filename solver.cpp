@@ -34,7 +34,7 @@ namespace cplex_tap {
         IloModel model(env);
 
         const uint64_t n = tap.size();
-        const bool gen_dom_cstr = true;
+        const bool gen_dom_cstr = set_size > 0;
 
         // Variables
         IloArray<IloNumVarArray> x(env, n + 2u);
@@ -50,31 +50,47 @@ namespace cplex_tap {
             build_subtour_const_all(env, model, n, x, u);
 
         if (gen_dom_cstr){
-            //IloExpr cut_expr(env);
+
             stringstream cut_name;
+            int cnt = 0;
             for (auto i = 0u; i < n; ++i) {
+                int a = 0;
+                for (auto j = 0u; j < n; ++j) {
+                    if (i != j && tap.interest(i) < tap.interest(j) && tap.time(i) > tap.time(j)){
+                        a++;
+                    }
+                }
+                if (a < set_size){
+                    continue;
+                }
                 for (auto j = 0u; j < n; ++j) {
                     // if true add s_i <= s_j
                     if (i != j && tap.interest(i) < tap.interest(j) && tap.time(i) > tap.time(j)){
                         cut_name << "cut_" << i << "_" << j;
                         model.add(IloRange(env, -IloInfinity, s[i] - s[j], 0, cut_name.str().c_str()));
-                        //cut_expr.clear();
-                        cout << "added " << cut_name.str() << endl;
+                        cnt++;
                         cut_name.str("");
                     }
                 }
+
             }
+            cout << "Added " << cnt << " cuts to model" << endl;
 
         }
 
         //
         // --- Objective (1) ---
         //
+        //IloNumVar fo(env);
+        //fo.setLB(126.1579);
         IloExpr expr(env);
         for (auto i = 0u; i < n; ++i) {
             expr += tap.interest(i) * s[i];
         }
         IloObjective obj(env, expr, IloObjective::Maximize);
+        //IloRange fo_bind(env, 0, expr - fo, 0, "fo_bind");
+        //model.add(fo_bind);
+        //IloObjective obj(env, fo, IloObjective::Maximize);
         model.add(obj);
         std::cout << "Added Objective to model\n";
 
@@ -126,7 +142,7 @@ namespace cplex_tap {
             print_solution(cplex, x);
 
             if (cplex.getStatus() == IloAlgorithm::Feasible && time_to_sol < 3595){
-                return Solution(-time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
+                return Solution(-time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
             }
 
             if (progressive) {
@@ -166,7 +182,7 @@ namespace cplex_tap {
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
+        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
         env.end();
         return result;
     }

@@ -87,7 +87,7 @@ namespace cplex_tap {
             vector<double> zvalues;
 
             time_t clk = clock();
-            std::cout << "  CLK_START " << start << "\nStarting MPLS heurisitc max iterations " << max_iter << endl;
+            std::cout << "  CLK_START " << start << "\nStarting lb-sx max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter) {
                 // Begin the iteration
                 time_t clk = clock();

@@ -96,7 +96,7 @@ namespace cplex_tap {
             time_t clk = clock();
             std::cout << "  CLK_START " << start << std::endl;
 
-            cout << "Starting MPLS heurisitc max iterations " << max_iter << endl;
+            cout << "Starting vpls-random max iterations " << max_iter << endl;
             for (auto iter = 0; iter < max_iter; ++iter){
                 cout << "  Starting iteration " << iter << endl;
                 time_t clk = clock();
@@ -105,14 +105,13 @@ namespace cplex_tap {
 
                 // Draw window start
                 int wstart, wend;
-                if (h > solution.size()){
+                if (h < solution.size()){
                     std::uniform_int_distribution<int> dist(1, solution.size() - 1);
                     wstart = dist(mt);
                     wend = solution.size() - 1;
                 } else {
-                    std::uniform_int_distribution<int> dist(1, solution.size() - h);
-                    wstart = dist(mt);
-                    wend = wstart + h;
+                    wstart = 1;
+                    wend = solution.size() -1;
                 }
 
                 cout << "  window=[" << wstart << "," << wend << "]" << endl;

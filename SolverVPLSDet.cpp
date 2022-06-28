@@ -93,7 +93,7 @@ SolverVPLSDet::solve_and_print(int dist_bound, int time_bound, bool progressive,
         double prev_Z = -1;
 
         time_t clk = clock();
-        std::cout << "  CLK_START " << start << "\nStarting MPLS heurisitc max iterations " << max_iter << endl;
+        std::cout << "  CLK_START " << start << "\nStarting vpls-det max iterations " << max_iter << endl;
         for (auto iter = 0; iter < max_iter; ++iter){
             // if we are at the end of the sequence and we successfully solved the sub-problem
             if (prev_final_subseq && prev_success){
