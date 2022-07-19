@@ -10,8 +10,8 @@ namespace cplex_tap {
     }
 
     Solution
-    SolverVPLSHammingSX::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
-                                       bool seed, string warmStart) const {
+    SolverVPLSHammingSX::solve(int dist_bound, int time_bound, bool debug, bool production,
+                               bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
         // Init CPLEX environment and model objects

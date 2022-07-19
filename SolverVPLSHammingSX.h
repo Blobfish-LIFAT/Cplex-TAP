@@ -10,8 +10,8 @@ namespace cplex_tap {
         explicit SolverVPLSHammingSX(const Instance &tap, int maxIter, int h_max, int maxInitTime, int maxEpochTime)
                 : Solver{tap}, max_iter(maxIter), h(h_max), max_epoch_time(maxEpochTime), max_init_time(maxInitTime) {}
 
-        Solution solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed,
-                               string warmStart) const override;
+        Solution solve(int dist_bound, int time_bound, bool debug, bool production, bool seed,
+                       string warmStart) const override;
 
     protected:
         int h;

@@ -16,7 +16,7 @@ namespace cplex_tap {
             env.out() << "[INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    Solution Solver::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const {
+    Solution Solver::solve(int dist_bound, int time_bound, bool debug, bool production, bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ..." << std::endl;
 
@@ -25,7 +25,6 @@ namespace cplex_tap {
         IloModel model(env);
 
         const uint64_t n = tap.size();
-        const bool gen_dom_cstr = set_size > 0;
 
         // Variables
         IloArray<IloNumVarArray> x(env, n + 2u);

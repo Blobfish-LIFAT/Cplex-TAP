@@ -18,9 +18,6 @@ namespace cplex_tap {
     protected:
         // The TAP instance
         const Instance& tap;
-        int set_size;
-
-        //virtual IloCplex::CallbackI* IloCplex::CallbackI::duplicateCallback() const = 0;
 
         // dump decision variables
         void dump(const IloCplex& cplex, const IloArray<IloNumVarArray>& x, const IloEnv& env, const IloNumVarArray &s, const IloNumVarArray &u) const {
@@ -100,10 +97,9 @@ namespace cplex_tap {
 
         // Builds a solver the specified instance
         explicit Solver(const Instance& tap) : tap{ tap } {}
-        explicit Solver(const Instance& tap, int set_size) : tap{ tap }, set_size(set_size) {}
 
         // Run solver and dump result to stdout
-        virtual Solution solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production, bool seed, string warmStart) const;
+        virtual Solution solve(int dist_bound, int time_bound, bool debug, bool production, bool seed, string warmStart) const;
 
         void warm_start(std::string warm_file, IloEnv &env, uint64_t n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
             cout << "loading warm start from " << warm_file << endl;
