@@ -21,7 +21,7 @@ int run_exact_test(char* argv[]) {
 
 	float eptimes[] = {0.6};
 	float epdists[] = {0.3};
-	int sizes[] = {40, 60, 80, 100, 200, 300};//40, 60, 80, 100, 200, 300
+	int sizes[] = {400, 500, 600, 700};//40, 60, 80, 100, 200, 300
 
     for(const int &size : sizes){
 	    for (const float &epdist : epdists){
@@ -79,15 +79,15 @@ int experiments_vpls(char* argv[]){
     csv << "instance;size;type;edist;etime;solve_time;z;solution" << std::endl;
     csv.precision(17); // avoid systematic rounding
 
-    int sizes[] = { 40, 60, 80, 100,  200,  300, };
+    int sizes[] = {400, 500, 600, 700};//40, 60, 80, 100,  200,  300,
     for (int size : sizes){
         for (int i = 0; i < 30; ++i) {
             if (size == 40 && (i == 9 || i == 13 || i == 19 || i == 21)) continue;
-            std::string fname = "/users/21500078t/instances/instances_f3/tap_" + std::to_string(i) + "_" + std::to_string(size) + ".dat";
-            std::string warmname = "/users/21500078t/instances/instances_f3/tap_" + std::to_string(i) + "_" + std::to_string(size) + ".warm";
+            std::string fname = "/users/21500078t/instances/filtered_instances/tap_" + std::to_string(i) + "_" + std::to_string(size) + ".dat";
+            std::string warmname = "/users/21500078t/instances/filtered_instances/tap_" + std::to_string(i) + "_" + std::to_string(size) + ".warm";
             const auto tap = Instance(fname);
-            int budget = lround( eptime * tap.size() * 27.5f);
-            int dist_bound = lround( epdist * tap.size() * 4.5);
+            int budget = lround( eptime * size * 27.5f);
+            int dist_bound = lround( epdist * size * 4.5);
             const auto solverRandom = SolverVPLS(tap, 7, 15, 20, 90);
             const auto solverDet = SolverVPLSDet(tap, 5, 20, 20, 120);
             const auto solverHammingS = SolverVPLSHamming(tap, 7, 15, 20, 90);// 10 60
@@ -146,8 +146,8 @@ int run_debug() {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     //run_debug();
-    return experiments_vpls(argv);
+    //return experiments_vpls(argv);
     //return production(argv);
-    //run_exact_test(argv);
+    run_exact_test(argv);
 }
 
