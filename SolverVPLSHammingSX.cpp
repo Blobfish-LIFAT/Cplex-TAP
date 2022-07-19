@@ -174,7 +174,7 @@ namespace cplex_tap {
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
+        Solution result = Solution(false, time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
         env.end();
         return result;
     }

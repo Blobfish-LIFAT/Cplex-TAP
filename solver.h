@@ -93,10 +93,8 @@ namespace cplex_tap {
                                 const IloArray<IloNumVarArray> &x,
                                 const IloNumVarArray &u) const;
 
-        int getSumX(const uint64_t n, int *const *mutableX) const;
 
-        //find subtours in a relaxed solution
-        vector<vector<int>> getSubtours(const uint64_t n, const IloArray<IloNumVarArray> &x, const IloCplex &cplex) const;
+
 
     public:
 

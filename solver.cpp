@@ -4,17 +4,8 @@
 #include <time.h>
 #include <limits>
 #include <algorithm>
-#include <bitset>
 
 namespace cplex_tap {
-
-    struct compare{
-        int key;
-        compare(int const &i): key(i) { }
-        bool operator()(int const &i)
-        {
-            return (i == key);
-        }};
 
     ILOMIPINFOCALLBACK1(MyCallback, IloInt, num) {
         IloEnv env = getEnv();
@@ -46,51 +37,16 @@ namespace cplex_tap {
 
         // Init Constraints
         build_constraints(dist_bound, time_bound, env, model, n, x, s);
-        if (!progressive)
-            build_subtour_const_all(env, model, n, x, u);
-
-        if (gen_dom_cstr){
-
-            stringstream cut_name;
-            int cnt = 0;
-            for (auto i = 0u; i < n; ++i) {
-                int a = 0;
-                for (auto j = 0u; j < n; ++j) {
-                    if (i != j && tap.interest(i) < tap.interest(j) && tap.time(i) > tap.time(j)){
-                        a++;
-                    }
-                }
-                if (a < set_size){
-                    continue;
-                }
-                for (auto j = 0u; j < n; ++j) {
-                    // if true add s_i <= s_j
-                    if (i != j && tap.interest(i) < tap.interest(j) && tap.time(i) > tap.time(j)){
-                        cut_name << "cut_" << i << "_" << j;
-                        model.add(IloRange(env, -IloInfinity, s[i] - s[j], 0, cut_name.str().c_str()));
-                        cnt++;
-                        cut_name.str("");
-                    }
-                }
-
-            }
-            cout << "Added " << cnt << " cuts to model" << endl;
-
-        }
+        build_subtour_const_all(env, model, n, x, u);
 
         //
         // --- Objective (1) ---
         //
-        //IloNumVar fo(env);
-        //fo.setLB(126.1579);
         IloExpr expr(env);
         for (auto i = 0u; i < n; ++i) {
             expr += tap.interest(i) * s[i];
         }
         IloObjective obj(env, expr, IloObjective::Maximize);
-        //IloRange fo_bind(env, 0, expr - fo, 0, "fo_bind");
-        //model.add(fo_bind);
-        //IloObjective obj(env, fo, IloObjective::Maximize);
         model.add(obj);
         std::cout << "Added Objective to model\n";
 
@@ -99,14 +55,14 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 600);
-        //cplex.setParam(IloCplex::Param::MIP::Tolerances::MIPGap, 1e-05);
-        //cplex.setParam(IloCplex::Param::MIP::Limits::TreeMemory, 16000);
+        cplex.setParam(IloCplex::Param::TimeLimit, 3600);
+
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
             cplex.setParam(IloCplex::Param::Threads, 8);
-        // Export model to file
+
+
         if (debug) {
             cplex.exportModel("tap_debug_model.lp");
             IloCplex::Callback mycallback = cplex.use(MyCallback(env, 10));
@@ -137,143 +93,22 @@ namespace cplex_tap {
             std::cout << "\n--- Solver success ---\n";
             std::cout << "    Status: " << cplex.getStatus() << "\n";
             std::cout << "    Objective: " << cplex.getObjValue() << "\n";
-            if (debug)
+            if (debug) {
                 dump(cplex, x, env, s, u);
-            print_solution(cplex, x);
-
-            if (cplex.getStatus() == IloAlgorithm::Feasible && time_to_sol < 3595){
-                return Solution(-time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
-            }
-
-            if (progressive) {
-                cout << "Looking for subtours in solution" << endl;
-                vector<vector<int>> subtours = getSubtours(n, x, cplex);
-                int p_iters = 0;
-                while (!subtours.empty()) {
-                    vector<int> nodes = flatten(subtours);
-                    IloExpr exp(env);
-                    IloModel toUpdate = cplex.getModel();
-                    stringstream vname;
-                    cout << "Adding constraints" << endl;
-                    for (auto k = 0u; k < nodes.size(); ++k) {
-                        for (auto l = 0u; l < nodes.size(); ++l) {
-                            int i = nodes.at(k), j = nodes.at(l);
-                            exp = ((n - 1) * (1 - x[i + 1][j + 1])) - u[i] + u[j]; // >= 1
-                            vname << "mtz_" << i << "_" << j;
-                            toUpdate.add(IloRange(env, 1, exp, IloInfinity, vname.str().c_str()));
-                            vname.str("");
-                            exp.clear();
-                        }
-                    }
-                    start = clock();
-                    cplex.solve();
-                    end = clock();
-                    time_to_sol += (double) (end - start) / (double) CLOCKS_PER_SEC;
-                    cout << "Looking for subtours in solution" << endl;
-                    subtours = getSubtours(n, x, cplex);
-                    p_iters++;
-                }
                 print_solution(cplex, x);
-                cout << "Progressive Mode : iterations = " << p_iters << endl;
             }
+
+
         }
         else {
             std::cerr << "\n--- Solver Error ---\n";
             std::cerr << "    Status: " << cplex.getStatus() << "\n";
             std::cerr << "    Error details: " << cplex.getCplexStatus() << "\n";
         }
-        Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
+
+        Solution result = Solution(cplex.getStatus() == IloAlgorithm::Optimal, time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
         env.end();
         return result;
-    }
-
-    //query indexes start at 0
-    vector<vector<int>> Solver::getSubtours(const uint64_t n, const IloArray<IloNumVarArray> &x,
-                                            const IloCplex &cplex) const {
-        cout << "Subtour routine started" << endl;
-        vector<vector<int>> subtours;
-        vector<int> solution = get_solution(cplex, x);
-        int** mutableX = getX_center(cplex, x);
-        //prune solution
-        for (int i = 0; i < solution.size()-1; ++i) {
-            mutableX[solution.at(i)-1][solution.at(i+1)-1] = 0;
-        }
-        cout << "  prunning" << endl;
-        //check sum if > 0 must be subtours
-        cout << "|Offending edges| = " << getSumX(n, mutableX) << endl;
-        // find the subtour(s)
-
-        while (getSumX(n, mutableX) > 0){
-            //find an edge
-            int ei = 0, ej = 0;
-            for (int i = 0; i < n; ++i) {
-                if (ej + ei > 0)
-                    break;
-                for (int j = 0; j < n; ++j) {
-                    if (mutableX[i][j] == 1){
-                        ei = i;
-                        ej = j;
-                        break;
-                    }
-
-                }
-            }
-            //For the edge find cycle
-            cout << "Found an edge between " << ei << " and " << ej << endl << "Subtour is ";
-            vector<int> subtour;
-            int p_size = 0;
-            int current_pos = ei;
-            bool init = false;
-            while (true) {
-                if (init){
-                    p_size = subtour.size();
-                    if (std::none_of(subtour.begin(), subtour.end(), compare(current_pos))){
-                        subtour.push_back(current_pos);
-                        cout << current_pos << " ";
-                    }
-                } else{
-                    subtour.push_back(current_pos);
-                    init = true;
-                    cout << current_pos << " ";
-                }
-                for (int i = 0; i < n; ++i) {
-                    if (mutableX[current_pos][i] > 0) {
-                        current_pos = i;
-                        break;
-                    }
-                }
-                if (p_size == subtour.size())
-                    break;
-            } //while (p_size != subtour.size());
-            cout << endl;
-            //Prune from matrix
-            cout << "Pruning ...";
-            for (int i = 0; i < subtour.size()-1; ++i) {
-                //should catch the loop ?
-                mutableX[subtour.at(i)][subtour.at(i+1)] = 0;
-            }
-            mutableX[subtour.at(subtour.size()-1)][subtour.at(0)] = 0;
-            cout << " done." << endl;
-            //Add to collection
-            subtours.push_back(subtour);
-        }
-        //cleanup after ourselves
-        for (int i = 0; i < n; ++i) {
-            delete mutableX[i];
-        }
-        delete mutableX;
-        cout << "Subtour routine is done" << endl;
-        return subtours;
-    }
-
-    int Solver::getSumX(const uint64_t n, int *const *mutableX) const {
-        int sum = 0;
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                sum += mutableX[i][j];
-            }
-        }
-        return sum;
     }
 
     void Solver::build_subtour_const_all(const IloEnv &env, const IloModel &model, const uint64_t n,
