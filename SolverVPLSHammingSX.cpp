@@ -10,8 +10,7 @@ namespace cplex_tap {
     }
 
     Solution
-    SolverVPLSHammingSX::solve(int dist_bound, int time_bound, bool debug, bool production,
-                               bool seed, string warmStart) const {
+    SolverVPLSHammingSX::solve(int dist_bound, int time_bound, bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
         // Init CPLEX environment and model objects
@@ -50,11 +49,7 @@ namespace cplex_tap {
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, max_init_time);
         if (debug) IloCplex::Callback mycallback = cplex.use(VPLS_HAMMINGSX_INFO_CBK(env, 10));
-        //cplex.setParam(IloCplex::IntSolLim, 4);// remove
-        if (!production)
-            cplex.setParam(IloCplex::Param::Threads, 1);
-        else
-            cplex.setParam(IloCplex::Param::Threads, 8);
+        cplex.setParam(IloCplex::Param::Threads, 1);
 
         if (seed) {
             warm_start(warmStart, env, n, x, s, cplex);

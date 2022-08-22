@@ -16,7 +16,7 @@ namespace cplex_tap {
             env.out() << "[INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
-    Solution Solver::solve(int dist_bound, int time_bound, bool debug, bool production, bool seed, string warmStart) const {
+    Solution Solver::solve(int dist_bound, int time_bound, bool seed, string warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ..." << std::endl;
 
@@ -52,15 +52,18 @@ namespace cplex_tap {
         // Free some memory 
         expr.end();
 
+        //Relaxation lineaire
+        for (int i = 0; i < n+2u; ++i) {
+            IloConversion relax_x = IloConversion( env, x[i], ILOFLOAT );
+            model.add( relax_x );
+        }
+        IloConversion relax_y = IloConversion( env, s, ILOFLOAT );
+        model.add( relax_y );
+
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 3600);
-
-        if (!production)
-            cplex.setParam(IloCplex::Param::Threads, 1);
-        else
-            cplex.setParam(IloCplex::Param::Threads, 8);
-
+        cplex.setParam(IloCplex::Param::Threads, 1);
 
         if (debug) {
             cplex.exportModel("tap_debug_model.lp");

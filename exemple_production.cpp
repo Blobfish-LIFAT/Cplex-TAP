@@ -31,14 +31,10 @@ int run_exact_test(char* argv[]) {
 
                         const auto solver = Solver(tap);
 
-                        //int budget = lround(eptime * size * 27.5f);
-                        //int budget = lround(eptime * size * 6.f);
-                        int budget = lround(eptime * size * 27.5f); //f1
-                        //int dist_bound = lround(epdist * size * 4.5);
-                        //int dist_bound = lround(epdist * size * 7.f);
-                        int dist_bound = lround(epdist * size * 5.5f); //f1
+                        int budget = lround(eptime * size * 27.5f);
+                        int dist_bound = lround(epdist * size * 4.5f);
 
-                        Solution sol = solver.solve(dist_bound, budget, false, false, false, "");
+                        Solution sol = solver.solve(dist_bound, budget, false, "");
                         std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
                         res << series_id << ";" << size << ";" << eptime << ";" << epdist << ";" << sol.time << ";"
                             << sol.z << ";" << sol.nodes << ";";
@@ -70,37 +66,31 @@ int production(char* argv[]) {
     //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
     int dist_bound = lround( stod(argv[2]));
 
-    Solution sol = solver.solve(dist_bound, budget, false, false, false, "");
+    Solution sol = solver.solve(dist_bound, budget, false, "");
 
     return 0;
 }
 
-int run_debug() {
-    std::string fname = "/users/21500078t/instances/tap_7_60.dat";
-
+int run_debug(char* argv[]) {
     using namespace cplex_tap;
-    const auto tap = Instance(fname);
 
+    const auto tap = Instance(argv[1]);
     const auto solver = Solver(tap);
 
-    // Easy
-    int budget = lround( 0.25 * tap.size() * 27.5f);
-    int dist_bound = lround( 0.35 * tap.size() * 4.5);
+    int budget = lround( 0.6 * tap.size() * 27.5f);
+    int dist_bound = lround( 0.3 * tap.size() * 4.5);
 
-    //std::cout << budget << "/" << dist_bound << std::endl;
 
-    Solution sol = solver.solve(dist_bound, budget, false, false, false, "/home/alex/instances/tap_1_300.warm");
+    Solution sol = solver.solve(dist_bound, budget, false, "/home/alex/instances/tap_1_300.warm");
     std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
     std::cout << sol.time << ";" << sol.z << ";"  << endl;
-
 
     return 0;
 }
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    //run_debug();
-    //return experiments_vpls(argv);
+    //run_debug(argv);
     //return production(argv);
     run_exact_test(argv);
 }
