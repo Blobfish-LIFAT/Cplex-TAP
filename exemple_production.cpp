@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include "CGTAPInstance.h"
+#include "pricingSolver.h"
 
 int run_exact_test(char* argv[]) {
 
@@ -74,14 +76,14 @@ int production(char* argv[]) {
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
 
-    const auto tap = Instance(argv[1]);
+    const auto tap = Instance("/home/alex/instances/tap_1_200.dat");
     const auto solver = Solver(tap);
 
     int budget = lround( 0.6 * tap.size() * 27.5f);
     int dist_bound = lround( 0.3 * tap.size() * 4.5);
 
 
-    Solution sol = solver.solve(dist_bound, budget, false, "/home/alex/instances/tap_1_300.warm");
+    Solution sol = solver.solve(dist_bound, budget, false, "");
     std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
     std::cout << sol.time << ";" << sol.z << ";"  << endl;
 
@@ -90,8 +92,17 @@ int run_debug(char* argv[]) {
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
+
+    std::string demo = "/home/alex/tap_instances/demo_cg_1";
+    auto cgIST = cplex_tap::CGTAPInstance(demo);
+
+    std::cout<< "done.." << std::endl;
+
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 50, 5);
+    solver.solve();
+
     //run_debug(argv);
     //return production(argv);
-    run_exact_test(argv);
+    //run_exact_test(argv);
 }
 

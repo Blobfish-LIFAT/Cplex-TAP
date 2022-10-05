@@ -26,6 +26,9 @@ namespace cplex_tap {
         // Load instance from a text file
         Instance(std::string file_path);
 
+        //Build instance from memory
+        Instance(int nbQ, std::vector<double> interest, std::vector<int> time, std::vector<std::vector<int>> distance);
+
         // Size of the instance
         std::uint32_t size() const { return nbQueries; }
 

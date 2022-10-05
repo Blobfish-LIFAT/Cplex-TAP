@@ -79,4 +79,21 @@ namespace cplex_tap {
         return distances;
     }
 
+    Instance::Instance(int nbQ, std::vector<double> interest, std::vector<int> time,
+                       std::vector<std::vector<int>> distance) {
+        nbQueries = nbQ;
+        interests = interest;
+        for (int i = 0; i < nbQ; ++i) {
+            times.emplace_back(time[i]);
+        }
+        for (int i = 0; i < nbQ; ++i) {
+            std::vector<uint32_t> line;
+            for (int j = 0; j < nbQ; ++j) {
+                line.emplace_back(distance[i][j]);
+            }
+            distances.emplace_back(line);
+        }
+
+    }
+
 }

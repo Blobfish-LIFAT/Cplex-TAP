@@ -78,9 +78,8 @@ namespace cplex_tap {
             return out;
         }
 
-
-        void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
-                       IloNumVarArray &u) const;
+        static void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
+                       IloNumVarArray &u);
 
         void
         build_constraints(int dist_bound, int time_bound, const IloEnv &env, const IloModel &model, const uint64_t n,

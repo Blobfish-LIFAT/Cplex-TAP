@@ -17,8 +17,8 @@ namespace cplex_tap {
     }
 
     Solution Solver::solve(int dist_bound, int time_bound, bool seed, string warmStart) const {
-        std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
-        std::cout << "Starting Model generation ..." << std::endl;
+        //std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
+        if (debug) std::cout << "Starting Model generation ..." << std::endl;
 
         // Init CPLEX environment and model objects
         IloEnv env;
@@ -47,18 +47,18 @@ namespace cplex_tap {
         }
         IloObjective obj(env, expr, IloObjective::Maximize);
         model.add(obj);
-        std::cout << "Added Objective to model\n";
+        if (debug) std::cout << "Added Objective to model\n";
 
         // Free some memory 
         expr.end();
 
         //Relaxation lineaire
-        for (int i = 0; i < n+2u; ++i) {
-            IloConversion relax_x = IloConversion( env, x[i], ILOFLOAT );
-            model.add( relax_x );
-        }
-        IloConversion relax_y = IloConversion( env, s, ILOFLOAT );
-        model.add( relax_y );
+        //for (int i = 0; i < n+2u; ++i) {
+        //    IloConversion relax_x = IloConversion( env, x[i], ILOFLOAT );
+        //    model.add( relax_x );
+        //}
+        //IloConversion relax_y = IloConversion( env, s, ILOFLOAT );
+        //model.add( relax_y );
 
         //Init solver
         IloCplex cplex(model);
@@ -77,7 +77,7 @@ namespace cplex_tap {
         bool solved = false;
         time_t start, end;
         start = clock();
-        std::cout << "CLK_START " << start << std::endl;
+        if (debug) std::cout << "CLK_START " << start << std::endl;
         try {
             solved = cplex.solve();
         }
@@ -132,7 +132,7 @@ namespace cplex_tap {
             // Add constraints (8)_i to the model
             model.add(mtz[i-1]);
         }
-        cout << "Added (8) to model\nConstraint building complete.\n";
+        if (debug) cout << "Added (8) to model\nConstraint building complete.\n";
     }
 
     void
@@ -154,7 +154,7 @@ namespace cplex_tap {
         expr.clear();
         // Add constraints (2) to the model
         model.add(interestingness);
-        cout << "Added (2) to model\n";
+        if (debug) cout << "Added (2) to model\n";
 
         // Create constraint (4)
         for (auto i = 0; i < n; ++i) {
@@ -164,7 +164,7 @@ namespace cplex_tap {
         expr.clear();
         // Add constraints (4) to the model
         model.add(exec_time);
-        cout << "Added (4) to model\n";
+        if (debug) cout << "Added (4) to model\n";
 
         // Create constraints (5)
         // quelques soit j de 1 a n
@@ -182,7 +182,7 @@ namespace cplex_tap {
         }
         // Add constraints (5) to the model
         model.add(inbound_arcs);
-        cout << "Added (5) to model\n";
+        if (debug) cout << "Added (5) to model\n";
 
         // Create constraints (6)
         // quelques soit i de 1 a n
@@ -199,7 +199,7 @@ namespace cplex_tap {
         }
         // Add constraints (6) to the model
         model.add(outbound_arcs);
-        cout << "Added (6) to model\n";
+        if (debug)  cout << "Added (6) to model\n";
 
         // Create constraint (7s)
         for (auto i = 1u; i <= n; ++i) {
@@ -210,7 +210,7 @@ namespace cplex_tap {
         expr.clear();
         // Add constraints (7s) to the model
         model.add(path_start);
-        cout << "Added (7s) to model\n";
+        if (debug) cout << "Added (7s) to model\n";
 
         // Create constraint (7e)
         for (auto i = 1u; i <= n; ++i) {
@@ -221,7 +221,7 @@ namespace cplex_tap {
         expr.clear();
         // Add constraints (7e) to the model
         model.add(path_end);
-        cout << "Added (7e) to model\n";
+        if (debug) cout << "Added (7e) to model\n";
 
         //Forbidden links (start to end, end to start ...)
         for (auto i = 0; i <= n + 1; ++i) {
@@ -237,7 +237,7 @@ namespace cplex_tap {
     }
 
     void Solver::init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
-                           IloNumVarArray &u) const {
+                           IloNumVarArray &u) {
         // Init variables x for arcs
         std::stringstream vname;
         for (auto i = 0; i <= n+1; ++i) {

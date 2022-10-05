@@ -22,7 +22,8 @@ if (CPLEX_ILOCPLEX_FOUND)
 endif ()
 
 ######## Complier message
-set(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Release)
 message(STATUS "System: ${CMAKE_SYSTEM}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
@@ -41,10 +42,15 @@ endif ()
 file(GLOB SOURCE_FILES *.cpp)
 
 ######## Set executable file name, and add the source files for it.
-add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h)
+add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h)
 
 ######## Add Dependency Library
 target_link_libraries(tap ilocplex cplex-library cplex-concert)
+
+####### Fix linker issue on ubuntu
+set(CMAKE_CXX_LINK_EXECUTABLE  "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+
+###### Verbose ON/OFF
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 
