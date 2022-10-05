@@ -44,6 +44,8 @@ namespace cplex_tap {
         virtual Solution solve() const;
 
         Instance buildRMPInstance(vector<Query> queries) const;
+
+        static bool assessConvergence(vector<double> objValues);
     };
 
 } // cplex_tap
