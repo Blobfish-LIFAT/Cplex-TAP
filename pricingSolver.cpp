@@ -64,6 +64,26 @@ namespace cplex_tap {
             IloModel pricing(cplex);
 
             /*
+             *  Data about queries in the RMP
+             */
+            vector<vector<bool>> S;
+            for (int i = 0; i < rmpQSet.size(); ++i) {
+                vector<bool> tmp;
+                for (int j = 0; j < pricingIST.getNbDims(); ++j) {
+                    bool appears = false;
+                    const string dimName = pricingIST.getDimName(j);
+                    for (int k = 0; k < rmpQSet[i].getLeftPredicate().size(); ++k) {
+                        appears |= rmpQSet[i].getLeftPredicate()[k].first == dimName;
+                    }
+                    for (int k = 0; k < rmpQSet[i].getRightPredicate().size(); ++k) {
+                        appears |= rmpQSet[i].getRightPredicate()[k].first == dimName;
+                    }
+                    tmp.emplace_back(appears);
+                }
+                S.emplace_back(tmp);
+            }
+
+            /*
              * Variables Declaration
              */
             IloNumVarArray cpLeftMeasure(cplex, pricingIST.getNbMeasures());
@@ -74,7 +94,7 @@ namespace cplex_tap {
             IloArray<IloNumVarArray> cpRightSel(cplex, pricingIST.getNbDims());
             IloArray<IloNumVarArray> cpSelExclusive(cplex, pricingIST.getNbDims());
             // original model vars
-            IloArray<IloNumVarArray> tap_x(cplex, rmpQSet.size() + 3u); // TODO add extra line/col
+            IloArray<IloNumVarArray> tap_x(cplex, rmpQSet.size() + 3u);
             IloNumVarArray tap_s(cplex, rmpQSet.size() + 1);
             IloNumVarArray tap_u(cplex, rmpQSet.size() + 1);
             // HV1 sum of all weights
@@ -156,10 +176,9 @@ namespace cplex_tap {
             }
             expr += (1 - tap_s[rmpQSet.size()]) * HV1;
             expr -= lin_I;
-            IloRange lin_cst_I(cplex, 0, expr, IloInfinity, "lin_I");
-            lin_cst_I.setExpr(expr);
-            pricing.add(lin_cst_I);
+            pricing.add(IloRange(cplex, 0, expr, IloInfinity, "lin_I"));
             expr.clear();
+            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV1) - lin_I));
             if (debug) std::cout << "[INFO]Added Objective to pricing model\n";
 
             /*
@@ -293,6 +312,7 @@ namespace cplex_tap {
             expr -= lin_T;
             pricing.add(IloRange(cplex, -IloInfinity, expr, 0, "time_linearization"));
             expr.clear();
+            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV2)-lin_T));
 
             //Distance
             for (auto i = 1; i <= rmpQSet.size(); ++i) {
@@ -304,7 +324,28 @@ namespace cplex_tap {
                 expr += lin_D_in[i] + lin_D_out[i];
             pricing.add(IloRange(cplex, -IloInfinity, expr, dist_bound, "distance_epsilon"));
             expr.clear();
-            //TODO Finish distance
+            for (int i = 0; i < rmpQSet.size(); ++i) {
+                for (int k = 0; k < pricingIST.getNbDims(); ++k) {
+                    expr += cpSelection[k] * (1 - S[i][k]) + S[i][k] * (1 - cpSelection[k]);
+                }
+                expr -= (1 - tap_x[i][rmpQSet.size()+1]) * HV3;
+                expr -= lin_D_in[i];
+                pricing.add(IloRange(cplex, -IloInfinity, expr, 0));
+                expr.clear();
+            }
+            for (int i = 0; i < rmpQSet.size(); ++i) {
+                for (int k = 0; k < pricingIST.getNbDims(); ++k) {
+                    expr += cpSelection[k] * (1 - S[i][k]) + S[i][k] * (1 - cpSelection[k]);
+                }
+                expr -= (1 - tap_x[rmpQSet.size()+1][i]) * HV3;
+                expr -= lin_D_out[i];
+                pricing.add(IloRange(cplex, -IloInfinity, expr, 0));
+                expr.clear();
+            }
+            for (int i = 0; i < rmpQSet.size(); ++i) {
+                pricing.add(IloRange(cplex, 0, (tap_x[i][rmpQSet.size()+1]*HV3) - lin_D_in[i]));
+                pricing.add(IloRange(cplex, 0, (tap_x[rmpQSet.size()+1][i]*HV3) - lin_D_out[i]));
+            }
 
 
             //Init solver
@@ -390,6 +431,8 @@ namespace cplex_tap {
 
             cout << isNewQuerySelected << " - " << picked << endl;
             rmpQSet.emplace_back(picked);
+            cplex_solver.end();
+            cplex.end();
         }
 
         //placeholder return
@@ -405,7 +448,7 @@ namespace cplex_tap {
             return false;
 
         bool change = false;
-        for (std::vector<double>::reverse_iterator it = objValues.rbegin();*it != objValues[objValues.size()-depth];it++){
+        for (auto it = objValues.rbegin();*it != objValues[objValues.size()-depth];it++){
             change |= *it - *(it + 1) > epsilon;
         }
 
