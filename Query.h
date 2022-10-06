@@ -58,15 +58,19 @@ namespace cplex_tap {
             strm << q.agg << std::string(",");
             strm << q.measureLeft << std::string(",");
             strm << q.measureRight << std::string(",");
-            for (auto i = q.leftPredicate.begin(); i != q.leftPredicate.end(); ++i)
-                strm << i->first << std::string("=") << std::to_string(i->second) << std::string(" AND ") ;
-            strm << std::string(",");
-            for (auto i = q.rightPredicate.begin(); i != q.rightPredicate.end(); ++i) {
+            strm << q.GBAttribute << std::string(",");
+            for (auto i = q.leftPredicate.begin(); i != q.leftPredicate.end(); ++i) {
                 strm << i->first << std::string("=") << std::to_string(i->second);
-                if (i != q.rightPredicate.end())
+                if (i != q.leftPredicate.end()-1)
                     strm << std::string(" AND ");
             }
             strm << std::string(",");
+            for (auto i = q.rightPredicate.begin(); i != q.rightPredicate.end(); ++i) {
+                strm << i->first << std::string("=") << std::to_string(i->second);
+                if (i != q.rightPredicate.end()-1)
+                    strm << std::string(" AND ");
+            }
+            //strm << std::string(",");
             return strm << std::string(")");
         }
     };

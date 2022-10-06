@@ -44,6 +44,7 @@ namespace cplex_tap {
         double prevRmpObj = 0;
         vector<double> objValues;
         bool isNewQuerySelected = true;
+        Solution rmpSol(false, 0, 0, std::vector<int>());
 
         int it = 0;
         while (it++ < 100) {
@@ -51,7 +52,7 @@ namespace cplex_tap {
             std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
             Solver tapSolver = Solver(rmpIST);
-            Solution rmpSol = tapSolver.solve(dist_bound, time_bound, false, "");
+            rmpSol = tapSolver.solve(dist_bound, time_bound, false, "");
             std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << " (prev=" << prevRmpObj << ")" << std::endl;
             prevRmpObj = rmpSol.z;
             objValues.emplace_back(rmpSol.z);
@@ -347,6 +348,92 @@ namespace cplex_tap {
                 pricing.add(IloRange(cplex, 0, (tap_x[rmpQSet.size()+1][i]*HV3) - lin_D_out[i]));
             }
 
+            /*
+             *  --- Constraints forbidding having same query as existing one ---
+             */
+            for (auto q : rmpQSet) {
+                int var_cnt = 0;
+                // GB Key
+                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                    int keyID = pricingIST.getDimId(q.getGbAttribute());
+                    if (i == keyID)
+                        expr += cpGroupBy[i];
+                    else
+                        expr += (1 - cpGroupBy[i]);
+                    var_cnt++;
+                }
+                // Measure - Left
+                for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
+                    int lMeasureID = pricingIST.getMeasureId(q.getMeasureLeft());
+                    if (i == lMeasureID)
+                        expr += cpLeftMeasure[i];
+                    else
+                        expr += (1 - cpLeftMeasure[i]);
+                    var_cnt++;
+                }
+                // Measure - Right
+                for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
+                    int rMeasureID = pricingIST.getMeasureId(q.getMeasureRight());
+                    if (i == rMeasureID)
+                        expr += cpRightMeasure[i];
+                    else
+                        expr += (1 - cpRightMeasure[i]);
+                    var_cnt++;
+                }
+                // Selection predicate - Left
+                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                    bool dimPresent = false;
+                    int valueIdx = -1;
+                    for (auto p : q.getLeftPredicate()){
+                        if (p.first == pricingIST.getDimName(i)) {
+                            dimPresent = true;
+                            valueIdx = p.second;
+                        }
+                    }
+                    if (dimPresent){
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            if (valueIdx == j)
+                                expr += cpLeftSel[i][j];
+                            else
+                                expr += (1 - cpLeftSel[i][j]);
+                            var_cnt++;
+                        }
+                    } else {
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            expr += (1 - cpLeftSel[i][j]);
+                            var_cnt++;
+                        }
+                    }
+                }
+                // Selection predicate - Right
+                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                    bool dimPresent = false;
+                    int valueIdx = -1;
+                    for (auto p : q.getRightPredicate()){
+                        if (p.first == pricingIST.getDimName(i)) {
+                            dimPresent = true;
+                            valueIdx = p.second;
+                        }
+                    }
+                    if (dimPresent){
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            if (valueIdx == j)
+                                expr += cpRightSel[i][j];
+                            else
+                                expr += (1 - cpRightSel[i][j]);
+                            var_cnt++;
+                        }
+                    } else {
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            expr += (1 - cpRightSel[i][j]);
+                            var_cnt++;
+                        }
+                    }
+                }
+
+                pricing.add(IloRange(cplex, 0, expr, var_cnt - 1));
+                expr.clear();
+            }
 
             //Init solver
             IloCplex cplex_solver(pricing);
@@ -376,7 +463,7 @@ namespace cplex_tap {
             /*
              *  --- Recover query from solution ---
              */
-            IloNumArray solSelection(cplex);
+            //IloNumArray solSelection(cplex);
             IloNumArray solGBKey(cplex);
             IloNumArray solLeftMeasure(cplex);
             IloNumArray solRightMeasure(cplex);
@@ -384,7 +471,7 @@ namespace cplex_tap {
             IloArray<IloNumArray> solRightSelection(cplex, pricingIST.getNbDims());
             isNewQuerySelected = cplex_solver.getValue(tap_s[rmpQSet.size()]);
 
-            cplex_solver.getValues(solSelection, cpSelection);
+            //cplex_solver.getValues(solSelection, cpSelection);
             cplex_solver.getValues(solGBKey, cpGroupBy);
             cplex_solver.getValues(solLeftMeasure, cpLeftMeasure);
             cplex_solver.getValues(solRightMeasure, cpRightMeasure);
@@ -435,9 +522,13 @@ namespace cplex_tap {
             cplex.end();
         }
 
-        //placeholder return
-        std::vector<int> ph = { 0,-1,42 };
-        return Solution{false, 0, 0, ph, 0};
+        for (int i = 0; i < rmpQSet.size(); ++i) {
+            cout << i << " - " << rmpQSet[i] << endl;
+        }
+        for (int i = 0; i < rmpSol.sequence.size(); ++i) {
+            cout << rmpSol.sequence[i] << " ";
+        }
+        return rmpSol;
     }
 
     bool pricingSolver::assessConvergence(vector<double> objValues){

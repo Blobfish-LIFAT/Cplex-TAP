@@ -52,14 +52,6 @@ namespace cplex_tap {
         // Free some memory 
         expr.end();
 
-        //Relaxation lineaire
-        //for (int i = 0; i < n+2u; ++i) {
-        //    IloConversion relax_x = IloConversion( env, x[i], ILOFLOAT );
-        //    model.add( relax_x );
-        //}
-        //IloConversion relax_y = IloConversion( env, s, ILOFLOAT );
-        //model.add( relax_y );
-
         //Init solver
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, 3600);

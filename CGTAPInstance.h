@@ -64,13 +64,36 @@ namespace cplex_tap {
         }
 
         int getAdSize(string atName) {
-            int idx = 0;
-            for(auto e : dimNames){
-                if (e == atName)
+            int idx = -1;
+            for(int i = 0; i < dimNames.size(); ++i){
+                if (dimNames[i] == atName) {
+                    idx = i;
                     break;
-                idx++;
+                }
             }
             return adSizes[idx];
+        }
+
+        int getDimId(string atName) const{
+            int idx = -1;
+            for(int i = 0; i < dimNames.size(); ++i){
+                if (dimNames[i] == atName) {
+                    idx = i;
+                    break;
+                }
+            }
+            return idx;
+        }
+
+        int getMeasureId(string atName) const{
+            int idx = -1;
+            for(int i = 0; i < measNames.size(); ++i){
+                if (measNames[i] == atName) {
+                    idx = i;
+                    break;
+                }
+            }
+            return idx;
         }
 
         double getDimWeight(int n) const {
@@ -78,11 +101,12 @@ namespace cplex_tap {
         }
 
         double getDimWeight(string atName) const{
-            int idx = 0;
-            for(auto e : dimNames){
-                if (e == atName)
+            int idx = -1;
+            for(int i = 0; i < dimNames.size(); ++i){
+                if (dimNames[i] == atName) {
+                    idx = i;
                     break;
-                idx++;
+                }
             }
             return dimWeights[idx];
         }
@@ -92,11 +116,12 @@ namespace cplex_tap {
         }
 
         double getDimTime(string atName) const{
-            int idx = 0;
-            for(auto e : dimNames){
-                if (e == atName)
+            int idx = -1;
+            for(int i = 0; i < dimNames.size(); ++i){
+                if (dimNames[i] == atName) {
+                    idx = i;
                     break;
-                idx++;
+                }
             }
             return dimTimes[idx];
         }
