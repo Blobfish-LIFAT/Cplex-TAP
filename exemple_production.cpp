@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     std::cout<< "done.." << std::endl;
 
-    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 50, 5);
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 50, 1500);
     solver.solve();
 
     //run_debug(argv);

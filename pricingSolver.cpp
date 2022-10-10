@@ -548,12 +548,10 @@ namespace cplex_tap {
     }
 
     Instance pricingSolver::buildRMPInstance(vector<Query> queries) const {
-        vector<double> interest;
-        vector<int> time;
+        vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
+        vector<int> time = JVMAdapter::getTime(queries, pricingIST);
         vector<vector<int>> distMatrix;
         for (int i = 0; i < queries.size(); ++i) {
-            interest.emplace_back(JVMAdapter::getInterest(queries[i], pricingIST));
-            time.emplace_back(JVMAdapter::getTime(queries[i], pricingIST));
             vector<int> line;
             for (int j = 0; j < queries.size(); ++j) {
                 line.emplace_back(queries[i].dist(queries[j]));

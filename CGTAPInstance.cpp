@@ -5,6 +5,7 @@
 #include "CGTAPInstance.h"
 #include <fstream>
 #include <iostream>
+#include "ActiveDomains.h"
 
 namespace cplex_tap {
     CGTAPInstance::CGTAPInstance(std::string folder_path) {
@@ -67,6 +68,7 @@ namespace cplex_tap {
         mainFile.close();
 
         //Load active domains
+        std::unordered_map<std::string,std::vector<std::string>> ad_map;
         for (string att : dimNames){
             string adFilePath = folder_path + "/" + att + "_ad.dat";
             ifstream adFile(adFilePath);
@@ -79,7 +81,9 @@ namespace cplex_tap {
             }
             activeDomains.push_back(values);
             adFile.close();
+            ad_map.insert({att, values});
         }
+        ActiveDomains* adSingleton = ActiveDomains::GetInstance(ad_map);
 
         //Load weights (for linear estimators)
         ifstream attWFile(folder_path + "/dim_weights.dat");
