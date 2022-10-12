@@ -93,16 +93,16 @@ int run_debug(char* argv[]) {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = "/home/alex/tap_instances/demo_cg_1";
+    /*std::string demo = "/home/alex/tap_instances/demo_cg_1";
     auto cgIST = cplex_tap::CGTAPInstance(demo);
 
     std::cout<< "done.." << std::endl;
 
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 50, 1500);
-    solver.solve();
+    solver.solve();*/
 
     //run_debug(argv);
-    //return production(argv);
+    return production(argv);
     //run_exact_test(argv);
 }
 
