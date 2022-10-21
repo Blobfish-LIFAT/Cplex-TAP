@@ -40,6 +40,27 @@ public:
     }
 
     static vector<int> getTime(std::vector<cplex_tap::Query> qs, cplex_tap::CGTAPInstance ist){
+
+        using namespace cplex_tap;
+        vector<int> interest;
+
+        for (auto q: qs) {
+            std::set<std::string> usedAttributes;
+            //usedAttributes.insert(q.getGbAttribute());
+            for (auto pair: q.getLeftPredicate())
+                usedAttributes.insert(pair.first);
+            for (auto pair: q.getRightPredicate())
+                usedAttributes.insert(pair.first);
+
+            double tmp = 0;
+            for (std::string item: usedAttributes) {
+                tmp += ist.getDimTime(item);
+            }
+            interest.emplace_back(round(tmp));
+        }
+
+        return interest;
+        /*
         auto ad = ActiveDomains::GetInstance()->value();
         json body;
 
@@ -74,7 +95,7 @@ public:
             //cout << e << endl;
             times.push_back(e);
         }
-        return response;
+        return response;*/
     }
 
     /*

@@ -19,6 +19,7 @@ namespace cplex_tap {
         // The TAP instance
         const Instance& tap;
         bool debug;
+        bool shutUp = true;
 
         // dump decision variables
         void dump(const IloCplex& cplex, const IloArray<IloNumVarArray>& x, const IloEnv& env, const IloNumVarArray &s, const IloNumVarArray &u) const {

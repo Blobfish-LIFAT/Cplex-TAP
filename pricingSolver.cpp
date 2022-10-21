@@ -15,7 +15,7 @@ namespace cplex_tap {
     Solution pricingSolver::solve() const {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
 
-        int starting_count = 10;
+        int starting_count = 150;
         vector<Query> rmpQSet;
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -23,17 +23,18 @@ namespace cplex_tap {
         std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims()-1);
         for (int i = 0; i < starting_count; ++i) {
             int lAttrID = rdAttr(gen);
-            int rAttrID = rdAttr(gen);
+            //int rAttrID = rdAttr(gen);
             int measureID = 0;
             int gbAttr = rdAttr(gen);
-            while (gbAttr == lAttrID || gbAttr == rAttrID){
+            while (gbAttr == lAttrID ){// || gbAttr == rAttrID
                 gbAttr = rdAttr(gen);
             }
             std::uniform_int_distribution<> rdValLeft(0, pricingIST.getAdSize(lAttrID)-1);
-            std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
+            //std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
 
             std::vector<std::pair<string, int> > lPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
-            std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
+            std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
+            //std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
             Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
                               pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
                               lPredicate, rPredicate);
@@ -47,7 +48,9 @@ namespace cplex_tap {
         Solution rmpSol(false, 0, 0, std::vector<int>());
 
         int it = 0;
-        while (it++ < 100) {
+        time_t start;
+        start = clock();
+        while (it++ < 300) {
 
             std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
@@ -202,7 +205,8 @@ namespace cplex_tap {
             // One or more for selection
             for (int i = 0; i < pricingIST.getNbDims(); ++i)
                 expr += cpSelection[i];
-            pricing.add(IloRange(cplex, 1, expr, pricingIST.getNbDims(), "one_more_selection"));
+            //TODO pricingIST.getNbDims()
+            pricing.add(IloRange(cplex, 1, expr, 1, "one_more_selection"));
             expr.clear();
             // No overlap selection / group by
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
@@ -439,23 +443,24 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, 3600);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
+            cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
             try {
                 solved = cplex_solver.solve();
             }
             catch (const IloException &e) {
-                std::cerr << "\n\n--- CPLEX Exception ---\n";
+                std::cerr << "\n\n--- CPLEX Exception (Pricing) ---\n";
                 std::cerr << e << "\n";
                 cplex.end();
                 throw;
             }
             if (solved) {
-                std::cout << "\n--- Solver success ---\n";
-                std::cout << "    Status: " << cplex_solver.getStatus() << "\n";
-                std::cout << "    Objective: " << cplex_solver.getObjValue() << "\n";
+                //std::cout << "\n--- Solver success ---\n";
+                //std::cout << "    Status: " << cplex_solver.getStatus() << "\n";
+                //std::cout << "    Objective: " << cplex_solver.getObjValue() << "\n";
             } else {
-                std::cerr << "\n--- Solver Error ---\n";
+                std::cerr << "\n--- Solver Error (Pricing) ---\n";
                 std::cerr << "    Status: " << cplex_solver.getStatus() << "\n";
                 std::cerr << "    Error details: " << cplex_solver.getCplexStatus() << "\n";
             }
@@ -492,12 +497,12 @@ namespace cplex_tap {
                     break;
             }
             int lmIdx = 0;
-            for (; lmIdx < pricingIST.getNbDims(); ++lmIdx) {
+            for (; lmIdx < pricingIST.getNbMeasures(); ++lmIdx) {
                 if (solLeftMeasure[lmIdx] == 1)
                     break;
             }
             int rmIdx = 0;
-            for (; rmIdx < pricingIST.getNbDims(); ++rmIdx) {
+            for (; rmIdx < pricingIST.getNbMeasures(); ++rmIdx) {
                 if (solRightMeasure[rmIdx] == 1)
                     break;
             }
@@ -516,24 +521,37 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
 
-            cout << isNewQuerySelected << " - " << picked << endl;
+            cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
+            time_t end = clock();
+            double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
+            cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
             cplex_solver.end();
             cplex.end();
         }
 
-        for (int i = 0; i < rmpQSet.size(); ++i) {
+        /*for (int i = 0; i < rmpQSet.size(); ++i) {
             cout << i << " - " << rmpQSet[i] << endl;
         }
         for (int i = 0; i < rmpSol.sequence.size(); ++i) {
             cout << rmpSol.sequence[i] << " ";
         }
+        cout << endl;*/
+        cout << "[OBJ]";
+        for (auto it = objValues.begin(); it != objValues.end() ; ++it) {
+            cout << *it;
+            if (it != objValues.end()-1)
+                cout << std::string(";");
+
+        }
+        cout <<endl;
+        cout << "[INFO] iterations " << objValues.size() << endl;
         return rmpSol;
     }
 
     bool pricingSolver::assessConvergence(vector<double> objValues){
-        int depth = 5;
-        double epsilon = 10e-3;
+        int depth = 300;
+        double epsilon = 10e-8;
 
         if (objValues.size() < depth)
             return false;

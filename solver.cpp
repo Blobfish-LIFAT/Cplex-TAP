@@ -54,8 +54,9 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 3600);
+        cplex.setParam(IloCplex::Param::TimeLimit, 60);
         cplex.setParam(IloCplex::Param::Threads, 1);
+        cplex.setOut(env.getNullStream());
 
         if (debug) {
             cplex.exportModel("tap_debug_model.lp");
@@ -84,12 +85,14 @@ namespace cplex_tap {
 
         if (solved) {
             // If CPLEX successfully solved the model, print the results
-            std::cout << "\n--- Solver success ---\n";
-            std::cout << "    Status: " << cplex.getStatus() << "\n";
-            std::cout << "    Objective: " << cplex.getObjValue() << "\n";
+            if (!shutUp) {
+                std::cout << "\n--- Solver success ---\n";
+                std::cout << "    Status: " << cplex.getStatus() << "\n";
+                std::cout << "    Objective: " << cplex.getObjValue() << "\n";
+                print_solution(cplex, x);
+            }
             if (debug) {
                 dump(cplex, x, env, s, u);
-                print_solution(cplex, x);
             }
 
 
