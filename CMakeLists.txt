@@ -51,7 +51,7 @@ endif ()
 file(GLOB SOURCE_FILES *.cpp)
 
 ######## Set executable file name, and add the source files for it.
-add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp)
+add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp initSolver.cpp initSolver.h)
 
 ######## Add Dependency Library
 target_link_libraries(tap ilocplex cplex-library cplex-concert)

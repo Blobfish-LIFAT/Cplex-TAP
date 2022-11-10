@@ -6,6 +6,7 @@
 #include <math.h>
 #include "CGTAPInstance.h"
 #include "pricingSolver.h"
+#include "initSolver.h"
 
 int run_exact_test(char* argv[]) {
 
@@ -96,11 +97,16 @@ int main(int argc, char* argv[]) {
     std::string demo = "/home/alex/tap_instances/demo_cg_3";
     auto cgIST = cplex_tap::CGTAPInstance(demo);
 
+    cplex_tap::initSolver init(cgIST, 50);
+    for(auto q : init.build_starting_set()){
+        cout << q << endl;
+    }
+
     std::cout<< "done.." << std::endl;
     time_t start, end;
     start = clock();
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10);
-    solver.solve();
+    cplex_tap::Solution s = solver.solve();
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;

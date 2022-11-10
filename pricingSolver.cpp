@@ -15,10 +15,10 @@ namespace cplex_tap {
     Solution pricingSolver::solve() const {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
 
-        int starting_count = 150;
+        int starting_count = 50;
         vector<Query> rmpQSet;
         std::random_device rd;
-        std::mt19937 gen(rd());
+        std::mt19937 gen(42);
         std::cout << "[STEP] Building Initial RMP query set" << std::endl;
         std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims()-1);
         for (int i = 0; i < starting_count; ++i) {
@@ -39,6 +39,7 @@ namespace cplex_tap {
                               pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
                               lPredicate, rPredicate);
             rmpQSet.emplace_back(rdQ);
+            //cout << rdQ << endl;
         }
         std::cout << "[STEP][END] Building Initial RMP query set" << std::endl;
 
@@ -546,11 +547,15 @@ namespace cplex_tap {
         }
         cout <<endl;
         cout << "[INFO] iterations " << objValues.size() << endl;
+
+        for (auto i : rmpSol.sequence) {
+            cout << rmpQSet[i] << endl;
+        }
         return rmpSol;
     }
 
     bool pricingSolver::assessConvergence(vector<double> objValues){
-        int depth = 300;
+        int depth = 50;
         double epsilon = 10e-8;
 
         if (objValues.size() < depth)
