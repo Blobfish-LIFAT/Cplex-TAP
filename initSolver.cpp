@@ -62,6 +62,8 @@ namespace cplex_tap {
                 }
                 S.emplace_back(tmp);
             }
+            vector<int> time = JVMAdapter::getTime(pool, pricingIST);
+            vector<double> interest = JVMAdapter::getInterest(pool, pricingIST);
 
             /*
              * Variables Declaration
@@ -101,13 +103,44 @@ namespace cplex_tap {
             //
             // --- Objective ---
             //
+
+            // Majorants
+            int N_t = *max_element(std::begin(time), std::end(time));
+            N_t = max(N_t, std::accumulate(pricingIST.getDimTimes().begin(), pricingIST.getDimTimes().end(), 0));
+            N_t = 2 * (N_t + 1);
+            int N_i = *max_element(std::begin(interest), std::end(interest));
+            N_i = max(N_i, std::accumulate(pricingIST.getDimWeights().begin(), pricingIST.getDimWeights().end(), 0));
+            N_i = 2 * (N_i + 1);
+
             IloExpr expr(cplex);
             for (int i = 0; i < pool.size(); ++i) {
+                IloExpr sumT(cplex);
+                IloExpr sumI(cplex);
                 for (int j = 0; j < pricingIST.getNbDims(); ++j) {
                     expr += cpSelection[j]*(1 - S[i][j]) + (1 - cpSelection[j]) * S[i][j];
-                    expr += (pricingIST.getDimWeight(j) * cpSelection[j] - S[i][j] * pricingIST.getDimWeight(j))*(pricingIST.getDimWeight(j) * cpSelection[j] - S[i][j] * pricingIST.getDimWeight(j));
-                    expr += (pricingIST.getDimTime(j) * cpSelection[j] - S[i][j] * pricingIST.getDimTime(j))*(pricingIST.getDimTime(j) * cpSelection[j] - S[i][j] * pricingIST.getDimTime(j));
+                    sumT += pricingIST.getDimTime(j) * cpSelection[j];
+                    sumI += pricingIST.getDimWeight(j) * cpSelection[j];
+                    // Square thing
+                    //expr += (pricingIST.getDimWeight(j) * cpSelection[j] - S[i][j] * pricingIST.getDimWeight(j))*(pricingIST.getDimWeight(j) * cpSelection[j] - S[i][j] * pricingIST.getDimWeight(j));
+                    //expr += (pricingIST.getDimTime(j) * cpSelection[j] - S[i][j] * pricingIST.getDimTime(j))*(pricingIST.getDimTime(j) * cpSelection[j] - S[i][j] * pricingIST.getDimTime(j));
                 }
+                // linearization of abs value terms
+                IloNumVar Z_t(cplex, ("Zt_" + to_string(i)).c_str());
+                IloNumVar Y_t(cplex, 0, 1, IloNumVar::Bool, ("Y_" + to_string(i)).c_str());
+                initProblem.add(IloRange(cplex, 0, sumT - time[i] + N_t * Y_t - Z_t, IloInfinity));
+                initProblem.add(IloRange(cplex, 0, - sumT + time[i] + N_t * (1 - Y_t) - Z_t, IloInfinity));
+                initProblem.add(IloRange(cplex, sumT - time[i] - Z_t, 0));
+                initProblem.add(IloRange(cplex, - sumT + time[i] - Z_t, 0));
+
+                IloNumVar Z_i(cplex, ("Zt_" + to_string(i)).c_str());
+                IloNumVar Y_i(cplex, 0, 1, IloNumVar::Bool, ("Y_" + to_string(i)).c_str());
+                initProblem.add(IloRange(cplex, 0, sumI - interest[i] + N_i * Y_i - Z_i, IloInfinity));
+                initProblem.add(IloRange(cplex, 0, - sumI + interest[i] + N_i * (1 - Y_i) - Z_i, IloInfinity));
+                initProblem.add(IloRange(cplex, sumI - interest[i] - Z_i, 0));
+                initProblem.add(IloRange(cplex, - sumI + interest[i] - Z_i, 0));
+
+                expr += Z_t;
+                expr += Z_i;
             }
             IloObjective obj(cplex, expr, IloObjective::Maximize);
             initProblem.add(obj);
