@@ -15,33 +15,38 @@ namespace cplex_tap {
     Solution pricingSolver::solve() const {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
 
-        int starting_count = 50;
         vector<Query> rmpQSet;
-        std::random_device rd;
-        std::mt19937 gen(42);
-        std::cout << "[STEP] Building Initial RMP query set" << std::endl;
-        std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims()-1);
-        for (int i = 0; i < starting_count; ++i) {
-            int lAttrID = rdAttr(gen);
-            //int rAttrID = rdAttr(gen);
-            int measureID = 0;
-            int gbAttr = rdAttr(gen);
-            while (gbAttr == lAttrID ){// || gbAttr == rAttrID
-                gbAttr = rdAttr(gen);
-            }
-            std::uniform_int_distribution<> rdValLeft(0, pricingIST.getAdSize(lAttrID)-1);
-            //std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
 
-            std::vector<std::pair<string, int> > lPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
-            std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
-            //std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
-            Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
-                              pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
-                              lPredicate, rPredicate);
-            rmpQSet.emplace_back(rdQ);
-            //cout << rdQ << endl;
+        if (extStarting.size() == 0) {
+            int starting_count = 50;
+            std::random_device rd;
+            std::mt19937 gen(42);
+            std::cout << "[STEP] Building Initial RMP query set" << std::endl;
+            std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims() - 1);
+            for (int i = 0; i < starting_count; ++i) {
+                int lAttrID = rdAttr(gen);
+                //int rAttrID = rdAttr(gen);
+                int measureID = 0;
+                int gbAttr = rdAttr(gen);
+                while (gbAttr == lAttrID) {// || gbAttr == rAttrID
+                    gbAttr = rdAttr(gen);
+                }
+                std::uniform_int_distribution<> rdValLeft(0, pricingIST.getAdSize(lAttrID) - 1);
+                //std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
+
+                std::vector<std::pair<string, int> > lPredicate = {{pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
+                std::vector<std::pair<string, int> > rPredicate = {{pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
+                //std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
+                Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
+                                  pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
+                                  lPredicate, rPredicate);
+                rmpQSet.emplace_back(rdQ);
+                //cout << rdQ << endl;
+            }
+            std::cout << "[STEP][END] Building Initial RMP query set" << std::endl;
+        } else{
+            rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
         }
-        std::cout << "[STEP][END] Building Initial RMP query set" << std::endl;
 
         double prevRmpObj = 0;
         vector<double> objValues;

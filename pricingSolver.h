@@ -28,17 +28,30 @@ namespace cplex_tap {
         int dist_bound;
         int time_bound;
 
+        // starting queries
+        vector<Query> extStarting;
+
     public:
         // Builds a solver with the specified instance
         explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound) : debug{false},
                                                                                            pricingIST{ist},
                                                                                            dist_bound{dist_bound},
-                                                                                           time_bound{time_bound} {}
+                                                                                           time_bound{time_bound},
+                                                                                           extStarting(vector<Query>()){}
 
-        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, bool debug) : debug(debug),
+        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, vector<Query> initSet, bool debug) :
+                                                                                                       debug(debug),
                                                                                                        pricingIST{ist},
                                                                                                        dist_bound{dist_bound},
-                                                                                                       time_bound{time_bound} {}
+                                                                                                       time_bound{time_bound},
+                                                                                                       extStarting(initSet){}
+
+        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, vector<Query> initSet) :
+                debug(false),
+                pricingIST{ist},
+                dist_bound{dist_bound},
+                time_bound{time_bound},
+                extStarting(initSet){}
 
         // Run solver
         virtual Solution solve() const;
