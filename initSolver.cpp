@@ -19,7 +19,7 @@ namespace cplex_tap {
 
         // First query
         std::random_device rd;
-        std::mt19937 gen(42);
+        std::mt19937 gen(rd());
         std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims()-1);
         int lAttrID = rdAttr(gen);
         //int rAttrID = rdAttr(gen);

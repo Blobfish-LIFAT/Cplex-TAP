@@ -53,6 +53,10 @@ namespace cplex_tap {
 
         int dist(Query&  other) const;
 
+        bool operator==(const Query &rhs) const;
+
+        bool operator!=(const Query &rhs) const;
+
         friend std::ostream& operator<<(std::ostream &strm, const Query &q) {
             strm << std::string("Query(") << q.table << std::string(",");
             strm << q.agg << std::string(",");

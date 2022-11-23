@@ -94,4 +94,20 @@ namespace cplex_tap {
     const std::string &Query::getAgg() const {
         return agg;
     }
+
+    bool Query::operator==(const Query &rhs) const {
+        return interest == rhs.interest &&
+               time == rhs.time &&
+               table == rhs.table &&
+               GBAttribute == rhs.GBAttribute &&
+               measureLeft == rhs.measureLeft &&
+               measureRight == rhs.measureRight &&
+               agg == rhs.agg &&
+               leftPredicate == rhs.leftPredicate &&
+               rightPredicate == rhs.rightPredicate;
+    }
+
+    bool Query::operator!=(const Query &rhs) const {
+        return !(rhs == *this);
+    }
 } // cplex_tap

@@ -20,10 +20,10 @@ namespace cplex_tap {
         if (extStarting.size() == 0) {
             int starting_count = 50;
             std::random_device rd;
-            std::mt19937 gen(42);
+            std::mt19937 gen(rd());
             std::cout << "[STEP] Building Initial RMP query set" << std::endl;
             std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims() - 1);
-            for (int i = 0; i < starting_count; ++i) {
+            for (; rmpQSet.size() < starting_count;) {
                 int lAttrID = rdAttr(gen);
                 //int rAttrID = rdAttr(gen);
                 int measureID = 0;
@@ -40,10 +40,13 @@ namespace cplex_tap {
                 Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
                                   pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
                                   lPredicate, rPredicate);
-                rmpQSet.emplace_back(rdQ);
-                //cout << rdQ << endl;
+
+                bool duplicate = false;
+                for (Query &q : rmpQSet)
+                    duplicate |= q == rdQ;
+                if (!duplicate )rmpQSet.emplace_back(rdQ);
             }
-            std::cout << "[STEP][END] Building Initial RMP query set" << std::endl;
+            std::cout << "[STEP][END] Building Initial RMP query set " << rmpQSet.size() << std::endl;
         } else{
             rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
         }
@@ -65,6 +68,14 @@ namespace cplex_tap {
             std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << " (prev=" << prevRmpObj << ")" << std::endl;
             prevRmpObj = rmpSol.z;
             objValues.emplace_back(rmpSol.z);
+
+            cout << "[Solution DUMP]";
+            for (int i = 0; i < rmpSol.sequence.size(); ++i) {
+                cout << rmpQSet[rmpSol.sequence[i]-1];
+                if (i < rmpSol.sequence.size() - 1)
+                    cout << ";";
+            }
+            cout << endl;
 
             if (assessConvergence(objValues))
                 break;
@@ -529,6 +540,7 @@ namespace cplex_tap {
 
             cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
             time_t end = clock();
+            cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
             cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
@@ -560,7 +572,7 @@ namespace cplex_tap {
     }
 
     bool pricingSolver::assessConvergence(vector<double> objValues){
-        int depth = 50;
+        int depth = 150;
         double epsilon = 10e-8;
 
         if (objValues.size() < depth)
