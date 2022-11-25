@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         std::cout<< "done.." << std::endl;
         time_t start, end;
         start = clock();
-        cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10, startingSet);
+        cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10);
         cplex_tap::Solution s = solver.solve();
         end = clock();
         double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
