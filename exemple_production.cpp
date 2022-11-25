@@ -94,8 +94,8 @@ int run_debug(char* argv[]) {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = argv[1];
-    int s = stoi(argv[2]);
+    std::string demo = "/users/21500078t/tap_instances/demo_cg_3";//argv[1];
+    int s = 50;//stoi(argv[2]);
 
     for (int i = 0; i < 20; ++i) {
         auto cgIST = cplex_tap::CGTAPInstance(demo);
