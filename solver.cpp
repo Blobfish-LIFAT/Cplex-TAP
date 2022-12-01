@@ -54,8 +54,8 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 60);
-        cplex.setParam(IloCplex::Param::Threads, 1);
+        cplex.setParam(IloCplex::Param::TimeLimit, 1200);
+        cplex.setParam(IloCplex::Param::Threads, 16);
         cplex.setOut(env.getNullStream());
 
         if (debug) {

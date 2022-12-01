@@ -328,7 +328,7 @@ namespace cplex_tap {
             /*
             *  --- Recover query from solution ---
             */
-            IloNumArray solGBKey(cplex);
+            IloNumArray solGBKey(cplex, ILOINT);
             IloNumArray solLeftMeasure(cplex);
             IloNumArray solRightMeasure(cplex);
             IloArray<IloNumArray> solLeftSelection(cplex, pricingIST.getNbDims());
@@ -350,27 +350,33 @@ namespace cplex_tap {
             }
 
             int gbKeyIdx = 0;
-            for (; gbKeyIdx < pricingIST.getNbDims(); ++gbKeyIdx) {
-                if (solGBKey[gbKeyIdx] == 1)
+            while (gbKeyIdx < pricingIST.getNbDims()) {
+                if (abs(solGBKey[gbKeyIdx] - 1) < 10e-6)
                     break;
+                else
+                    gbKeyIdx++;
             }
             int lmIdx = 0;
-            for (; lmIdx < pricingIST.getNbMeasures(); ++lmIdx) {
-                if (solLeftMeasure[lmIdx] == 1)
+            while (lmIdx < pricingIST.getNbMeasures()) {
+                if (abs(solLeftMeasure[lmIdx] - 1) < 10e-6)
                     break;
+                else
+                    lmIdx++;
             }
             int rmIdx = 0;
-            for (; rmIdx < pricingIST.getNbMeasures(); ++rmIdx) {
-                if (solRightMeasure[rmIdx] == 1)
+            while (rmIdx < pricingIST.getNbMeasures()) {
+                if (abs(solRightMeasure[rmIdx] - 1) < 10e-6)
                     break;
+                else
+                    rmIdx++;
             }
             std::vector<std::pair<std::string, int>> lPredicate;
             std::vector<std::pair<std::string, int>> rPredicate;
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                    if (solLeftSelection[i][j] == 1)
+                    if (abs(solLeftSelection[i][j] - 1) < 10e-6)
                         lPredicate.emplace_back(make_pair(pricingIST.getDimName(i), j));
-                    if (solRightSelection[i][j] == 1)
+                    if (abs(solRightSelection[i][j] - 1) < 10e-6)
                         rPredicate.emplace_back(make_pair(pricingIST.getDimName(i), j));
                 }
             }

@@ -94,24 +94,22 @@ int run_debug(char* argv[]) {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = "/users/21500078t/tap_instances/demo_cg_3";//argv[1];
-    int s = 50;//stoi(argv[2]);
+    std::string demo = "/users/21500078t/tap_instances/demo_cg_6";//argv[1];
 
-    for (int i = 0; i < 20; ++i) {
-        auto cgIST = cplex_tap::CGTAPInstance(demo);
+    auto cgIST = cplex_tap::CGTAPInstance(demo);
 
-        cplex_tap::initSolver init(cgIST, s);
-        auto startingSet = init.build_starting_set();
+    //cplex_tap::initSolver init(cgIST, 50);
+    //auto startingSet = init.build_starting_set();
 
-        std::cout<< "done.." << std::endl;
-        time_t start, end;
-        start = clock();
-        cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10);
-        cplex_tap::Solution s = solver.solve();
-        end = clock();
-        double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
-        cout << "[TIME] TOTAL " << time_to_sol << endl;
-    }
+    std::cout<< "done.." << std::endl;
+    time_t start, end;
+    start = clock();
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10);
+    cplex_tap::Solution s = solver.solve();
+    end = clock();
+    double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    cout << "[TIME] TOTAL " << time_to_sol << endl;
+
 
 
     //run_debug(argv);

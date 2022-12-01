@@ -23,7 +23,7 @@ public:
 
         for (auto q: qs) {
             std::set<std::string> usedAttributes;
-            usedAttributes.insert(q.getGbAttribute());
+            //usedAttributes.insert(q.getGbAttribute());
             for (auto pair: q.getLeftPredicate())
                 usedAttributes.insert(pair.first);
             for (auto pair: q.getRightPredicate())
