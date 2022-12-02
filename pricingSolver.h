@@ -30,6 +30,7 @@ namespace cplex_tap {
 
         // starting queries
         vector<Query> extStarting;
+        int randomStartSize = 0;
 
     public:
         // Builds a solver with the specified instance
@@ -38,6 +39,13 @@ namespace cplex_tap {
                                                                                            dist_bound{dist_bound},
                                                                                            time_bound{time_bound},
                                                                                            extStarting(vector<Query>()){}
+
+        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, int rdStartSize) : debug{false},
+                                                                                           pricingIST{ist},
+                                                                                           dist_bound{dist_bound},
+                                                                                           time_bound{time_bound},
+                                                                                           extStarting(vector<Query>()),
+                                                                                           randomStartSize(rdStartSize){}
 
         explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, vector<Query> initSet, bool debug) :
                                                                                                        debug(debug),

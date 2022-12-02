@@ -20,7 +20,7 @@ namespace cplex_tap {
         vector<Query> rmpQSet;
 
         if (extStarting.size() == 0) {
-            int starting_count = 10;
+            int starting_count = randomStartSize;
             std::random_device rd;
             std::mt19937 gen(rd());
             std::cout << "[STEP] Building Initial RMP query set" << std::endl;

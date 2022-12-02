@@ -94,7 +94,7 @@ int run_debug(char* argv[]) {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = "/users/21500078t/tap_instances/demo_cg_6";//argv[1];
+    std::string demo = argv[1]; //"/users/21500078t/tap_instances/demo_cg_6"
 
     auto cgIST = cplex_tap::CGTAPInstance(demo);
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     std::cout<< "done.." << std::endl;
     time_t start, end;
     start = clock();
-    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 250, 10);
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 125, 1000, stoi(argv[2]));
     cplex_tap::Solution s = solver.solve();
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
