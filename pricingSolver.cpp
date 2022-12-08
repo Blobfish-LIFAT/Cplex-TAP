@@ -9,8 +9,8 @@
 #include "solver.h"
 #include <numeric>
 
-#define TYPE_VAR_TAP ILOINT
-//#define TYPE_VAR_TAP ILOFLOAT
+//#define TYPE_VAR_TAP ILOINT
+#define TYPE_VAR_TAP ILOFLOAT
 
 namespace cplex_tap {
 
@@ -181,7 +181,8 @@ namespace cplex_tap {
                 tap_s[i] = IloNumVar(cplex, 0, 1, TYPE_VAR_TAP, ("s_" + std::to_string(i)).c_str());
             }
             // Last one from the pricing is binary taken or not
-            tap_s[rmpQSet.size()] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, "s_new");
+            //TODO remove me to allow selection or not
+            tap_s[rmpQSet.size()] = IloNumVar(cplex, 1, 1, IloNumVar::Bool, "s_new");
 
             // Init variables for MTZ subtour elimination and enforce part of (8)
             for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {

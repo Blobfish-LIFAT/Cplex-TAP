@@ -91,12 +91,66 @@ int run_debug(char* argv[]) {
     return 0;
 }
 
+void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
+    // Make the queries
+    std::vector<cplex_tap::Query> queries;
+    for (int i = 0; i < ist.getNbDims(); ++i) {
+        for (int j = 0; j < ist.getNbDims(); ++j) {
+            if (i != j){
+                for (int k = 0; k < ist.getAdSize(j); ++k) {
+                    for (int l = k+1; l < ist.getAdSize(j); ++l) {
+                        std::vector<std::pair<string, int> > lPred = {{ist.getDimName(j), l}};
+                        std::vector<std::pair<string, int> > rPred = {{ist.getDimName(j), k}};
+                        queries.emplace_back(cplex_tap::Query(ist.getTableName(), "sum", ist.getDimName(i), ist.getMeasureName(0), ist.getMeasureName(0), lPred, rPred));
+                    }
+                }
+            }
+        }
+    }
+
+    //Dump
+    std::fstream out(path, std::ios::out);
+    out << queries.size() << endl;
+    auto interest = JVMAdapter::getInterest(queries, ist);
+    for (int i = 0; i < queries.size(); ++i) {
+        out << interest[i];
+        if (i != interest.size() - 1)
+            out << " ";
+    }
+    out << endl;
+    auto time = JVMAdapter::getTime(queries, ist);
+    for (int i = 0; i < queries.size(); ++i) {
+        out << time[i];
+        if (i != time.size() - 1)
+            out << " ";
+    }
+    out << endl;
+    for (int i = 0; i < queries.size(); ++i) {
+        auto q = queries[i];
+        out << q.getAgg() << " ";
+        out << ist.getMeasureId(q.getMeasureLeft()) << " " << ist.getMeasureId(q.getMeasureRight()) << " ";
+        out << ist.getDimId(q.getGbAttribute()) << " ";
+        for (auto pair : q.getLeftPredicate()) {
+            out << pair.first << "=" << pair.second << "&";
+        }
+        out << " ";
+        for (auto pair : q.getRightPredicate()) {
+            out << pair.first << "=" << pair.second << "&";
+        }
+
+        out << endl;
+    }
+
+    out.close();
+}
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = argv[1]; //"/users/21500078t/tap_instances/demo_cg_6"
+    std::string demo = argv[1]; //
 
     auto cgIST = cplex_tap::CGTAPInstance(demo);
+    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
 
     //cplex_tap::initSolver init(cgIST, 50);
     //auto startingSet = init.build_starting_set();
