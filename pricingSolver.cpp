@@ -18,47 +18,7 @@ namespace cplex_tap {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
 
         vector<Query> rmpQSet;
-
-        if (extStarting.size() == 0) {
-            int starting_count = randomStartSize;
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::cout << "[STEP] Building Initial RMP query set" << std::endl;
-            std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims() - 1);
-            for (; rmpQSet.size() < starting_count;) {
-                int lAttrID = rdAttr(gen);
-                //int rAttrID = rdAttr(gen);
-                int measureID = 0;
-                int gbAttr = rdAttr(gen);
-                while (gbAttr == lAttrID) {// || gbAttr == rAttrID
-                    gbAttr = rdAttr(gen);
-                }
-                std::uniform_int_distribution<> rdValLeft(0, pricingIST.getAdSize(lAttrID) - 1);
-                //std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
-                int laval = rdValLeft(gen);
-                int rval = rdValLeft(gen);
-                while (rval == laval){
-                    rval = rdValLeft(gen);
-                }
-                std::vector<std::pair<string, int> > lPredicate = {{pricingIST.getDimName(lAttrID), laval}};
-                std::vector<std::pair<string, int> > rPredicate = {{pricingIST.getDimName(lAttrID), rval}};
-                //std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
-                Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
-                                  pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
-                                  lPredicate, rPredicate);
-
-                bool duplicate = false;
-                for (Query &q : rmpQSet)
-                    duplicate |= q == rdQ;
-                if (!duplicate){
-                    rmpQSet.emplace_back(rdQ);
-                    cout << rdQ << endl;
-                }
-            }
-            std::cout << "[STEP][END] Building Initial RMP query set " << rmpQSet.size() << std::endl;
-        } else{
-            rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
-        }
+        rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
 
         double prevRmpObj = 0;
         vector<double> objValues;
@@ -73,8 +33,9 @@ namespace cplex_tap {
             std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
             Solver tapSolver = Solver(rmpIST);
+            tapSolver.setTimeout(master_it_timeout);
             rmpSol = tapSolver.solve(dist_bound, time_bound, false, "");
-            std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << " (prev=" << prevRmpObj << ")" << std::endl;
+            std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << std::endl;
             prevRmpObj = rmpSol.z;
             objValues.emplace_back(rmpSol.z);
 
@@ -86,8 +47,15 @@ namespace cplex_tap {
             }
             cout << endl;
 
-            if (assessConvergence(objValues))
+            // Check convergence criterion
+            if (assessConvergence(objValues)){
+                cout << "[BREAK] Reason: convergence" << endl;
                 break;
+            }
+            if (!rmpSol.optimal){
+                cout << "[BREAK] Reason: rmp timeout" << endl;
+                break;
+            }
 
             // Init CPLEX environment and model objects
             IloEnv cplex;
@@ -555,8 +523,8 @@ namespace cplex_tap {
 
             //Init solver
             IloCplex cplex_solver(pricing);
-            cplex_solver.setParam(IloCplex::Param::TimeLimit, 1200);
-            cplex_solver.setParam(IloCplex::Param::Threads, 12);
+            cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
+            cplex_solver.setParam(IloCplex::Param::Threads, 1);
             cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
@@ -577,6 +545,11 @@ namespace cplex_tap {
                 std::cerr << "\n--- Solver Error (Pricing) ---\n";
                 std::cerr << "    Status: " << cplex_solver.getStatus() << "\n";
                 std::cerr << "    Error details: " << cplex_solver.getCplexStatus() << "\n";
+            }
+
+            if (cplex_solver.getStatus() != IloAlgorithm::Optimal){
+                cout << "[BREAK] Reason: pricing timeout" << endl;
+                break;
             }
 
             /*
@@ -647,6 +620,7 @@ namespace cplex_tap {
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
             cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
+
             cplex_solver.end();
             cplex.end();
         }
@@ -702,5 +676,21 @@ namespace cplex_tap {
             distMatrix.emplace_back(line);
         }
         return {static_cast<int>(queries.size()), interest, time, distMatrix};
+    }
+
+    int pricingSolver::getPricingItTimeout() const {
+        return pricing_it_timeout;
+    }
+
+    void pricingSolver::setPricingItTimeout(int pricingItTimeout) {
+        pricing_it_timeout = pricingItTimeout;
+    }
+
+    int pricingSolver::getMasterItTimeout() const {
+        return master_it_timeout;
+    }
+
+    void pricingSolver::setMasterItTimeout(int masterItTimeout) {
+        master_it_timeout = masterItTimeout;
     }
 } // cplex_tap

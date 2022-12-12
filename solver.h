@@ -20,6 +20,13 @@ namespace cplex_tap {
         const Instance& tap;
         bool debug;
         bool shutUp = true;
+        int timeout = 3600;
+    public:
+        int getTimeout() const;
+
+        void setTimeout(int timeout);
+
+    protected:
 
         // dump decision variables
         void dump(const IloCplex& cplex, const IloArray<IloNumVarArray>& x, const IloEnv& env, const IloNumVarArray &s, const IloNumVarArray &u) const {

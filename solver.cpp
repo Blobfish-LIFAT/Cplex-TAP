@@ -54,8 +54,8 @@ namespace cplex_tap {
 
         //Init solver
         IloCplex cplex(model);
-        cplex.setParam(IloCplex::Param::TimeLimit, 1200);
-        cplex.setParam(IloCplex::Param::Threads, 16);
+        cplex.setParam(IloCplex::Param::TimeLimit, timeout);
+        cplex.setParam(IloCplex::Param::Threads, 1);
         cplex.setOut(env.getNullStream());
 
         if (debug) {
@@ -264,6 +264,13 @@ namespace cplex_tap {
         cout << "Variables Init. complete\n";
     }
 
+    int Solver::getTimeout() const {
+        return timeout;
+    }
+
+    void Solver::setTimeout(int timeout) {
+        Solver::timeout = timeout;
+    }
 
 
 }

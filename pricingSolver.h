@@ -30,23 +30,22 @@ namespace cplex_tap {
 
         // starting queries
         vector<Query> extStarting;
-        int randomStartSize = 0;
+
+        //time
+        int pricing_it_timeout = 300;
+        int master_it_timeout = 600;
+
+    public:
+        int getPricingItTimeout() const;
+
+        void setPricingItTimeout(int pricingItTimeout);
+
+        int getMasterItTimeout() const;
+
+        void setMasterItTimeout(int masterItTimeout);
 
     public:
         // Builds a solver with the specified instance
-        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound) : debug{false},
-                                                                                           pricingIST{ist},
-                                                                                           dist_bound{dist_bound},
-                                                                                           time_bound{time_bound},
-                                                                                           extStarting(vector<Query>()){}
-
-        explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, int rdStartSize) : debug{false},
-                                                                                           pricingIST{ist},
-                                                                                           dist_bound{dist_bound},
-                                                                                           time_bound{time_bound},
-                                                                                           extStarting(vector<Query>()),
-                                                                                           randomStartSize(rdStartSize){}
-
         explicit pricingSolver(const CGTAPInstance &ist, int dist_bound, int time_bound, vector<Query> initSet, bool debug) :
                                                                                                        debug(debug),
                                                                                                        pricingIST{ist},

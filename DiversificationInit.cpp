@@ -2,68 +2,39 @@
 // Created by alex on 10/11/22.
 //
 
-#include "initSolver.h"
+#include "DiversificationInit.h"
 #include <random>
+#include <utility>
 #include <ilcplex/ilocplex.h>
 
 
 namespace cplex_tap {
-    initSolver::initSolver(const CGTAPInstance &pricingIst, const int setSize) : pricingIST(pricingIst),
-                                                                                 setSize(setSize), debug(false) {}
 
-    initSolver::initSolver(const CGTAPInstance &pricingIst, const int setSize, bool debug) : pricingIST(pricingIst),
-                                                                                 setSize(setSize), debug(debug) {}
-
-    vector<Query> initSolver::build_starting_set() {
-        vector<Query> pool;
-
-        // First query
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims()-1);
-        int lAttrID = rdAttr(gen);
-        //int rAttrID = rdAttr(gen);
-        int measureID = 0;
-        int gbAttr = rdAttr(gen);
-        while (gbAttr == lAttrID ){// || gbAttr == rAttrID
-            gbAttr = rdAttr(gen);
-        }
-        std::uniform_int_distribution<> rdValLeft(0, pricingIST.getAdSize(lAttrID)-1);
-        //std::uniform_int_distribution<> rdValRight(0, pricingIST.getAdSize(rAttrID)-1);
-
-        std::vector<std::pair<string, int> > lPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
-        std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(lAttrID), rdValLeft(gen)}};
-        //std::vector<std::pair<string, int> > rPredicate = { {pricingIST.getDimName(rAttrID), rdValRight(gen)}};
-        Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
-                          pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
-                          lPredicate, rPredicate);
-        pool.emplace_back(rdQ);
-
-
-        while (pool.size() <= setSize){
+    vector<Query> DiversificationInit::build(int setSize) {
+        while (baseSet.size() <= setSize){
             // Init CPLEX environment and model objects
             IloEnv cplex;
             IloModel initProblem(cplex);
 
             // Selection from queries
             vector<vector<bool>> S;
-            for (int i = 0; i < pool.size(); ++i) {
+            for (int i = 0; i < baseSet.size(); ++i) {
                 vector<bool> tmp;
                 for (int j = 0; j < pricingIST.getNbDims(); ++j) {
                     bool appears = false;
                     const string dimName = pricingIST.getDimName(j);
-                    for (int k = 0; k < pool[i].getLeftPredicate().size(); ++k) {
-                        appears |= pool[i].getLeftPredicate()[k].first == dimName;
+                    for (int k = 0; k < baseSet[i].getLeftPredicate().size(); ++k) {
+                        appears |= baseSet[i].getLeftPredicate()[k].first == dimName;
                     }
-                    for (int k = 0; k < pool[i].getRightPredicate().size(); ++k) {
-                        appears |= pool[i].getRightPredicate()[k].first == dimName;
+                    for (int k = 0; k < baseSet[i].getRightPredicate().size(); ++k) {
+                        appears |= baseSet[i].getRightPredicate()[k].first == dimName;
                     }
                     tmp.emplace_back(appears);
                 }
                 S.emplace_back(tmp);
             }
-            vector<int> time = JVMAdapter::getTime(pool, pricingIST);
-            vector<double> interest = JVMAdapter::getInterest(pool, pricingIST);
+            vector<int> time = JVMAdapter::getTime(baseSet, pricingIST);
+            vector<double> interest = JVMAdapter::getInterest(baseSet, pricingIST);
 
             /*
              * Variables Declaration
@@ -113,7 +84,7 @@ namespace cplex_tap {
             N_i = 2 * (N_i + 1);
 
             IloExpr expr(cplex);
-            for (int i = 0; i < pool.size(); ++i) {
+            for (int i = 0; i < baseSet.size(); ++i) {
                 IloExpr sumT(cplex);
                 IloExpr sumI(cplex);
                 for (int j = 0; j < pricingIST.getNbDims(); ++j) {
@@ -212,7 +183,7 @@ namespace cplex_tap {
             /*
             *  --- Constraints forbidding having same query as existing one ---
             */
-            for (auto q : pool) {
+            for (auto q : baseSet) {
                 int var_cnt = 0;
                 // GB Key
                 for (int i = 0; i < pricingIST.getNbDims(); ++i) {
@@ -384,8 +355,8 @@ namespace cplex_tap {
             Query picked = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbKeyIdx),
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
-            pool.emplace_back(picked);
+            baseSet.emplace_back(picked);
         }
-        return pool;
+        return baseSet;
     }
 } // cplex_tap

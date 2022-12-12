@@ -6,7 +6,23 @@
 #include <math.h>
 #include "CGTAPInstance.h"
 #include "pricingSolver.h"
-#include "initSolver.h"
+
+#include "RandomInit.h"
+#include "IntensificationInit.h"
+#include "DiversificationInit.h"
+
+inline constexpr auto hash_djb2a(const std::string_view sv) {
+    unsigned long hash{ 5381 };
+    for (unsigned char c : sv) {
+        hash = ((hash << 5) + hash) ^ c;
+    }
+    return hash;
+}
+
+inline constexpr auto operator"" _sh(const char *str, size_t len) {
+    return hash_djb2a(std::string_view{ str, len });
+}
+
 
 int run_exact_test(char* argv[]) {
 
@@ -74,23 +90,6 @@ int production(char* argv[]) {
     return 0;
 }
 
-int run_debug(char* argv[]) {
-    using namespace cplex_tap;
-
-    const auto tap = Instance("/home/alex/instances/tap_1_200.dat");
-    const auto solver = Solver(tap);
-
-    int budget = lround( 0.6 * tap.size() * 27.5f);
-    int dist_bound = lround( 0.3 * tap.size() * 4.5);
-
-
-    Solution sol = solver.solve(dist_bound, budget, false, "");
-    std::cout << endl << "TIME TO SOLVE " << sol.time << endl;
-    std::cout << sol.time << ";" << sol.z << ";"  << endl;
-
-    return 0;
-}
-
 void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
     // Make the queries
     std::vector<cplex_tap::Query> queries;
@@ -144,30 +143,68 @@ void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
     out.close();
 }
 
+std::vector<cplex_tap::Query> rd_xx(int xx, cplex_tap::CGTAPInstance ist){
+    cplex_tap::RandomInit rdi = cplex_tap::RandomInit(ist);
+    return rdi.build(xx);
+}
+
+auto rd_10 = std::bind(rd_xx, 10, std::placeholders::_1);
+auto rd_50 = std::bind(rd_xx, 50, std::placeholders::_1);
+auto rd_100 = std::bind(rd_xx, 100, std::placeholders::_1);
+
+int run_debug(char* argv[]) {
+    using namespace cplex_tap;
+
+    auto cgIST = cplex_tap::CGTAPInstance("/home/alex/tap_instances/demo_cg_3");
+
+    std::cout<< "--- LOADING DONE ---" << std::endl;
+    time_t start, end;
+    start = clock();
+
+    pricingSolver solver = pricingSolver(cgIST, 125, 1000, rd_10(cgIST));
+    Solution s = solver.solve();
+
+    end = clock();
+    double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    cout << "[TIME] TOTAL " << time_to_sol << endl;
+
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
-    std::string demo = argv[1]; //
+    //return run_debug(argv);
 
-    auto cgIST = cplex_tap::CGTAPInstance(demo);
-    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
+    std::string ist_path = argv[1];
+    std::string init_profile = argv[2];
 
-    //cplex_tap::initSolver init(cgIST, 50);
-    //auto startingSet = init.build_starting_set();
+    auto cgIST = cplex_tap::CGTAPInstance(ist_path);
+    vector<cplex_tap::Query> starting_queries;
 
-    std::cout<< "done.." << std::endl;
+    switch (hash_djb2a(init_profile)) {
+        case "rd_10"_sh:
+            starting_queries = rd_10(cgIST);
+            break;
+        case "rd_50"_sh:
+            starting_queries = rd_50(cgIST);
+            break;
+        case "rd_100"_sh:
+            starting_queries = rd_100(cgIST);
+            break;
+    }
+
+    std::cout<< "--- INIT COMPLETE ---.." << std::endl;
     time_t start, end;
     start = clock();
-    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 125, 1000, stoi(argv[2]));
+
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 125, 1000, starting_queries);
     cplex_tap::Solution s = solver.solve();
+
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
 
-
-    //run_debug(argv);
-    //return production(argv);
-    //run_exact_test(argv);
 }
 
