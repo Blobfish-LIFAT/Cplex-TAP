@@ -148,20 +148,26 @@ std::vector<cplex_tap::Query> rd_xx(int xx, cplex_tap::CGTAPInstance ist){
     return rdi.build(xx);
 }
 
+auto rd_1 = std::bind(rd_xx, 1, std::placeholders::_1);
 auto rd_10 = std::bind(rd_xx, 10, std::placeholders::_1);
 auto rd_50 = std::bind(rd_xx, 50, std::placeholders::_1);
 auto rd_100 = std::bind(rd_xx, 100, std::placeholders::_1);
+auto rd_150 = std::bind(rd_xx, 150, std::placeholders::_1);
 
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
 
-    auto cgIST = cplex_tap::CGTAPInstance("/home/alex/tap_instances/demo_cg_3");
+    auto cgIST = cplex_tap::CGTAPInstance("/home/alex/tap_instances/demo_cg_6");
 
     std::cout<< "--- LOADING DONE ---" << std::endl;
     time_t start, end;
     start = clock();
 
-    pricingSolver solver = pricingSolver(cgIST, 125, 1000, rd_10(cgIST));
+    DiversificationInit dvi = DiversificationInit(cgIST, rd_1(cgIST), true);
+    std::vector<Query> qset = dvi.build(20);
+    auto ini = IntensificationInit(cgIST, qset, true);
+
+    pricingSolver solver = pricingSolver(cgIST, 125, 1000, ini.build(30));
     Solution s = solver.solve();
 
     end = clock();
@@ -176,6 +182,9 @@ int main(int argc, char* argv[]) {
 
     //return run_debug(argv);
 
+    //(ep_t,ep_d)
+    int ep_t = stoi(argv[3]);
+    int ep_d = stoi(argv[4]);
     std::string ist_path = argv[1];
     std::string init_profile = argv[2];
 
@@ -183,13 +192,13 @@ int main(int argc, char* argv[]) {
     vector<cplex_tap::Query> starting_queries;
 
     switch (hash_djb2a(init_profile)) {
-        case "rd_10"_sh:
+        case "rd_50"_sh:
             starting_queries = rd_10(cgIST);
             break;
-        case "rd_50"_sh:
+        case "rd_100"_sh:
             starting_queries = rd_50(cgIST);
             break;
-        case "rd_100"_sh:
+        case "rd_150"_sh:
             starting_queries = rd_100(cgIST);
             break;
     }
@@ -198,7 +207,7 @@ int main(int argc, char* argv[]) {
     time_t start, end;
     start = clock();
 
-    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, 125, 1000, starting_queries);
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     cplex_tap::Solution s = solver.solve();
 
     end = clock();

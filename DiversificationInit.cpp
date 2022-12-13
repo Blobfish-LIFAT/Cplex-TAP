@@ -3,7 +3,6 @@
 //
 
 #include "DiversificationInit.h"
-#include <random>
 #include <utility>
 #include <ilcplex/ilocplex.h>
 
@@ -272,7 +271,7 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::TimeLimit, 3600);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
             //cplex_solver.setParam(IloCplex::Param::Preprocessing::QToLin, 0);
-            cplex_solver.setOut(cplex.getNullStream());
+            if (!debug) cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
             try {

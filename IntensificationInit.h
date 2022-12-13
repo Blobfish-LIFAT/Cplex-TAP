@@ -7,6 +7,7 @@
 
 #include "CGTAPInstance.h"
 #include "Query.h"
+#include "JVMAdapter.h"
 
 namespace cplex_tap {
 
@@ -14,9 +15,14 @@ namespace cplex_tap {
     protected:
         const CGTAPInstance &pricingIST;
         const bool debug;
+        std::vector<Query> baseSet;
     public:
-        IntensificationInit(const CGTAPInstance &pricingIst);
-        IntensificationInit(const CGTAPInstance &pricingIst, bool debug);
+        IntensificationInit(const CGTAPInstance &pricingIst, std::vector<Query> baseSet) : pricingIST(pricingIst), debug(false) {
+            this->baseSet = vector<Query>(std::move(baseSet));
+        };
+        IntensificationInit(const CGTAPInstance &pricingIst, std::vector<Query> baseSet, bool debug) : pricingIST(pricingIst), debug(debug) {
+            this->baseSet = vector<Query>(std::move(baseSet));
+        };
         vector<Query> build(int setSize);
     };
 
