@@ -86,7 +86,13 @@ int production(char* argv[]) {
     int dist_bound = lround( stod(argv[2]));
 
     Solution sol = solver.solve(dist_bound, budget, false, "");
-
+    cout << "OPT ? " << sol.optimal << endl << "Z=" << sol.z << endl;
+    for (int i = 0; i < sol.sequence.size(); ++i) {
+        cout << sol.sequence[i];
+        if (i != sol.sequence.size() - 1)
+            cout << " ";
+    }
+    cout << endl;
     return 0;
 }
 
@@ -142,6 +148,9 @@ void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
 
     out.close();
 }
+/*
+ *    --- Init modes ---
+ */
 
 std::vector<cplex_tap::Query> rd_xx(int xx, cplex_tap::CGTAPInstance ist){
     cplex_tap::RandomInit rdi = cplex_tap::RandomInit(ist);
@@ -153,6 +162,48 @@ auto rd_10 = std::bind(rd_xx, 10, std::placeholders::_1);
 auto rd_50 = std::bind(rd_xx, 50, std::placeholders::_1);
 auto rd_100 = std::bind(rd_xx, 100, std::placeholders::_1);
 auto rd_150 = std::bind(rd_xx, 150, std::placeholders::_1);
+
+std::vector<cplex_tap::Query> rd_div_xx(int xx, cplex_tap::CGTAPInstance ist){
+    cplex_tap::DiversificationInit dvi = cplex_tap::DiversificationInit(ist, rd_1(ist));
+    return dvi.build(xx);
+}
+
+auto rd_div_50 = std::bind(rd_div_xx, 50, std::placeholders::_1);
+auto rd_div_100 = std::bind(rd_div_xx, 100, std::placeholders::_1);
+auto rd_div_150 = std::bind(rd_div_xx, 150, std::placeholders::_1);
+
+std::vector<cplex_tap::Query> rd_div_xx_yy(int xx, int yy, cplex_tap::CGTAPInstance ist){
+    cplex_tap::DiversificationInit dvi = cplex_tap::DiversificationInit(ist, rd_xx(xx, ist));
+    return dvi.build(xx + yy);
+}
+
+auto rd_div_25_25 = std::bind(rd_div_xx_yy, 25, 25, std::placeholders::_1);
+auto rd_div_50_50 = std::bind(rd_div_xx_yy, 50, 50, std::placeholders::_1);
+
+std::vector<cplex_tap::Query> rd_div_int_xx_yy_zz(int xx, int yy, int zz, cplex_tap::CGTAPInstance ist){
+    cplex_tap::DiversificationInit dvi = cplex_tap::DiversificationInit(ist, rd_xx(xx, ist));
+    auto tmp = dvi.build(xx + yy);
+    cplex_tap::IntensificationInit ini = cplex_tap::IntensificationInit(ist, tmp);
+    return ini.build(xx + yy + zz);
+}
+
+auto rd_div_int_2_24_24 = std::bind(rd_div_int_xx_yy_zz, 2, 24, 24, std::placeholders::_1);
+auto rd_div_int_2_49_49 = std::bind(rd_div_int_xx_yy_zz, 2, 49, 49, std::placeholders::_1);
+auto rd_div_int_2_74_74 = std::bind(rd_div_int_xx_yy_zz, 2, 74, 74, std::placeholders::_1);
+auto rd_div_int_17_17_17 = std::bind(rd_div_int_xx_yy_zz, 17, 17, 17, std::placeholders::_1);
+auto rd_div_int_33_33_33 = std::bind(rd_div_int_xx_yy_zz, 33, 33, 33, std::placeholders::_1);
+auto rd_div_int_50_50_50 = std::bind(rd_div_int_xx_yy_zz, 50, 50, 50, std::placeholders::_1);
+
+std::vector<cplex_tap::Query> rd_int_div_xx_yy_zz(int xx, int yy, int zz, cplex_tap::CGTAPInstance ist){
+    cplex_tap::IntensificationInit dvi = cplex_tap::IntensificationInit(ist, rd_xx(xx, ist));
+    auto tmp = dvi.build(xx + yy);
+    cplex_tap::DiversificationInit ini = cplex_tap::DiversificationInit(ist, tmp);
+    return ini.build(xx + yy + zz);
+}
+
+auto rd_int_div_17_17_17 = std::bind(rd_int_div_xx_yy_zz, 17, 17, 17, std::placeholders::_1);
+auto rd_int_div_33_33_33 = std::bind(rd_int_div_xx_yy_zz, 33, 33, 33, std::placeholders::_1);
+auto rd_int_div_50_50_50 = std::bind(rd_int_div_xx_yy_zz, 50, 50, 50, std::placeholders::_1);
 
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
@@ -181,6 +232,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
 
     //return run_debug(argv);
+    //return production(argv);
 
     //(ep_t,ep_d)
     int ep_t = stoi(argv[3]);
@@ -192,14 +244,59 @@ int main(int argc, char* argv[]) {
     vector<cplex_tap::Query> starting_queries;
 
     switch (hash_djb2a(init_profile)) {
-        case "rd_50"_sh:
+        case "rd_10"_sh:
             starting_queries = rd_10(cgIST);
             break;
-        case "rd_100"_sh:
+        case "rd_50"_sh:
             starting_queries = rd_50(cgIST);
             break;
-        case "rd_150"_sh:
+        case "rd_100"_sh:
             starting_queries = rd_100(cgIST);
+            break;
+        case "rd_150"_sh:
+            starting_queries = rd_150(cgIST);
+            break;
+        case "rd_div_50"_sh:
+            starting_queries = rd_div_50(cgIST);
+            break;
+        case "rd_div_100"_sh:
+            starting_queries = rd_div_100(cgIST);
+            break;
+        case "rd_div_150"_sh:
+            starting_queries = rd_div_150(cgIST);
+            break;
+        case "rd_div_25_25"_sh:
+            starting_queries = rd_div_25_25(cgIST);
+            break;
+        case "rd_div_50_50"_sh:
+            starting_queries = rd_div_50_50(cgIST);
+            break;
+        case "rd_div_int_2_24_24"_sh:
+            starting_queries = rd_div_int_2_24_24(cgIST);
+            break;
+        case "rd_div_int_2_49_49"_sh:
+            starting_queries = rd_div_int_2_49_49(cgIST);
+            break;
+        case "rd_div_int_2_74_74"_sh:
+            starting_queries = rd_div_int_2_74_74(cgIST);
+            break;
+        case "rd_div_int_17_17_17"_sh:
+            starting_queries = rd_div_int_17_17_17(cgIST);
+            break;
+        case "rd_div_int_33_33_33"_sh:
+            starting_queries = rd_div_int_33_33_33(cgIST);
+            break;
+        case "rd_div_int_50_50_50"_sh:
+            starting_queries = rd_div_int_50_50_50(cgIST);
+            break;
+        case "rd_int_div_17_17_17"_sh:
+            starting_queries = rd_int_div_17_17_17(cgIST);
+            break;
+        case "rd_int_div_33_33_33"_sh:
+            starting_queries = rd_int_div_33_33_33(cgIST);
+            break;
+        case "rd_int_div_50_50_50"_sh:
+            starting_queries = rd_10(cgIST);
             break;
     }
 
