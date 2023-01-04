@@ -16,6 +16,7 @@ namespace cplex_tap {
 
     Solution pricingSolver::solve() const {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
+        int global_t = 0;
 
         vector<Query> rmpQSet;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
@@ -623,6 +624,12 @@ namespace cplex_tap {
 
             cplex_solver.end();
             cplex.end();
+
+            global_t += floor(time_to_sol);
+            if (global_t > global_timeout){
+                cout << "[BREAK] Reason: global timeout" << endl;
+                break;
+            }
         }
 
         /*for (int i = 0; i < rmpQSet.size(); ++i) {

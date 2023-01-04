@@ -34,6 +34,7 @@ namespace cplex_tap {
         //time
         int pricing_it_timeout = 300;
         int master_it_timeout = 600;
+        int global_timeout = 3600;
 
     public:
         int getPricingItTimeout() const;
