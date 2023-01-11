@@ -625,8 +625,7 @@ namespace cplex_tap {
             cplex_solver.end();
             cplex.end();
 
-            global_t += floor(time_to_sol);
-            if (global_t > global_timeout){
+            if (time_to_sol > global_timeout){
                 cout << "[BREAK] Reason: global timeout" << endl;
                 break;
             }

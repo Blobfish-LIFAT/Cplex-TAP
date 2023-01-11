@@ -311,6 +311,7 @@ int main(int argc, char* argv[]) {
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
-
+    //cout << "epd = " << ep_d << " | ept = " << ep_t << endl;
+    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
 }
 
