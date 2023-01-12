@@ -9,8 +9,8 @@
 #include "solver.h"
 #include <numeric>
 
-//#define TYPE_VAR_TAP ILOINT
-#define TYPE_VAR_TAP ILOFLOAT
+#define TYPE_VAR_TAP ILOINT
+//#define TYPE_VAR_TAP ILOFLOAT
 
 namespace cplex_tap {
 

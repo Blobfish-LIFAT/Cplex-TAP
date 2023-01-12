@@ -132,13 +132,13 @@ void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
     out << endl;
     for (int i = 0; i < queries.size(); ++i) {
         auto q = queries[i];
-        out << q.getAgg() << " ";
-        out << ist.getMeasureId(q.getMeasureLeft()) << " " << ist.getMeasureId(q.getMeasureRight()) << " ";
-        out << ist.getDimId(q.getGbAttribute()) << " ";
+        out << q.getAgg() << ";";
+        out << ist.getMeasureId(q.getMeasureLeft()) << ";" << ist.getMeasureId(q.getMeasureRight()) << ";";
+        out << ist.getDimId(q.getGbAttribute()) << ";";
         for (auto pair : q.getLeftPredicate()) {
             out << pair.first << "=" << pair.second << "&";
         }
-        out << " ";
+        out << ";";
         for (auto pair : q.getRightPredicate()) {
             out << pair.first << "=" << pair.second << "&";
         }
@@ -204,6 +204,9 @@ std::vector<cplex_tap::Query> rd_int_div_xx_yy_zz(int xx, int yy, int zz, cplex_
 auto rd_int_div_17_17_17 = std::bind(rd_int_div_xx_yy_zz, 17, 17, 17, std::placeholders::_1);
 auto rd_int_div_33_33_33 = std::bind(rd_int_div_xx_yy_zz, 33, 33, 33, std::placeholders::_1);
 auto rd_int_div_50_50_50 = std::bind(rd_int_div_xx_yy_zz, 50, 50, 50, std::placeholders::_1);
+auto rd_int_div_2_24_24 = std::bind(rd_int_div_xx_yy_zz, 2, 24, 24, std::placeholders::_1);
+auto rd_int_div_2_49_49 = std::bind(rd_int_div_xx_yy_zz, 2, 49, 49, std::placeholders::_1);
+auto rd_int_div_2_74_74 = std::bind(rd_int_div_xx_yy_zz, 2, 74, 74, std::placeholders::_1);
 
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
@@ -242,6 +245,14 @@ int main(int argc, char* argv[]) {
 
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
     vector<cplex_tap::Query> starting_queries;
+
+
+    //cout << "epd = " << ep_d << " | ept = " << ep_t << endl;
+    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
+    //exit(0);
+
+    time_t start, end;
+    start = clock();
 
     switch (hash_djb2a(init_profile)) {
         case "rd_10"_sh:
@@ -296,12 +307,23 @@ int main(int argc, char* argv[]) {
             starting_queries = rd_int_div_33_33_33(cgIST);
             break;
         case "rd_int_div_50_50_50"_sh:
-            starting_queries = rd_10(cgIST);
+            starting_queries = rd_int_div_50_50_50(cgIST);
+            break;
+        case "rd_int_div_2_24_24"_sh:
+            starting_queries = rd_int_div_2_24_24(cgIST);
+            break;
+        case "rd_int_div_2_49_49"_sh:
+            starting_queries = rd_int_div_2_49_49(cgIST);
+            break;
+        case "rd_int_div_2_74_74"_sh:
+            starting_queries = rd_int_div_2_74_74(cgIST);
             break;
     }
 
-    std::cout<< "--- INIT COMPLETE ---.." << std::endl;
-    time_t start, end;
+    end = clock();
+    double time_to_init = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
+
     start = clock();
 
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
@@ -311,7 +333,6 @@ int main(int argc, char* argv[]) {
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
-    //cout << "epd = " << ep_d << " | ept = " << ep_t << endl;
-    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
+
 }
 
