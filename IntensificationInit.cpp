@@ -356,6 +356,9 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
             baseSet.emplace_back(picked);
+
+            cplex_solver.end();
+            cplex.end();
         }
         return baseSet;
     }
