@@ -33,6 +33,7 @@ namespace cplex_tap {
 
         // Init variables
         init_vars(env, n, x, s, u);
+        if (debug) cout << "Variables Init. complete\n";
 
         // Init Constraints
         build_constraints(dist_bound, time_bound, env, model, n, x, s);
@@ -56,6 +57,8 @@ namespace cplex_tap {
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, timeout);
         cplex.setParam(IloCplex::Param::Threads, 1);
+        cplex.setParam(IloCplex::Param::MIP::Display, 0);
+        cplex.setParam(IloCplex::Param::Simplex::Display, 0);
         cplex.setOut(env.getNullStream());
 
         if (debug) {
@@ -260,8 +263,6 @@ namespace cplex_tap {
             u[i-1] = IloNumVar(env, 2, n, IloNumVar::Int, vname.str().c_str());
             vname.str("");
         }
-
-        cout << "Variables Init. complete\n";
     }
 
     int Solver::getTimeout() const {

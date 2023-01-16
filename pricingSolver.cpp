@@ -11,6 +11,7 @@
 
 #define TYPE_VAR_TAP ILOINT
 //#define TYPE_VAR_TAP ILOFLOAT
+#define NO_PRINT false
 
 namespace cplex_tap {
 
@@ -25,28 +26,32 @@ namespace cplex_tap {
         vector<double> objValues;
         bool isNewQuerySelected = true;
         Solution rmpSol(false, 0, 0, std::vector<int>());
+        Solution prevRMPSol(false, 0, 0, std::vector<int>());
 
         int it = 0;
         time_t start;
         start = clock();
         while (it++ < 300) {
 
-            std::cout << "[STEP] Building RMP model" << std::endl;
+            if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
             Solver tapSolver = Solver(rmpIST);
             tapSolver.setTimeout(master_it_timeout);
+            prevRMPSol = rmpSol;
             rmpSol = tapSolver.solve(dist_bound, time_bound, false, "");
-            std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << std::endl;
+            if (!NO_PRINT) std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << std::endl;
             prevRmpObj = rmpSol.z;
             objValues.emplace_back(rmpSol.z);
 
-            cout << "[Solution DUMP]";
-            for (int i = 0; i < rmpSol.sequence.size(); ++i) {
-                cout << rmpQSet[rmpSol.sequence[i]-1];
-                if (i < rmpSol.sequence.size() - 1)
-                    cout << ";";
+            if (debug) {
+                cout << "[Solution DUMP]";
+                for (int i = 0; i < rmpSol.sequence.size(); ++i) {
+                    cout << rmpQSet[rmpSol.sequence[i] - 1];
+                    if (i < rmpSol.sequence.size() - 1)
+                        cout << ";";
+                }
+                cout << endl;
             }
-            cout << endl;
 
             // Check convergence criterion
             if (assessConvergence(objValues)){
@@ -526,6 +531,8 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
+            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
@@ -549,8 +556,7 @@ namespace cplex_tap {
             }
 
             if (cplex_solver.getStatus() != IloAlgorithm::Optimal){
-                cout << "[BREAK] Reason: pricing timeout" << endl;
-                break;
+                cout << "[Info] pricing timeout" << endl;
             }
 
             /*
@@ -615,11 +621,11 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
 
-            cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
+            if (!NO_PRINT) cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
             time_t end = clock();
-            cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
+            if (!NO_PRINT) cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
-            cout << "[TIME][ITER][s] " << time_to_sol << endl;
+            if (!NO_PRINT) cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
 
             cplex_solver.end();
@@ -631,13 +637,6 @@ namespace cplex_tap {
             }
         }
 
-        /*for (int i = 0; i < rmpQSet.size(); ++i) {
-            cout << i << " - " << rmpQSet[i] << endl;
-        }
-        for (int i = 0; i < rmpSol.sequence.size(); ++i) {
-            cout << rmpSol.sequence[i] << " ";
-        }
-        cout << endl;*/
         cout << "[OBJ]";
         for (auto it = objValues.begin(); it != objValues.end() ; ++it) {
             cout << *it;
@@ -648,10 +647,19 @@ namespace cplex_tap {
         cout <<endl;
         cout << "[INFO] iterations " << objValues.size() << endl;
 
-        for (auto i : rmpSol.sequence) {
-            cout << rmpQSet[i] << endl;
+        // If we time out on last mip and break we keep the last solution
+        if (rmpSol.optimal){
+            for (auto i : rmpSol.sequence) {
+                cout << rmpQSet[i] << endl;
+            }
+            return rmpSol;
+        } else{
+            for (auto i : prevRMPSol.sequence) {
+                cout << rmpQSet[i] << endl;
+            }
+            return prevRMPSol;
         }
-        return rmpSol;
+
     }
 
     bool pricingSolver::assessConvergence(vector<double> objValues){

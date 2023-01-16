@@ -269,6 +269,8 @@ namespace cplex_tap {
             IloCplex cplex_solver(initProblem);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, 300);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
+            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             //cplex_solver.setParam(IloCplex::Param::Preprocessing::QToLin, 0);
             if (!debug) cplex_solver.setOut(cplex.getNullStream());
 
