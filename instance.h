@@ -29,6 +29,8 @@ namespace cplex_tap {
         //Build instance from memory
         Instance(int nbQ, std::vector<double> interest, std::vector<int> time, std::vector<std::vector<int>> distance);
 
+        virtual ~Instance();
+
         // Size of the instance
         std::uint32_t size() const { return nbQueries; }
 

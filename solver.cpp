@@ -107,6 +107,7 @@ namespace cplex_tap {
         }
 
         Solution result = Solution(cplex.getStatus() == IloAlgorithm::Optimal, time_to_sol, cplex.getObjValue(), get_solution(cplex, x), cplex.getNnodes());
+        cplex.end();
         env.end();
         return result;
     }

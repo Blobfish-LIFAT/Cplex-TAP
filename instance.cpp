@@ -96,4 +96,13 @@ namespace cplex_tap {
 
     }
 
+    Instance::~Instance() {
+        interests.clear();
+        times.clear();
+        for (auto line: distances) {
+            line.clear();
+        }
+        distances.clear();
+    }
+
 }
