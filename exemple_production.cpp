@@ -10,6 +10,7 @@
 #include "RandomInit.h"
 #include "IntensificationInit.h"
 #include "DiversificationInit.h"
+#include "randThenSortInit.h"
 
 inline constexpr auto hash_djb2a(const std::string_view sv) {
     unsigned long hash{ 5381 };
@@ -208,6 +209,15 @@ auto rd_int_div_2_24_24 = std::bind(rd_int_div_xx_yy_zz, 2, 24, 24, std::placeho
 auto rd_int_div_2_49_49 = std::bind(rd_int_div_xx_yy_zz, 2, 49, 49, std::placeholders::_1);
 auto rd_int_div_2_74_74 = std::bind(rd_int_div_xx_yy_zz, 2, 74, 74, std::placeholders::_1);
 
+std::vector<cplex_tap::Query> rdstr_xx(int xx, cplex_tap::CGTAPInstance ist){
+    cplex_tap::randThenSortInit rdi = cplex_tap::randThenSortInit(ist);
+    return rdi.build(xx);
+}
+
+auto rdsrt_50 = std::bind(rdstr_xx, 50, std::placeholders::_1);
+auto rdsrt_100 = std::bind(rdstr_xx, 100, std::placeholders::_1);
+auto rdsrt_150 = std::bind(rdstr_xx, 150, std::placeholders::_1);
+
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
 
@@ -249,6 +259,10 @@ int main(int argc, char* argv[]) {
 
     //cout << "epd = " << ep_d << " | ept = " << ep_t << endl;
     //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
+
+    //cplex_tap::randThenSortInit test(cgIST);
+    //test.build(10);
+
     //exit(0);
 
     time_t start, end;
@@ -317,6 +331,15 @@ int main(int argc, char* argv[]) {
             break;
         case "rd_int_div_2_74_74"_sh:
             starting_queries = rd_int_div_2_74_74(cgIST);
+            break;
+        case "rdsrt_50"_sh:
+            starting_queries = rdsrt_50(cgIST);
+            break;
+        case "rdsrt_100"_sh:
+            starting_queries = rdsrt_100(cgIST);
+            break;
+        case "rdsrt_150"_sh:
+            starting_queries = rdsrt_150(cgIST);
             break;
     }
 
