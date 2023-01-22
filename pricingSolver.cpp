@@ -59,8 +59,8 @@ namespace cplex_tap {
                 break;
             }
             if (!rmpSol.optimal){
-                cout << "[BREAK] Reason: rmp timeout" << endl;
-                break;
+                //cout << "[BREAK] Reason: rmp timeout" << endl;
+                //break;
             }
 
             // Init CPLEX environment and model objects
@@ -647,7 +647,7 @@ namespace cplex_tap {
         cout <<endl;
         cout << "[INFO] iterations " << objValues.size() << endl;
 
-        // If we time out on last mip and break we keep the last solution
+        // If we time out on last mip we keep the previous solution
         if (rmpSol.optimal){
             for (auto i : rmpSol.sequence) {
                 cout << rmpQSet[i] << endl;

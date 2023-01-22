@@ -345,6 +345,7 @@ int main(int argc, char* argv[]) {
 
     end = clock();
     double time_to_init = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    std::cout << "Generated " << starting_queries.size() << " queries" << std::endl;
     std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
 
     start = clock();
