@@ -11,6 +11,7 @@
 #include "IntensificationInit.h"
 #include "DiversificationInit.h"
 #include "randThenSortInit.h"
+#include "RandomInitSkew.h"
 
 inline constexpr auto hash_djb2a(const std::string_view sv) {
     unsigned long hash{ 5381 };
@@ -218,6 +219,16 @@ auto rdsrt_50 = std::bind(rdstr_xx, 50, std::placeholders::_1);
 auto rdsrt_100 = std::bind(rdstr_xx, 100, std::placeholders::_1);
 auto rdsrt_150 = std::bind(rdstr_xx, 150, std::placeholders::_1);
 
+std::vector<cplex_tap::Query> rdsk_xx(int xx, cplex_tap::CGTAPInstance ist){
+    cplex_tap::RandomInitSkew rdi = cplex_tap::RandomInitSkew(ist);
+    return rdi.build(xx);
+}
+
+auto rdsk_50 = std::bind(rdsk_xx, 50, std::placeholders::_1);
+auto rdsk_100 = std::bind(rdsk_xx, 100, std::placeholders::_1);
+auto rdsk_150 = std::bind(rdsk_xx, 150, std::placeholders::_1);
+
+
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
 
@@ -340,6 +351,15 @@ int main(int argc, char* argv[]) {
             break;
         case "rdsrt_150"_sh:
             starting_queries = rdsrt_150(cgIST);
+            break;
+        case "rdsk_50"_sh:
+            starting_queries = rdsk_50(cgIST);
+            break;
+        case "rdsk_100"_sh:
+            starting_queries = rdsk_100(cgIST);
+            break;
+        case "rdsk_150"_sh:
+            starting_queries = rdsk_150(cgIST);
             break;
     }
 
