@@ -16,7 +16,7 @@ namespace cplex_tap {
     protected:
         const CGTAPInstance &pricingIST;
         const bool debug;
-        const int rand_per_selected = 50; // how many queries to generate for 1 query returned
+        const int rand_per_selected = 500; // how many queries to generate for 1 query returned
         static bool sortbysec_rev(const pair<int,double> &a, const pair<int,double> &b){
             return (a.second > b.second);
         }
