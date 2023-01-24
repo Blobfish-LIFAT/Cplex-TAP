@@ -156,7 +156,7 @@ namespace cplex_tap {
             }
             // Last one from the pricing is binary taken or not
             //TODO remove me to allow selection or not
-            tap_s[rmpQSet.size()] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, "s_new");
+            tap_s[rmpQSet.size()] = IloNumVar(cplex, 1, 1, IloNumVar::Bool, "s_new");
 
             // Init variables for MTZ subtour elimination and enforce part of (8)
             for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
@@ -172,18 +172,19 @@ namespace cplex_tap {
             IloExpr expr(cplex);
             for (auto i = 0u; i < rmpQSet.size(); ++i)
                 expr += rmpIST.interest(i) * tap_s[i];
-            expr += lin_I;
-            IloObjective obj(cplex, expr, IloObjective::Maximize);
-            pricing.add(obj);
-            expr.clear();
+            //expr += lin_I;
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
                 expr += cpSelection[i] * pricingIST.getDimWeight(i);
             }
-            expr += (1 - tap_s[rmpQSet.size()]) * HV1;
-            expr -= lin_I;
-            pricing.add(IloRange(cplex, 0, expr, IloInfinity, "lin_I"));
+            IloObjective obj(cplex, expr, IloObjective::Maximize);
+            pricing.add(obj);
             expr.clear();
-            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV1) - lin_I));
+
+            //expr += (1 - tap_s[rmpQSet.size()]) * HV1;
+            //expr -= lin_I;
+            //pricing.add(IloRange(cplex, 0, expr, IloInfinity, "lin_I"));
+            //expr.clear();
+            //pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV1) - lin_I));
             if (debug) std::cout << "[INFO]Added Objective to pricing model\n";
 
             /*
