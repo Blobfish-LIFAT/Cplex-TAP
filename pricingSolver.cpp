@@ -532,9 +532,9 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
-            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
-            cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
-            cplex_solver.setOut(cplex.getNullStream());
+            //cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            //cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
+            //cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
             try {
