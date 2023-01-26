@@ -309,17 +309,20 @@ namespace cplex_tap {
             // Time
             for (auto i = 0; i < rmpQSet.size(); ++i)
                 expr += tap_s[i] * (int) rmpIST.time(i);
-            expr + lin_T;
+            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                expr += cpSelection[i] * timeWeights[i];
+            }
+            //expr + lin_T;
             pricing.add(IloRange(cplex, 0, expr, time_bound, "time_epsilon"));
             expr.clear();
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            /*for (int i = 0; i < pricingIST.getNbDims(); ++i) {
                 expr += cpSelection[i] * timeWeights[i];
             }
             expr -= (1 - tap_s[rmpQSet.size()]) * HV2;
             expr -= lin_T;
             pricing.add(IloRange(cplex, -IloInfinity, expr, 0, "time_linearization"));
             expr.clear();
-            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV2)-lin_T));
+            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV2)-lin_T));*/
 
             //Distance
             for (auto i = 1; i <= rmpQSet.size(); ++i) {
@@ -532,9 +535,9 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
-            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
-            cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
-            cplex_solver.setOut(cplex.getNullStream());
+            //cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            //cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
+            //cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
             try {
