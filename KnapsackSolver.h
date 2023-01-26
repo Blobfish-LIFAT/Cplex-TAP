@@ -8,6 +8,7 @@
 #include <vector>
 #include "Query.h"
 #include "CGTAPInstance.h"
+#include "Solution.h"
 
 namespace cplex_tap {
 
@@ -20,12 +21,14 @@ namespace cplex_tap {
     protected:
 
         static bool sortbysec_rev(const std::pair<int,double> &a, const std::pair<int,double> &b){
+            if (a.second == b.second)
+                return a.first < b.first;
             return (a.second > b.second);
         }
         double insert_opt(std::vector<int> *solution, int candidate, std::vector<Query> *queries);
 
     public:
-        std::vector<int> solve(std::vector<Query> queries, int timeBudget, int maxDistance);
+        Solution solve(std::vector<Query> queries, int timeBudget, int maxDistance);
 
 
     };

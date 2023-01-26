@@ -6,6 +6,7 @@
 #include <math.h>
 #include "CGTAPInstance.h"
 #include "pricingSolver.h"
+#include "KnapsackSolver.h"
 
 #include "RandomInit.h"
 #include "IntensificationInit.h"
@@ -98,23 +99,9 @@ int production(char* argv[]) {
     return 0;
 }
 
-void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
-    // Make the queries
-    std::vector<cplex_tap::Query> queries;
-    for (int i = 0; i < ist.getNbDims(); ++i) {
-        for (int j = 0; j < ist.getNbDims(); ++j) {
-            if (i != j){
-                for (int k = 0; k < ist.getAdSize(j); ++k) {
-                    for (int l = k+1; l < ist.getAdSize(j); ++l) {
-                        std::vector<std::pair<string, int> > lPred = {{ist.getDimName(j), l}};
-                        std::vector<std::pair<string, int> > rPred = {{ist.getDimName(j), k}};
-                        queries.emplace_back(cplex_tap::Query(ist.getTableName(), "sum", ist.getDimName(i), ist.getMeasureName(0), ist.getMeasureName(0), lPred, rPred));
-                    }
-                }
-            }
-        }
-    }
+vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance &ist);
 
+void dump_instance(vector<cplex_tap::Query> queries, cplex_tap::CGTAPInstance ist, std::string path){
     //Dump
     std::fstream out(path, std::ios::out);
     out << queries.size() << endl;
@@ -150,6 +137,25 @@ void dump_instance(cplex_tap::CGTAPInstance ist, std::string path){
 
     out.close();
 }
+
+vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance &ist) {
+    vector<cplex_tap::Query> queries;
+    for (int i = 0; i < ist.getNbDims(); ++i) {
+        for (int j = 0; j < ist.getNbDims(); ++j) {
+            if (i != j){
+                for (int k = 0; k < ist.getAdSize(j); ++k) {
+                    for (int l = k+1; l < ist.getAdSize(j); ++l) {
+                        vector<pair<string, int> > lPred = {{ist.getDimName(j), l}};
+                        vector<pair<string, int> > rPred = {{ist.getDimName(j), k}};
+                        queries.emplace_back(cplex_tap::Query(ist.getTableName(), "sum", ist.getDimName(i), ist.getMeasureName(0), ist.getMeasureName(0), lPred, rPred));
+                    }
+                }
+            }
+        }
+    }
+    return queries;
+}
+
 /*
  *    --- Init modes ---
  */
@@ -267,12 +273,17 @@ int main(int argc, char* argv[]) {
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
     vector<cplex_tap::Query> starting_queries;
 
-
     //cout << "epd = " << ep_d << " | ept = " << ep_t << endl;
-    //dump_instance(cgIST, "/home/alex/CLionProjects/Cplex-TAP/ist_dump.dat");
+    //vector<cplex_tap::Query> queries = getAllQueries(cgIST);
+    //dump_instance(queries, cgIST, "/home/alex/IdeaProjects/sqlEDAqueryGenerator/data/to_run/demo_cg_6_20_50");
 
     //cplex_tap::randThenSortInit test(cgIST);
     //test.build(10);
+
+    //cplex_tap::KnapsackSolver ks = cplex_tap::KnapsackSolver(&cgIST);
+    //auto solution = ks.solve(queries, ep_t, ep_d);
+    //for (auto q : solution.sequence)
+    //    cout << q << " ";
 
     //exit(0);
 

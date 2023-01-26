@@ -7,8 +7,11 @@
 #include "JVMAdapter.h"
 
 namespace cplex_tap {
-    std::vector<int> KnapsackSolver::solve(std::vector<Query> queries, int timeBudget, int maxDistance) {
-        std::cout << "[INFO] KS Heuristic : Init" << std::endl;
+    Solution KnapsackSolver::solve(std::vector<Query> queries, int timeBudget, int maxDistance) {
+        time_t start, end;
+        start = clock();
+
+        //std::cout << "[INFO] KS Heuristic : Init |Q|=" << queries.size() << std::endl;
         int size = queries.size();
 
         std::vector<int> solution;
@@ -19,14 +22,21 @@ namespace cplex_tap {
             order.emplace_back(std::make_pair(i, interests[i]/times[i]) );
         }
         //Sort by ratio descending
+        //cout << "[INFO] KS Heuristic : begin sort" << endl;
         sort(order.begin(), order.end(), sortbysec_rev);
+        //cout << "[INFO] KS Heuristic : sort done" << endl;
+
+        for (int i = 0; i < 100; ++i) {
+            cout << order[i].first << "|" << order[i].second << " ";
+        }
+        cout << endl;
 
         double total_dist = 0;
         double total_time = 0;
         double z = 0;
 
 
-        std::cout << "[INFO] KS Heuristic : Construction Solution" << std::endl;
+        //std::cout << "[INFO] KS Heuristic : Construction Solution" << std::endl;
         for (int i = 0; i < size; i++)
         {
             int current = order[i].first;
@@ -48,11 +58,13 @@ namespace cplex_tap {
                 }
             }
         }
-        std::cout << "[INFO] KS Heuristic : eptime=" << total_time << "/" << timeBudget << std::endl;
-        std::cout << "[INFO] KS Heuristic : epdist=" << total_dist << "/" << maxDistance << std::endl;
-        std::cout << "[INFO] KS Heuristic : solution is done z=" << z << std::endl;
+        //std::cout << "[INFO] KS Heuristic : eptime=" << total_time << "/" << timeBudget << std::endl;
+        //std::cout << "[INFO] KS Heuristic : epdist=" << total_dist << "/" << maxDistance << std::endl;
+        //std::cout << "[INFO] KS Heuristic : solution is done z=" << z << std::endl;
 
-        return solution;
+        end = clock();
+        double time = (double)(end - start) / (double)CLOCKS_PER_SEC;
+        return {false, time, z, solution};
     }
 
     double KnapsackSolver::insert_opt(std::vector<int> *solution, int candidate, std::vector<Query> *queries) {
