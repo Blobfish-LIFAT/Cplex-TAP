@@ -57,9 +57,9 @@ namespace cplex_tap {
         IloCplex cplex(model);
         cplex.setParam(IloCplex::Param::TimeLimit, timeout);
         cplex.setParam(IloCplex::Param::Threads, 1);
-        //cplex.setParam(IloCplex::Param::MIP::Display, 0);
-        //cplex.setParam(IloCplex::Param::Simplex::Display, 0);
-        //cplex.setOut(env.getNullStream());
+        cplex.setParam(IloCplex::Param::MIP::Display, 0);
+        cplex.setParam(IloCplex::Param::Simplex::Display, 0);
+        cplex.setOut(env.getNullStream());
 
         if (debug) {
             cplex.exportModel("tap_debug_model.lp");
