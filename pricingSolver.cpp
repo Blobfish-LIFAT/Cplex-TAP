@@ -261,8 +261,22 @@ namespace cplex_tap {
                         expr -= cpRightSel[i][j];;
                     }
                 }
-                pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_1_" + std::to_string(k)).c_str()));
+                pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
                 expr.clear();
+            }
+
+            for (auto i = 0u; i < pricingIST.getNbDims(); ++i) {
+                for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
+                    for (int j = 0; j < k; ++j) {
+                        expr += cpLeftSel[i][j];
+                    }
+                    for (int j = 0; j < k; ++j) {
+                        expr -= cpRightSel[i][j];;
+                    }
+                    pricing.add(IloRange(cplex, -IloInfinity, expr, 0,
+                                         ("sym_brk_series2_" + std::to_string(k) + "_" + std::to_string(i)).c_str()));
+                    expr.clear();
+                }
             }
 
             /*
