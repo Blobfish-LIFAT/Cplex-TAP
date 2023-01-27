@@ -250,6 +250,22 @@ namespace cplex_tap {
                 }
             }
             /*
+             *  --- Symmetry breaking ---
+             */
+            for (auto k = 0u; k < pricingIST.getNbDims(); ++k) {
+                for (auto i = 0u; i < k; ++i) {
+                    for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                        expr += cpLeftSel[i][j];
+                    }
+                    for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                        expr -= cpRightSel[i][j];;
+                    }
+                }
+                pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_1_" + std::to_string(k)).c_str()));
+                expr.clear();
+            }
+
+            /*
              *  --- Original Model Constraints ---
              */
             for (auto j = 1u; j <= rmpQSet.size() + 1; ++j) {
@@ -535,7 +551,7 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
-            cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, 0);
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
             //cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
             //cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             //cplex_solver.setOut(cplex.getNullStream());
@@ -711,5 +727,9 @@ namespace cplex_tap {
 
     void pricingSolver::setMasterItTimeout(int masterItTimeout) {
         master_it_timeout = masterItTimeout;
+    }
+
+    void pricingSolver::setCplexSym(int cplexSym) {
+        cplex_sym = cplexSym;
     }
 } // cplex_tap

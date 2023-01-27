@@ -36,6 +36,12 @@ namespace cplex_tap {
         int master_it_timeout = 600;
         int global_timeout = 3600;
 
+        //cplex symmetry setting
+        int cplex_sym = 0;
+
+    public:
+        void setCplexSym(int cplexSym);
+
     public:
         int getPricingItTimeout() const;
 

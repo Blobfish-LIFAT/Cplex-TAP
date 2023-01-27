@@ -270,6 +270,10 @@ int main(int argc, char* argv[]) {
     std::string ist_path = argv[1];
     std::string init_profile = argv[2];
 
+    int cplex_sym = -42;
+    if (argc > 5)
+        cplex_sym = stoi(argv[5]);
+
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
     vector<cplex_tap::Query> starting_queries;
 
@@ -392,6 +396,10 @@ int main(int argc, char* argv[]) {
     start = clock();
 
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
+
+    if (cplex_sym != -42)
+        solver.setCplexSym(cplex_sym);
+
     cplex_tap::Solution s = solver.solve();
 
     end = clock();
