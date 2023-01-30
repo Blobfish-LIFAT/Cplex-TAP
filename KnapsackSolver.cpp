@@ -26,10 +26,10 @@ namespace cplex_tap {
         sort(order.begin(), order.end(), sortbysec_rev);
         //cout << "[INFO] KS Heuristic : sort done" << endl;
 
-        for (int i = 0; i < 100; ++i) {
+        /*for (int i = 0; i < 100; ++i) {
             cout << order[i].first << "|" << order[i].second << " ";
         }
-        cout << endl;
+        cout << endl;*/
 
         double total_dist = 0;
         double total_time = 0;

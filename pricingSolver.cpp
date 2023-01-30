@@ -252,7 +252,7 @@ namespace cplex_tap {
             /*
              *  --- Symmetry breaking ---
              */
-            /*
+
             for (auto k = 0u; k < pricingIST.getNbDims(); ++k) {
                 for (auto i = 0u; i < k; ++i) {
                     for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
@@ -264,8 +264,8 @@ namespace cplex_tap {
                 }
                 pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
                 expr.clear();
-            }*/
-
+            }
+            /*
             for (auto i = 0u; i < pricingIST.getNbDims(); ++i) {
                 for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
                     for (int j = 0; j < k; ++j) {
@@ -278,7 +278,7 @@ namespace cplex_tap {
                                          ("sym_brk_series2_" + std::to_string(k) + "_" + std::to_string(i)).c_str()));
                     expr.clear();
                 }
-            }
+            }*/
 
             /*
              *  --- Original Model Constraints ---

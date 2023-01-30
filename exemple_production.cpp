@@ -13,6 +13,8 @@
 #include "DiversificationInit.h"
 #include "randThenSortInit.h"
 #include "RandomInitSkew.h"
+#include "KSInit.h"
+#include "KMppInit.h"
 
 inline constexpr auto hash_djb2a(const std::string_view sv) {
     unsigned long hash{ 5381 };
@@ -234,6 +236,24 @@ auto rdsk_50 = std::bind(rdsk_xx, 50, std::placeholders::_1);
 auto rdsk_100 = std::bind(rdsk_xx, 100, std::placeholders::_1);
 auto rdsk_150 = std::bind(rdsk_xx, 150, std::placeholders::_1);
 
+std::vector<cplex_tap::Query> rdks_xx(int xx, cplex_tap::CGTAPInstance ist, int ept, int epd){
+    cplex_tap::KSInit rdi = cplex_tap::KSInit(ist, epd, ept);
+    return rdi.build(xx);
+}
+
+auto rdks_50 = std::bind(rdks_xx, 50, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+auto rdks_100 = std::bind(rdks_xx, 100, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+auto rdks_150 = std::bind(rdks_xx, 150, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+std::vector<cplex_tap::Query> kmeanspp_xx(int xx, cplex_tap::CGTAPInstance ist, int ept, int epd){
+    cplex_tap::KSInit rdi = cplex_tap::KSInit(ist, epd, ept);
+    return rdi.build(xx);
+}
+
+auto kmeanspp_50 = std::bind(kmeanspp_xx, 50, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+auto kmeanspp_100 = std::bind(kmeanspp_xx, 100, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+auto kmeanspp_150 = std::bind(kmeanspp_xx, 150, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
 
 int run_debug(char* argv[]) {
     using namespace cplex_tap;
@@ -375,6 +395,24 @@ int main(int argc, char* argv[]) {
             break;
         case "rdsk_150"_sh:
             starting_queries = rdsk_150(cgIST);
+            break;
+        case "rdks_50"_sh:
+            starting_queries = rdks_50(cgIST, ep_t, ep_d);
+            break;
+        case "rdks_100"_sh:
+            starting_queries = rdks_100(cgIST, ep_t, ep_d);
+            break;
+        case "rdks_150"_sh:
+            starting_queries = rdks_150(cgIST, ep_t, ep_d);
+            break;
+        case "kmeanspp_50"_sh:
+            starting_queries = kmeanspp_50(cgIST, ep_t, ep_d);
+            break;
+        case "kmeanspp_100"_sh:
+            starting_queries = kmeanspp_100(cgIST, ep_t, ep_d);
+            break;
+        case "kmeanspp_150"_sh:
+            starting_queries = kmeanspp_150(cgIST, ep_t, ep_d);
             break;
         case "ks"_sh:
             std::cout<< "--- INIT COMPLETE ["<< 0 <<"]---" << std::endl;
