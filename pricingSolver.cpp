@@ -25,8 +25,8 @@ namespace cplex_tap {
         double prevRmpObj = 0;
         vector<double> objValues;
         bool isNewQuerySelected = true;
-        Solution rmpSol(false, 0, 0, std::vector<int>());
-        Solution prevRMPSol(false, 0, 0, std::vector<int>());
+        //Solution rmpSol(false, 0, 0, std::vector<int>());
+        //Solution prevRMPSol(false, 0, 0, std::vector<int>());
 
         int it = 0;
         time_t start;
@@ -35,6 +35,7 @@ namespace cplex_tap {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
+            /*
             Solver tapSolver = Solver(rmpIST);
             tapSolver.setTimeout(master_it_timeout);
             prevRMPSol = rmpSol;
@@ -61,7 +62,7 @@ namespace cplex_tap {
             if (!rmpSol.optimal){
                 //cout << "[BREAK] Reason: rmp timeout" << endl;
                 //break;
-            }
+            }*/
 
             // Init CPLEX environment and model objects
             IloEnv cplex;
@@ -683,6 +684,7 @@ namespace cplex_tap {
         cout <<endl;
         cout << "[INFO] iterations " << objValues.size() << endl;
 
+        /*
         // If we time out on last mip we keep the previous solution
         if (rmpSol.optimal){
             for (auto i : rmpSol.sequence) {
@@ -694,57 +696,67 @@ namespace cplex_tap {
                 cout << rmpQSet[i] << endl;
             }
             return prevRMPSol;
+        }*/
+
+        Instance rmpIST = buildRMPInstance(rmpQSet);
+        auto tapSolver = Solver(rmpIST);
+        tapSolver.setTimeout(master_it_timeout);
+        auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
+        cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
+        for (auto i : final_sol.sequence) {
+            cout << rmpQSet[i] << endl;
         }
+        return final_sol;
 
+}
+
+bool pricingSolver::assessConvergence(vector<double> objValues){
+    int depth = 150;
+    double epsilon = 10e-8;
+
+    if (objValues.size() < depth)
+        return false;
+
+    bool change = false;
+    for (auto it = objValues.rbegin();*it != objValues[objValues.size()-depth];it++){
+        change |= *it - *(it + 1) > epsilon;
     }
 
-    bool pricingSolver::assessConvergence(vector<double> objValues){
-        int depth = 150;
-        double epsilon = 10e-8;
+    return !change;
 
-        if (objValues.size() < depth)
-            return false;
+}
 
-        bool change = false;
-        for (auto it = objValues.rbegin();*it != objValues[objValues.size()-depth];it++){
-            change |= *it - *(it + 1) > epsilon;
+Instance pricingSolver::buildRMPInstance(vector<Query> queries) const {
+    vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
+    vector<int> time = JVMAdapter::getTime(queries, pricingIST);
+    vector<vector<int>> distMatrix;
+    for (int i = 0; i < queries.size(); ++i) {
+        vector<int> line;
+        for (int j = 0; j < queries.size(); ++j) {
+            line.emplace_back(queries[i].dist(queries[j]));
         }
-
-        return !change;
-
+        distMatrix.emplace_back(line);
     }
+    return {static_cast<int>(queries.size()), interest, time, distMatrix};
+}
 
-    Instance pricingSolver::buildRMPInstance(vector<Query> queries) const {
-        vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
-        vector<int> time = JVMAdapter::getTime(queries, pricingIST);
-        vector<vector<int>> distMatrix;
-        for (int i = 0; i < queries.size(); ++i) {
-            vector<int> line;
-            for (int j = 0; j < queries.size(); ++j) {
-                line.emplace_back(queries[i].dist(queries[j]));
-            }
-            distMatrix.emplace_back(line);
-        }
-        return {static_cast<int>(queries.size()), interest, time, distMatrix};
-    }
+int pricingSolver::getPricingItTimeout() const {
+    return pricing_it_timeout;
+}
 
-    int pricingSolver::getPricingItTimeout() const {
-        return pricing_it_timeout;
-    }
+void pricingSolver::setPricingItTimeout(int pricingItTimeout) {
+    pricing_it_timeout = pricingItTimeout;
+}
 
-    void pricingSolver::setPricingItTimeout(int pricingItTimeout) {
-        pricing_it_timeout = pricingItTimeout;
-    }
+int pricingSolver::getMasterItTimeout() const {
+    return master_it_timeout;
+}
 
-    int pricingSolver::getMasterItTimeout() const {
-        return master_it_timeout;
-    }
+void pricingSolver::setMasterItTimeout(int masterItTimeout) {
+    master_it_timeout = masterItTimeout;
+}
 
-    void pricingSolver::setMasterItTimeout(int masterItTimeout) {
-        master_it_timeout = masterItTimeout;
-    }
-
-    void pricingSolver::setCplexSym(int cplexSym) {
-        cplex_sym = cplexSym;
-    }
+void pricingSolver::setCplexSym(int cplexSym) {
+    cplex_sym = cplexSym;
+}
 } // cplex_tap
