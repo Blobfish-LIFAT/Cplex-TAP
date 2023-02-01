@@ -266,7 +266,7 @@ namespace cplex_tap {
                 pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
                 expr.clear();
             }
-            /*
+
             for (auto i = 0u; i < pricingIST.getNbDims(); ++i) {
                 for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
                     for (int j = 0; j < k; ++j) {
@@ -275,11 +275,15 @@ namespace cplex_tap {
                     for (int j = 0; j < k; ++j) {
                         expr -= cpRightSel[i][j];;
                     }
+                    expr -= 1;
+                    for (int l = 0; l < pricingIST.getAdSize(i); ++l) {
+                        expr += cpRightSel[i][l];
+                    }
                     pricing.add(IloRange(cplex, -IloInfinity, expr, 0,
                                          ("sym_brk_series2_" + std::to_string(k) + "_" + std::to_string(i)).c_str()));
                     expr.clear();
                 }
-            }*/
+            }
 
             /*
              *  --- Original Model Constraints ---
