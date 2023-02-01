@@ -31,7 +31,7 @@ namespace cplex_tap {
         int it = 0;
         time_t start;
         start = clock();
-        while (it++ < 300) {
+        while (it++ < 100) {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
@@ -568,8 +568,8 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
-            //cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
-            //cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
+            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             //cplex_solver.setOut(cplex.getNullStream());
 
             bool solved = false;
@@ -711,7 +711,7 @@ namespace cplex_tap {
 }
 
 bool pricingSolver::assessConvergence(vector<double> objValues){
-    int depth = 150;
+    int depth = 50;
     double epsilon = 10e-8;
 
     if (objValues.size() < depth)
