@@ -47,7 +47,8 @@ namespace cplex_tap {
 
     Query::Query(const std::string &table, const std::string &agg, const std::string &gbAttribute, const std::string &measureLeft,
                  const std::string &measureRight, const std::vector<std::pair<std::string, int>> &leftPredicate,
-                 const std::vector<std::pair<std::string, int>> &rightPredicate) : table(table), agg(agg),
+                 const std::vector<std::pair<std::string, int>> &rightPredicate) : table(table.substr(0, 256)),
+                                                                                           agg(agg),
                                                                                            GBAttribute(gbAttribute),
                                                                                            measureLeft(measureLeft),
                                                                                            measureRight(measureRight),

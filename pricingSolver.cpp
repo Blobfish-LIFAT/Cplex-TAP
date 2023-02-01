@@ -703,9 +703,9 @@ namespace cplex_tap {
         tapSolver.setTimeout(master_it_timeout);
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
         cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
-        for (auto i : final_sol.sequence) {
+        /*for (auto i : final_sol.sequence) {
             cout << rmpQSet[i] << endl;
-        }
+        }*/
         return final_sol;
 
 }
