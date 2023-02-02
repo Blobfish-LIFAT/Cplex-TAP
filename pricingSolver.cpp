@@ -265,7 +265,7 @@ namespace cplex_tap {
                 }
                 pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
                 expr.clear();
-            }
+            }/*
 
             for (auto i = 0u; i < pricingIST.getNbDims(); ++i) {
                 for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
@@ -283,7 +283,7 @@ namespace cplex_tap {
                                          ("sym_brk_series2_" + std::to_string(k) + "_" + std::to_string(i)).c_str()));
                     expr.clear();
                 }
-            }
+            }*/
 
             /*
              *  --- Original Model Constraints ---
@@ -572,7 +572,9 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
-            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0);
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Aggregator, 0);
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Presolve	, 0);
+            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0); //5 is max
             cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             //cplex_solver.setOut(cplex.getNullStream());
 
