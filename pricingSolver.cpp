@@ -574,7 +574,7 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, 0);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Aggregator, 0);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Presolve	, 0);
-            cplex_solver.setParam(IloCplex::Param::MIP::Display, 5); //5 is max
+            cplex_solver.setParam(IloCplex::Param::MIP::Display, 0); //5 is max
             cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             cplex_solver.setParam(IloCplex::Param::MIP::Strategy::HeuristicEffort, 0);
             cplex_solver.setParam(IloCplex::Param::Emphasis::MIP	, 2);
