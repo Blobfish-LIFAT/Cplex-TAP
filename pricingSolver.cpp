@@ -15,6 +15,11 @@
 
 namespace cplex_tap {
 
+    ILOMIPINFOCALLBACK0(print_z) {
+        IloEnv env = getEnv();
+        env.out() << "[INFO MIP Callback]" << " CLK " << getCplexTime() << " Z " << getBestObjValue() << " ? " << hasIncumbent() << std::endl;
+    }
+
     Solution pricingSolver::solve() const {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         int global_t = 0;
@@ -578,30 +583,44 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             cplex_solver.setParam(IloCplex::Param::MIP::Strategy::HeuristicEffort, 0);
             cplex_solver.setParam(IloCplex::Param::Emphasis::MIP	, 2);
+            cplex_solver.setParam(IloCplex::Param::MIP::SubMIP::NodeLimit, 50);
             //cplex_solver.setOut(cplex.getNullStream());
+
+            int allowed_restarts = 29;
+
+            IloCplex::Callback mycallback = cplex_solver.use(print_z(cplex));
+            std::cout << "[INFO] CLK_START " << clock() << std::endl;
 
             bool solved = false;
             try {
                 solved = cplex_solver.solve();
             }
             catch (const IloException &e) {
-                std::cerr << "\n\n--- CPLEX Exception (Pricing) ---\n";
-                std::cerr << e << "\n";
+                std::cout << "\n\n--- CPLEX Exception (Pricing) ---\n";
+                std::cout << e << "\n";
                 cplex.end();
                 throw;
             }
-            if (solved) {
-                //std::cout << "\n--- Solver success ---\n";
-                //std::cout << "    Status: " << cplex_solver.getStatus() << "\n";
-                //std::cout << "    Objective: " << cplex_solver.getObjValue() << "\n";
+            if (!solved) {
+                if (cplex_solver.getCplexStatus() == IloCplex::AbortTimeLim) {
+                    while (cplex_solver.getCplexStatus() == IloCplex::AbortTimeLim && allowed_restarts > 0 &&
+                           !(cplex_solver.getStatus() == IloAlgorithm::Optimal ||
+                             cplex_solver.getStatus() == IloAlgorithm::Feasible)) {
+                        std::cout << "[WARN] restarting solver after time limit" << endl;
+                        allowed_restarts--;
+                        cplex_solver.solve();
+                    }
+                } else {
+                    std::cout << "\n--- Solver Error (Pricing) ---\n";
+                    std::cout << "    Status: " << cplex_solver.getStatus() << "\n";
+                    std::cout << "    Error details: " << cplex_solver.getCplexStatus() << "\n";
+                }
             } else {
-                std::cerr << "\n--- Solver Error (Pricing) ---\n";
-                std::cerr << "    Status: " << cplex_solver.getStatus() << "\n";
-                std::cerr << "    Error details: " << cplex_solver.getCplexStatus() << "\n";
             }
 
-            if (cplex_solver.getStatus() != IloAlgorithm::Optimal){
-                cout << "[Info] pricing timeout" << endl;
+            if (!(cplex_solver.getStatus() == IloAlgorithm::Optimal || cplex_solver.getStatus() == IloAlgorithm::Feasible)){
+                cout << "[Info] pricing timeout without feasible solution" << endl;
+                break;
             }
 
             /*
