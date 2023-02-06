@@ -576,7 +576,7 @@ namespace cplex_tap {
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
-            cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, 0);
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Aggregator, 0);
             cplex_solver.setParam(IloCplex::Param::Preprocessing::Presolve	, 0);
             cplex_solver.setParam(IloCplex::Param::MIP::Display, 0); //5 is max
@@ -588,7 +588,7 @@ namespace cplex_tap {
 
             int allowed_restarts = 29;
 
-            IloCplex::Callback mycallback = cplex_solver.use(print_z(cplex));
+            //IloCplex::Callback mycallback = cplex_solver.use(print_z(cplex));
             std::cout << "[INFO] CLK_START " << clock() << std::endl;
 
             bool solved = false;

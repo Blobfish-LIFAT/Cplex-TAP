@@ -6,8 +6,12 @@
 
 namespace cplex_tap {
     vector<Query> randThenSortInit::build(int setSize) {
-        RandomInit rdini = RandomInit(pricingIST);
-        vector<Query> rands = rdini.build(setSize*rand_per_selected);
+        RandomInit *rdini;
+        if (seed != -1)
+            rdini = new RandomInit(pricingIST);
+        else
+            rdini = new RandomInit(pricingIST, seed);
+        vector<Query> rands = rdini->build(setSize*rand_per_selected);
         vector<double> interests = JVMAdapter::getInterest(rands, pricingIST);
         vector<int> times = JVMAdapter::getTime(rands, pricingIST);
         vector<pair<int,double>> pos_ratio;
@@ -22,6 +26,7 @@ namespace cplex_tap {
             if (debug) cout << pos_ratio[i].second << " ";
         }
         if (debug) cout << endl;
+        delete rdini;
         return pool;
     }
 } // cplex_tap

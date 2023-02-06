@@ -17,13 +17,18 @@ namespace cplex_tap {
         CGTAPInstance pricingIST;
         long random_set_size = 10000;
         int ep_dist, ep_time;
+        long seed = -1;
     public:
-        KMppInit(const CGTAPInstance &pricingIst, int epDist, int epTime) : pricingIST(pricingIst), ep_dist(epDist),
-                                                                          ep_time(epTime) {}
+        KMppInit(const CGTAPInstance &pricingIst, int epDist, int epTime) : pricingIST(pricingIst), ep_dist(epDist), ep_time(epTime) {}
+        KMppInit(const CGTAPInstance &pricingIst, int epDist, int epTime, long seed) : pricingIST(pricingIst), ep_dist(epDist), ep_time(epTime), seed(seed) {}
 
         std::vector<Query> build(int size){
-            RandomInit rdini = RandomInit(pricingIST);
-            vector<Query> rands = rdini.build(random_set_size);
+            RandomInit *rdini;
+            if (seed != -1)
+                rdini = new RandomInit(pricingIST);
+            else
+                rdini = new RandomInit(pricingIST, seed);
+            vector<Query> rands = rdini->build(random_set_size);
 
             vector<Query> out;
 
@@ -46,7 +51,7 @@ namespace cplex_tap {
 
             // KMeans ++ style diversification
             std::random_device rd;
-            std::mt19937 gen(rd());
+            std::mt19937 gen(seed != -1 ? seed : rd());
 
             while (out.size() < size){
                 vector<double> weights;
@@ -69,6 +74,7 @@ namespace cplex_tap {
                 rands.erase( rands.begin() + idx);
             }
 
+            delete rdini;
             return out;
         }
 

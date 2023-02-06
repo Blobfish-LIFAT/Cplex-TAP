@@ -19,15 +19,13 @@ namespace cplex_tap {
     public:
         explicit RandomInitSkew(const CGTAPInstance &pricingIst) : pricingIST(pricingIst) {}
 
-        RandomInitSkew(const CGTAPInstance &pricingIst, long seed) : pricingIST(pricingIst), seed(seed), was_seeded(true) {}
+        RandomInitSkew(const CGTAPInstance &pricingIst, long seed) : pricingIST(pricingIst), seed(seed) {}
 
-    protected:
-        bool was_seeded = false;
 
     public: std::vector<Query> build(int size){
             vector<Query> rmpQSet;
             std::random_device rd;
-            std::mt19937 gen(was_seeded ? seed : rd());
+            std::mt19937 gen(seed != -1 ? seed : rd());
             std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims() - 1);
             for (; rmpQSet.size() < size;) {
                 int lAttrID = rdAttr(gen);

@@ -14,15 +14,17 @@ namespace cplex_tap {
 
     class randThenSortInit {
     protected:
+        long seed = -1;
         const CGTAPInstance &pricingIST;
-        const bool debug;
+        const bool debug = false;
         const int rand_per_selected = 1000; // how many queries to generate for 1 query returned
         static bool sortbysec_rev(const pair<int,double> &a, const pair<int,double> &b){
             return (a.second > b.second);
         }
     public:
-        randThenSortInit(const CGTAPInstance &pricingIst) : pricingIST(pricingIst), debug(false) {};
-        randThenSortInit(const CGTAPInstance &pricingIst, bool debug) : pricingIST(pricingIst), debug(debug) {};
+        randThenSortInit(const CGTAPInstance &pricingIst) : pricingIST(pricingIst) {};
+        randThenSortInit(const CGTAPInstance &pricingIst, long seed) : pricingIST(pricingIst), seed(seed) {};
+        randThenSortInit(const CGTAPInstance &pricingIst, long seed, bool debug) : pricingIST(pricingIst), debug(debug), seed(seed) {};
         vector<Query> build(int setSize);
 
     };
