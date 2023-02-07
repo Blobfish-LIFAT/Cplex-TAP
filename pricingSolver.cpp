@@ -106,7 +106,7 @@ namespace cplex_tap {
             // original model vars
             IloArray<IloNumVarArray> tap_x(cplex, rmpQSet.size() + 3u);
             IloNumVarArray tap_s(cplex, rmpQSet.size() + 1);
-            IloNumVarArray tap_u(cplex, rmpQSet.size() + 1);
+            //IloNumVarArray tap_u(cplex, rmpQSet.size() + 1);
             // HV1 sum of all weights
             auto dimWeights = pricingIST.getDimWeights();
             auto HV1 = std::accumulate(dimWeights.begin(), dimWeights.end(), decltype(dimWeights)::value_type(0));
@@ -165,11 +165,11 @@ namespace cplex_tap {
             tap_s[rmpQSet.size()] = IloNumVar(cplex, 1, 1, IloNumVar::Bool, "s_new");
 
             // Init variables for MTZ subtour elimination and enforce part of (8)
-            for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
+            /*for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
                 vname << "u_" << i;
                 tap_u[i - 1] = IloNumVar(cplex, 2, rmpQSet.size() + 1, TYPE_VAR_TAP, vname.str().c_str());
                 vname.str("");
-            }
+            }*/
 
 
             //
@@ -334,6 +334,8 @@ namespace cplex_tap {
             pricing.add(IloRange(cplex, 0, expr, 0, "path_structure"));
             expr.clear();
 
+            //subtour elimination constraints
+            /*
             IloArray<IloRangeArray> mtz(cplex, rmpQSet.size() + 1);
             for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
                 mtz[i - 1] = IloRangeArray(cplex, rmpQSet.size() + 1);
@@ -345,7 +347,7 @@ namespace cplex_tap {
                     expr.clear();
                 }
                 pricing.add(mtz[i - 1]);
-            }
+            }*/
 
             // Time
             for (auto i = 0; i < rmpQSet.size(); ++i)
