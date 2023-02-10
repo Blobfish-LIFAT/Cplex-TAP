@@ -70,7 +70,7 @@ namespace cplex_tap {
         // Run solver
         virtual Solution solve() const;
 
-        Instance buildRMPInstance(vector<Query> queries) const;
+        Instance buildRMPInstance(vector<Query>& queries) const;
 
         static bool assessConvergence(vector<double> objValues);
     };

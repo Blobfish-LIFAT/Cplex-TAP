@@ -7,6 +7,7 @@
 #include "CGTAPInstance.h"
 #include "pricingSolver.h"
 #include "KnapsackSolver.h"
+#include "princingCPSolver.h"
 
 #include "InitTargets.h"
 
@@ -164,12 +165,17 @@ int run_debug(char* argv[]) {
     time_t start, end;
     start = clock();
 
-    DiversificationInit dvi = DiversificationInit(cgIST, rd_1(cgIST, -1), true);
-    std::vector<Query> qset = dvi.build(20);
-    auto ini = IntensificationInit(cgIST, qset, true);
+    auto ini = KMppInit(cgIST, 500, 200);
+    auto starting = ini.build(50);
 
-    pricingSolver solver = pricingSolver(cgIST, 125, 1000, ini.build(30));
+    double time_to_init = (double)(clock() - start) / (double)CLOCKS_PER_SEC;
+    std::cout << "Generated " << starting.size() << " queries" << std::endl;
+    std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
+
+    start = ::clock();
+    princingCPSolver solver = princingCPSolver(cgIST, 500, 200, starting);
     Solution s = solver.solve();
+    std::cout<< "--- Solved ["<< (double)(clock() - start) / (double)CLOCKS_PER_SEC <<"]---" << std::endl;
 
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
@@ -180,7 +186,7 @@ int run_debug(char* argv[]) {
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-
+    //return run_debug(argv);
 
     //(ep_t,ep_d)
     int ep_t = stoi(argv[3]);
@@ -198,8 +204,8 @@ int main(int argc, char* argv[]) {
     start = clock();
 
     switch (hash_djb2a(init_profile)) {
-        case "rd_10"_sh:
-            starting_queries = rd_10(cgIST, rng_seed);
+        case "rd_300"_sh:
+            starting_queries = rd_300(cgIST, rng_seed);
             break;
         case "rd_50"_sh:
             starting_queries = rd_50(cgIST, rng_seed);
@@ -209,6 +215,9 @@ int main(int argc, char* argv[]) {
             break;
         case "rd_150"_sh:
             starting_queries = rd_150(cgIST, rng_seed);
+            break;
+        case "rd_200"_sh:
+            starting_queries = rd_200(cgIST, rng_seed);
             break;
         case "rd_div_50"_sh:
             starting_queries = rd_div_50(cgIST, rng_seed);
@@ -234,6 +243,12 @@ int main(int argc, char* argv[]) {
         case "rd_div_int_2_74_74"_sh:
             starting_queries = rd_div_int_2_74_74(cgIST, rng_seed);
             break;
+        case "rd_div_int_2_99_99"_sh:
+            starting_queries = rd_div_int_2_99_99(cgIST, rng_seed);
+            break;
+        case "rd_div_int_2_149_149"_sh:
+            starting_queries = rd_div_int_2_149_149(cgIST, rng_seed);
+            break;
         case "rd_div_int_17_17_17"_sh:
             starting_queries = rd_div_int_17_17_17(cgIST, rng_seed);
             break;
@@ -242,6 +257,12 @@ int main(int argc, char* argv[]) {
             break;
         case "rd_div_int_50_50_50"_sh:
             starting_queries = rd_div_int_50_50_50(cgIST, rng_seed);
+            break;
+        case "rd_div_int_68_66_66"_sh:
+            starting_queries = rd_div_int_68_66_66(cgIST, rng_seed);
+            break;
+        case "rd_div_int_100_100_100"_sh:
+            starting_queries = rd_div_int_100_100_100(cgIST, rng_seed);
             break;
         case "rd_int_div_17_17_17"_sh:
             starting_queries = rd_int_div_17_17_17(cgIST, rng_seed);
@@ -252,6 +273,12 @@ int main(int argc, char* argv[]) {
         case "rd_int_div_50_50_50"_sh:
             starting_queries = rd_int_div_50_50_50(cgIST, rng_seed);
             break;
+        case "rd_int_div_68_66_66"_sh:
+            starting_queries = rd_int_div_68_66_66(cgIST, rng_seed);
+            break;
+        case "rd_int_div_100_100_100"_sh:
+            starting_queries = rd_int_div_100_100_100(cgIST, rng_seed);
+            break;
         case "rd_int_div_2_24_24"_sh:
             starting_queries = rd_int_div_2_24_24(cgIST, rng_seed);
             break;
@@ -260,6 +287,12 @@ int main(int argc, char* argv[]) {
             break;
         case "rd_int_div_2_74_74"_sh:
             starting_queries = rd_int_div_2_74_74(cgIST, rng_seed);
+            break;
+        case "rd_int_div_2_99_99"_sh:
+            starting_queries = rd_int_div_2_99_99(cgIST, rng_seed);
+            break;
+        case "rd_int_div_2_149_149"_sh:
+            starting_queries = rd_int_div_2_149_149(cgIST, rng_seed);
             break;
         case "rdsrt_50"_sh:
             starting_queries = rdsrt_50(cgIST, rng_seed);
@@ -270,6 +303,12 @@ int main(int argc, char* argv[]) {
         case "rdsrt_150"_sh:
             starting_queries = rdsrt_150(cgIST, rng_seed);
             break;
+        case "rdsrt_200"_sh:
+            starting_queries = rdsrt_200(cgIST, rng_seed);
+            break;
+        case "rdsrt_300"_sh:
+            starting_queries = rdsrt_300(cgIST, rng_seed);
+            break;
         case "rdsk_50"_sh:
             starting_queries = rdsk_50(cgIST, rng_seed);
             break;
@@ -279,14 +318,26 @@ int main(int argc, char* argv[]) {
         case "rdsk_150"_sh:
             starting_queries = rdsk_150(cgIST, rng_seed);
             break;
+        case "rdsk_200"_sh:
+            starting_queries = rdsk_200(cgIST, rng_seed);
+            break;
+        case "rdsk_300"_sh:
+            starting_queries = rdsk_300(cgIST, rng_seed);
+            break;
         case "rdks_50"_sh:
             starting_queries = rdks_50(cgIST, ep_t, ep_d, rng_seed);
             break;
         case "rdks_100"_sh:
             starting_queries = rdks_100(cgIST, ep_t, ep_d, rng_seed);
             break;
+        case "rdks_200"_sh:
+            starting_queries = rdks_200(cgIST, ep_t, ep_d, rng_seed);
+            break;
         case "rdks_150"_sh:
             starting_queries = rdks_150(cgIST, ep_t, ep_d, rng_seed);
+            break;
+        case "rdks_300"_sh:
+            starting_queries = rdks_300(cgIST, ep_t, ep_d, rng_seed);
             break;
         case "kmeanspp_50"_sh:
             starting_queries = kmeanspp_50(cgIST, ep_t, ep_d, rng_seed);
@@ -296,6 +347,12 @@ int main(int argc, char* argv[]) {
             break;
         case "kmeanspp_150"_sh:
             starting_queries = kmeanspp_150(cgIST, ep_t, ep_d, rng_seed);
+            break;
+        case "kmeanspp_200"_sh:
+            starting_queries = kmeanspp_200(cgIST, ep_t, ep_d, rng_seed);
+            break;
+        case "kmeanspp_300"_sh:
+            starting_queries = kmeanspp_300(cgIST, ep_t, ep_d, rng_seed);
             break;
         case "ks"_sh:
             std::cout<< "--- INIT COMPLETE ["<< 0 <<"]---" << std::endl;

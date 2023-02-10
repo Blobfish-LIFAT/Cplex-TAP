@@ -50,6 +50,24 @@ namespace cplex_tap {
         delete rdini;
         return out;
         }
+
+        vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance *ist) {
+            vector<cplex_tap::Query> queries;
+            for (int i = 0; i < ist->getNbDims(); ++i) {
+                for (int j = 0; j < ist->getNbDims(); ++j) {
+                    if (i != j){
+                        for (int k = 0; k < ist->getAdSize(j); ++k) {
+                            for (int l = k+1; l < ist->getAdSize(j); ++l) {
+                                vector<pair<string, int> > lPred = {{ist->getDimName(j), l}};
+                                vector<pair<string, int> > rPred = {{ist->getDimName(j), k}};
+                                queries.emplace_back(cplex_tap::Query(ist->getTableName(), "sum", ist->getDimName(i), ist->getMeasureName(0), ist->getMeasureName(0), lPred, rPred));
+                            }
+                        }
+                    }
+                }
+            }
+            return queries;
+        }
     };
 
 } // cplex_tap

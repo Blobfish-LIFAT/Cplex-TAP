@@ -755,7 +755,7 @@ bool pricingSolver::assessConvergence(vector<double> objValues){
 
 }
 
-Instance pricingSolver::buildRMPInstance(vector<Query> queries) const {
+Instance pricingSolver::buildRMPInstance(vector<Query>& queries) const {
     vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
     vector<int> time = JVMAdapter::getTime(queries, pricingIST);
     vector<vector<int>> distMatrix;

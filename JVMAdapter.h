@@ -17,20 +17,21 @@ using json = nlohmann::json;
 class JVMAdapter {
 
 public:
-    static vector<double> getInterest(std::vector<cplex_tap::Query> qs, cplex_tap::CGTAPInstance ist) {
+    static vector<double> getInterest(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist) {
         using namespace cplex_tap;
         vector<double> interest;
+        interest.reserve(qs.size());
 
-        for (auto q: qs) {
+        for (const auto& q: qs) {
             std::set<std::string> usedAttributes;
             //usedAttributes.insert(q.getGbAttribute());
-            for (auto pair: q.getLeftPredicate())
+            for (const auto& pair: q.getLeftPredicate())
                 usedAttributes.insert(pair.first);
-            for (auto pair: q.getRightPredicate())
+            for (const auto& pair: q.getRightPredicate())
                 usedAttributes.insert(pair.first);
 
             double  tmp = 0;
-            for (std::string item: usedAttributes) {
+            for (const std::string& item: usedAttributes) {
                 tmp += ist.getDimWeight(item);
             }
             interest.emplace_back(tmp);
@@ -39,27 +40,28 @@ public:
         return interest;
     }
 
-    static vector<int> getTime(std::vector<cplex_tap::Query> qs, cplex_tap::CGTAPInstance ist){
+    static vector<int> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
 
         using namespace cplex_tap;
-        vector<int> interest;
+        vector<int> times;
+        times.reserve(qs.size());
 
-        for (auto q: qs) {
+        for (const auto& q: qs) {
             std::set<std::string> usedAttributes;
             //usedAttributes.insert(q.getGbAttribute());
-            for (auto pair: q.getLeftPredicate())
+            for (const auto& pair: q.getLeftPredicate())
                 usedAttributes.insert(pair.first);
-            for (auto pair: q.getRightPredicate())
+            for (const auto& pair: q.getRightPredicate())
                 usedAttributes.insert(pair.first);
 
             double tmp = 0;
-            for (std::string item: usedAttributes) {
+            for (const std::string& item: usedAttributes) {
                 tmp += ist.getDimTime(item);
             }
-            interest.emplace_back(round(tmp));
+            times.emplace_back(round(tmp));
         }
 
-        return interest;
+        return times;
         /*
         auto ad = ActiveDomains::GetInstance()->value();
         json body;
