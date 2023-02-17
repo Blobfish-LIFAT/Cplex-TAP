@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <boost/functional/hash.hpp>
 
 #ifndef CPLEX_TEST_QUERY_H
 #define CPLEX_TEST_QUERY_H
@@ -80,5 +81,29 @@ namespace cplex_tap {
     };
 
 } // cplex_tap
+
+namespace std
+{
+    template <>
+    struct hash<cplex_tap::Query>
+    {
+        size_t operator()(const cplex_tap::Query& k) const
+        {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, k.getTime());
+            boost::hash_combine(seed, k.getInterest());
+            boost::hash_combine(seed, k.getInterest());
+            boost::hash_combine(seed, k.getTable());
+            boost::hash_combine(seed, k.getAgg());
+            boost::hash_combine(seed, k.getGbAttribute());
+            boost::hash_combine(seed, k.getMeasureLeft());
+            boost::hash_combine(seed, k.getMeasureRight());
+            boost::hash_combine(seed, k.getLeftPredicate());
+            boost::hash_combine(seed, k.getRightPredicate());
+
+        return seed;
+        }
+    };
+}
 
 #endif //CPLEX_TEST_QUERY_H

@@ -30,25 +30,7 @@ FetchContent_MakeAvailable(cpr)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-# Eigen matrix computation lib
-#include(ExternalProject)
-#
-#set(EIGEN_BUILD_DIR   ${CMAKE_BINARY_DIR}/eigen)
-#set(EIGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/include/eigen3)
-#set(EIGEN_INCLUDE_DIR ${EIGEN_INSTALL_DIR})
-#
-#ExternalProject_Add(
-#        eigen
-#        URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
-#        PREFIX ${EIGEN_BUILD_DIR}
-#        CONFIGURE_COMMAND ""
-#        BUILD_COMMAND ""
-#        INSTALL_COMMAND
-#        ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/Eigen ${EIGEN_INCLUDE_DIR}/Eigen
-#        && ${CMAKE_COMMAND} -E copy_directory ${EIGEN_BUILD_DIR}/src/eigen/unsupported ${EIGEN_INCLUDE_DIR}/unsupported
-#        TEST_COMMAND ""
-#)
-#include_directories(SYSTEM ${EIGEN_INCLUDE_DIR})
+add_subdirectory(boost-cmake)
 
 ######## Complier message
 SET(CMAKE_BUILD_TYPE Debug)
@@ -70,9 +52,11 @@ endif ()
 file(GLOB SOURCE_FILES *.cpp)
 
 ######## Set executable file name, and add the source files for it.
-add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp DiversificationInit.cpp DiversificationInit.h RandomInit.h IntensificationInit.cpp IntensificationInit.h randThenSortInit.cpp randThenSortInit.h RandomInitSkew.h KnapsackSolver.cpp KnapsackSolver.h KSInit.cpp KSInit.h KMppInit.cpp KMppInit.h InitTargets.h princingCPSolver.cpp princingCPSolver.h)
+add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp DiversificationInit.cpp DiversificationInit.h RandomInit.h IntensificationInit.cpp IntensificationInit.h randThenSortInit.cpp randThenSortInit.h RandomInitSkew.h KnapsackSolver.cpp KnapsackSolver.h KSInit.h KMppInit.h InitTargets.h princingCPSolver.cpp princingCPSolver.h)
 
 ######## Add Dependency Library
+target_link_libraries(tap Boost::filesystem)
+target_link_libraries(tap Boost::boost)
 target_link_libraries(tap ilocplex cplex-library cplex-concert cplex-cp)
 target_link_libraries(tap cpr::cpr)
 target_link_libraries(tap nlohmann_json::nlohmann_json)

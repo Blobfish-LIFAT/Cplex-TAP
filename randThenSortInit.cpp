@@ -11,7 +11,7 @@ namespace cplex_tap {
             rdini = new RandomInit(pricingIST);
         else
             rdini = new RandomInit(pricingIST, seed);
-        vector<Query> rands = rdini->build(setSize*rand_per_selected);
+        vector<Query> rands = rdini->build(rand_per_selected);
         vector<double> interests = JVMAdapter::getInterest(rands, pricingIST);
         vector<int> times = JVMAdapter::getTime(rands, pricingIST);
         vector<pair<int,double>> pos_ratio;

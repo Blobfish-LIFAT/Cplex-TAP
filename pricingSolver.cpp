@@ -8,6 +8,7 @@
 #include "JVMAdapter.h"
 #include "solver.h"
 #include <numeric>
+#include "SolverVPLSHammingSX.h"
 
 //#define TYPE_VAR_TAP ILOINT
 #define TYPE_VAR_TAP ILOFLOAT
@@ -732,9 +733,11 @@ namespace cplex_tap {
         tapSolver.setTimeout(master_it_timeout);
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
         cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
-        /*for (auto i : final_sol.sequence) {
-            cout << rmpQSet[i] << endl;
-        }*/
+
+        auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
+        auto mathsol = matheuristic.solve(dist_bound, time_bound, false, "");
+        cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
+
         return final_sol;
 
 }

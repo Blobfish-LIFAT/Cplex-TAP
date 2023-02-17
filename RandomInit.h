@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <random>
+#include <unordered_set>
 #include "Query.h"
 #include "CGTAPInstance.h"
 
@@ -22,7 +23,7 @@ namespace cplex_tap {
         RandomInit(const CGTAPInstance &pricingIst, long seed) : pricingIST(pricingIst), seed(seed) {}
 
     public: std::vector<Query> build(int size){
-            vector<Query> rmpQSet;
+            std::unordered_set<Query> rmpQSet;
             std::random_device rd;
                 std::mt19937 gen(seed != -1 ? seed : rd());
                 std::uniform_int_distribution<> rdAttr(0, pricingIST.getNbDims() - 1);
@@ -47,15 +48,12 @@ namespace cplex_tap {
                     Query rdQ = Query(pricingIST.getTableName(), "sum", pricingIST.getDimName(gbAttr),
                                       pricingIST.getMeasureName(measureID), pricingIST.getMeasureName(measureID),
                                       lPredicate, rPredicate);
-
-                    bool duplicate = false;
-                    for (Query &q : rmpQSet)
-                        duplicate |= q == rdQ;
-                    if (!duplicate){
-                        rmpQSet.emplace_back(rdQ);
-                    }
+                    rmpQSet.insert(rdQ);
                 }
-            return rmpQSet;
+            auto tmp = vector<Query>();
+            tmp.insert(tmp.end(), rmpQSet.begin(), rmpQSet.end());
+
+            return tmp;
     }
 
     };
