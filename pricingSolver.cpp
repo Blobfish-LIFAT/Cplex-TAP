@@ -734,6 +734,10 @@ namespace cplex_tap {
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
         cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
 
+        for ( auto qid : final_sol.sequence){
+            cout << rmpQSet[qid] << endl;
+        }
+
         auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
         auto mathsol = matheuristic.solve(dist_bound, time_bound, false, "");
         cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
