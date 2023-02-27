@@ -29,7 +29,7 @@ namespace cplex_tap {
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
 
         for (int qid = 0; qid < rmpQSet.size(); ++qid) {
-            cout << rmpQSet[qid] << endl;
+            std::cout << rmpQSet[qid] << endl;
         }
 
         double prevRmpObj = 0;
@@ -55,18 +55,18 @@ namespace cplex_tap {
             objValues.emplace_back(rmpSol.z);
 
             if (debug) {
-                cout << "[Solution DUMP]";
+                std::cout << "[Solution DUMP]";
                 for (int i = 0; i < rmpSol.sequence.size(); ++i) {
-                    cout << rmpQSet[rmpSol.sequence[i] - 1];
+                    std::cout << rmpQSet[rmpSol.sequence[i] - 1];
                     if (i < rmpSol.sequence.size() - 1)
-                        cout << ";";
+                        std::cout << ";";
                 }
-                cout << endl;
+                std::cout << endl;
             }
 
             // Check convergence criterion
             if (assessConvergence(objValues)){
-                cout << "[BREAK] Reason: convergence" << endl;
+                std::cout << "[BREAK] Reason: convergence" << endl;
                 break;
             }
             if (!rmpSol.optimal){
@@ -626,7 +626,7 @@ namespace cplex_tap {
             }
 
             if (!(cplex_solver.getStatus() == IloAlgorithm::Optimal || cplex_solver.getStatus() == IloAlgorithm::Feasible)){
-                cout << "[Info] pricing timeout without feasible solution" << endl;
+                std::cout << "[Info] pricing timeout without feasible solution" << endl;
                 break;
             }
 
@@ -692,42 +692,42 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
 
-            if (!NO_PRINT) cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
+            if (!NO_PRINT) std::cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
             time_t end = clock();
-            if (!NO_PRINT) cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
+            if (!NO_PRINT) std::cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
-            if (!NO_PRINT) cout << "[TIME][ITER][s] " << time_to_sol << endl;
+            if (!NO_PRINT) std::cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
 
             cplex_solver.end();
             cplex.end();
 
             if (time_to_sol > global_timeout){
-                cout << "[BREAK] Reason: global timeout" << endl;
+                std::cout << "[BREAK] Reason: global timeout" << endl;
                 break;
             }
         }
 
-        cout << "[OBJ]";
+        std::cout << "[OBJ]";
         for (auto it = objValues.begin(); it != objValues.end() ; ++it) {
-            cout << *it;
+            std::cout << *it;
             if (it != objValues.end()-1)
-                cout << std::string(";");
+                std::cout << std::string(";");
 
         }
-        cout <<endl;
-        cout << "[INFO] iterations " << objValues.size() << endl;
+        std::cout <<endl;
+        std::cout << "[INFO] iterations " << objValues.size() << endl;
 
         /*
         // If we time out on last mip we keep the previous solution
         if (rmpSol.optimal){
             for (auto i : rmpSol.sequence) {
-                cout << rmpQSet[i] << endl;
+                std::cout << rmpQSet[i] << endl;
             }
             return rmpSol;
         } else{
             for (auto i : prevRMPSol.sequence) {
-                cout << rmpQSet[i] << endl;
+                std::cout << rmpQSet[i] << endl;
             }
             return prevRMPSol;
         }*/
@@ -736,15 +736,15 @@ namespace cplex_tap {
         auto tapSolver = Solver(rmpIST);
         tapSolver.setTimeout(master_it_timeout);
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
-        cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
+        std::cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
 
         for ( auto qid : final_sol.sequence){
-            cout << rmpQSet[qid] << endl;
+            std::cout << rmpQSet[qid] << endl;
         }
 
         auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
         auto mathsol = matheuristic.solve(dist_bound, time_bound, false, "");
-        cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
+        std::cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
 
         return final_sol;
 
