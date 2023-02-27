@@ -28,6 +28,10 @@ namespace cplex_tap {
         vector<Query> rmpQSet;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
 
+        for (int qid = 0; qid < rmpQSet.size(); ++qid) {
+            cout << rmpQSet[qid] << endl;
+        }
+
         double prevRmpObj = 0;
         vector<double> objValues;
         bool isNewQuerySelected = true;
