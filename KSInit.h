@@ -15,7 +15,7 @@ namespace cplex_tap {
     class KSInit {
     protected:
         CGTAPInstance pricingIST;
-        long random_set_size = 150000;
+        long random_set_size = 100000;
         int ep_dist, ep_time;
         long seed = -1;
     public:
