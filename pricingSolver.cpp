@@ -11,8 +11,8 @@
 #include "SolverVPLSHammingSX.h"
 #include "KnapsackSolver.h"
 
-#define TYPE_VAR_TAP ILOINT
-//#define TYPE_VAR_TAP ILOFLOAT
+//#define TYPE_VAR_TAP ILOBOOL
+#define TYPE_VAR_TAP ILOFLOAT
 #define NO_PRINT false
 
 namespace cplex_tap {
@@ -124,8 +124,8 @@ namespace cplex_tap {
             auto HV2 = std::accumulate(timeWeights.begin(), timeWeights.end(), decltype(timeWeights)::value_type(0));
             auto HV3 = 10 * (2 * (pricingIST.getNbDims() + pricingIST.getNbMeasures() + 1) + 1);
             // Linearization variables
-            IloNumVar lin_I(cplex, 0, HV1, IloNumVar::Float, "I");
-            IloNumVar lin_T(cplex, 0, HV2, IloNumVar::Float, "T");
+            //IloNumVar lin_I(cplex, 0, HV1, IloNumVar::Float, "I");
+            //IloNumVar lin_T(cplex, 0, HV2, IloNumVar::Float, "T");
             IloNumVarArray lin_D_in(cplex, rmpQSet.size() + 1, 0, HV3, IloNumVar::Float);
             IloNumVarArray lin_D_out(cplex, rmpQSet.size() + 1, 0, HV3, IloNumVar::Float);
 
