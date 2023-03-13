@@ -200,6 +200,9 @@ int main(int argc, char* argv[]) {
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
     vector<cplex_tap::Query> starting_queries;
 
+    // Dump instance for debug
+    //dump_instance(getAllQueries(&cgIST), cgIST, "/home/alex/tap_ist_dump");
+
     time_t start, end;
     start = clock();
 
@@ -358,7 +361,7 @@ int main(int argc, char* argv[]) {
             std::cout<< "--- INIT COMPLETE ["<< 0 <<"]---" << std::endl;
             start = clock();
             auto queries = getAllQueries(&cgIST);
-            cplex_tap::KnapsackSolver solver = cplex_tap::KnapsackSolver(&cgIST);
+            cplex_tap::KnapsackSolver solver = cplex_tap::KnapsackSolver(cgIST);
             cplex_tap::Solution s = solver.solve(getAllQueries(&cgIST), ep_t, ep_d);
             std::cout << "[STEP][END] - z*=" << s.z << std::endl;
             cout << "[TIME][ITER][s] " << s.time << endl;

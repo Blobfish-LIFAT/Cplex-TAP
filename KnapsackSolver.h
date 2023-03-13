@@ -14,9 +14,11 @@ namespace cplex_tap {
 
     class KnapsackSolver {
     protected:
-        CGTAPInstance *ist;
+        const CGTAPInstance &ist;
     public:
-        explicit KnapsackSolver(CGTAPInstance *ist);
+        //explicit KnapsackSolver(CGTAPInstance *ist) : ist(&ist) {}
+
+        explicit KnapsackSolver(const CGTAPInstance &ist): ist{ist}{}
 
     protected:
 

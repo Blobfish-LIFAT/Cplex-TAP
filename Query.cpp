@@ -111,4 +111,16 @@ namespace cplex_tap {
     bool Query::operator!=(const Query &rhs) const {
         return !(rhs == *this);
     }
+
+    bool Query::equival(Query &other) const {
+        return interest == other.interest &&
+               time == other.time &&
+               table == other.table &&
+               GBAttribute == other.GBAttribute &&
+               measureLeft == other.measureLeft &&
+               measureRight == other.measureRight &&
+               agg == other.agg &&
+               leftPredicate[0].first == other.leftPredicate[0].first &&
+               rightPredicate[0].first == other.rightPredicate[0].first;
+    }
 } // cplex_tap

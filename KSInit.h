@@ -33,7 +33,7 @@ namespace cplex_tap {
         vector<Query> out;
 
         while (out.size() < size) {
-            KnapsackSolver ks = KnapsackSolver(&pricingIST);
+            KnapsackSolver ks = KnapsackSolver(pricingIST);
             Solution sol = ks.solve(rands, ep_time, ep_dist);
             vector<Query> sol_q;
             for (int i = 0; i < sol.sequence.size(); ++i) {

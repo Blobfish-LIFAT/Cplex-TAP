@@ -9,9 +9,10 @@
 #include "solver.h"
 #include <numeric>
 #include "SolverVPLSHammingSX.h"
+#include "KnapsackSolver.h"
 
-//#define TYPE_VAR_TAP ILOINT
-#define TYPE_VAR_TAP ILOFLOAT
+#define TYPE_VAR_TAP ILOINT
+//#define TYPE_VAR_TAP ILOFLOAT
 #define NO_PRINT false
 
 namespace cplex_tap {
@@ -38,10 +39,13 @@ namespace cplex_tap {
         //Solution rmpSol(false, 0, 0, std::vector<int>());
         //Solution prevRMPSol(false, 0, 0, std::vector<int>());
 
+        //Classes equivalence
+        vector<pair<Query, int>> eqval;
+
         int it = 0;
         time_t start;
         start = clock();
-        while (it++ < 200) {
+        while (it++ < 100) {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
@@ -355,14 +359,14 @@ namespace cplex_tap {
             }*/
 
             // Time
+            IloExpr time_expr(cplex);
             for (auto i = 0; i < rmpQSet.size(); ++i)
-                expr += tap_s[i] * (int) rmpIST.time(i);
+                time_expr += tap_s[i] * (int) rmpIST.time(i);
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-                expr += cpSelection[i] * timeWeights[i];
+                time_expr += cpSelection[i] * timeWeights[i];
             }
             //expr + lin_T;
-            pricing.add(IloRange(cplex, 0, expr, time_bound, "time_epsilon"));
-            expr.clear();
+            pricing.add(IloRange(cplex, 0, time_expr, time_bound, "time_epsilon"));
             /*for (int i = 0; i < pricingIST.getNbDims(); ++i) {
                 expr += cpSelection[i] * timeWeights[i];
             }
@@ -373,15 +377,16 @@ namespace cplex_tap {
             pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV2)-lin_T));*/
 
             //Distance
+            IloExpr distance_expr(cplex);
             for (auto i = 1; i <= rmpQSet.size(); ++i) {
                 for (auto j = 1; j <= rmpQSet.size(); ++j) {
-                    expr += tap_x[i][j] * (int) rmpIST.dist(i - 1, j - 1);
+                    distance_expr += tap_x[i][j] * (int) rmpIST.dist(i - 1, j - 1);
                 }
             }
             for (auto i = 0; i < rmpQSet.size() + 1; ++i)
-                expr += lin_D_in[i] + lin_D_out[i];
-            pricing.add(IloRange(cplex, -IloInfinity, expr, dist_bound, "distance_epsilon"));
-            expr.clear();
+                distance_expr += lin_D_in[i] + lin_D_out[i];
+            pricing.add(IloRange(cplex, -IloInfinity, distance_expr, dist_bound, "distance_epsilon"));
+
             for (int i = 0; i < rmpQSet.size(); ++i) {
                 for (int k = 0; k < pricingIST.getNbDims(); ++k) {
                     expr += cpSelection[k] * (1 - S[i][k]) + S[i][k] * (1 - cpSelection[k]);
@@ -579,6 +584,47 @@ namespace cplex_tap {
                 expr.clear();
             }
 
+            /*
+             *  Forbid taking queries from large eq classes
+             */
+            /*
+            for (auto p : eqval){
+                if (p.second >= 10){
+                    cout << "[INFO] forbidden querry class added: " << p.first << endl;
+                    IloExpr h(cplex);
+                    Query q = p.first;
+
+                    int keyID = pricingIST.getDimId(q.getGbAttribute());
+                    h += (1 - cpGroupBy[keyID]);
+
+                    int lMeasureID = pricingIST.getMeasureId(q.getMeasureLeft());
+                    h += (1 - cpLeftMeasure[lMeasureID]);
+
+                    int rMeasureID = pricingIST.getMeasureId(q.getMeasureRight());
+                    h += (1 - cpRightMeasure[rMeasureID]);
+
+                    for (auto pair : q.getLeftPredicate()){
+                        int ldimID = pricingIST.getDimId(pair.first);
+                        IloExpr sum(cplex);
+                        for (int j = 0; j < pricingIST.getAdSize(ldimID); ++j) {
+                            sum += cpLeftSel[ldimID][j];
+                        }
+                        h += (1 - sum);
+                    }
+
+                    for (auto pair : q.getRightPredicate()){
+                        int rdimID = pricingIST.getDimId(pair.first);
+                        IloExpr sum(cplex);
+                        for (int j = 0; j < pricingIST.getAdSize(rdimID); ++j) {
+                            sum += cpRightSel[rdimID][j];
+                        }
+                        h += (1 - sum);
+                    }
+
+                    //pricing.add(IloRange(cplex, 1, h, 10));
+                }
+            }*/
+
             //Init solver
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
@@ -591,6 +637,8 @@ namespace cplex_tap {
             cplex_solver.setParam(IloCplex::Param::MIP::Strategy::HeuristicEffort, 0);
             cplex_solver.setParam(IloCplex::Param::Emphasis::MIP	, 2);
             cplex_solver.setParam(IloCplex::Param::MIP::SubMIP::NodeLimit, 50);
+            //cplex_solver.setParam(IloCplex::Param::MIP::Tolerances::MIPGap	, 0.0);
+            //cplex_solver.setParam(IloCplex::Param::Simplex::Tolerances::Optimality	, 10e-9);
             //cplex_solver.setOut(cplex.getNullStream());
 
             int allowed_restarts = 29;
@@ -692,9 +740,26 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
 
+            // ajouter aux classes d'equivalence
+            bool found_eq = false;
+            for (int i = 0; i < eqval.size(); ++i) {
+                if (picked.equival(eqval[i].first)) {
+                    eqval[i].second++;
+                    found_eq = true;
+                    break;
+                }
+            }
+            if (!found_eq){
+                eqval.push_back(make_pair(picked, 1));
+            }
+
             if (!NO_PRINT) std::cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
-            time_t end = clock();
+
             if (!NO_PRINT) std::cout << "[Pricing z value] " << cplex_solver.getObjValue() << endl;
+            if (!NO_PRINT) std::cout << "[Pricing t value] " << cplex_solver.getValue(time_expr) << endl;
+            if (!NO_PRINT) std::cout << "[Pricing d value] " << cplex_solver.getValue(distance_expr) << endl;
+
+            time_t end = clock();
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
             if (!NO_PRINT) std::cout << "[TIME][ITER][s] " << time_to_sol << endl;
             rmpQSet.emplace_back(picked);
@@ -705,6 +770,17 @@ namespace cplex_tap {
             if (time_to_sol > global_timeout){
                 std::cout << "[BREAK] Reason: global timeout" << endl;
                 break;
+            }
+
+            if (!NO_PRINT){
+                std::cout << "[KS Sol] ";
+                KnapsackSolver ksolve(pricingIST);
+                Solution ksol = ksolve.solve(rmpQSet, time_bound, dist_bound);
+                for (int q : ksol.sequence) {
+                    std::cout << rmpQSet[q] << " ";
+                }
+                std::cout << endl;
+                std::cout << "[KS z value] " << ksol.z << endl;
             }
         }
 

@@ -54,6 +54,8 @@ namespace cplex_tap {
 
         int dist(Query&  other) const;
 
+        bool equival(Query&  other) const;
+
         bool operator==(const Query &rhs) const;
 
         bool operator!=(const Query &rhs) const;

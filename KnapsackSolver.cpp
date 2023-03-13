@@ -16,8 +16,8 @@ namespace cplex_tap {
 
         std::vector<int> solution;
         std::vector<std::pair<int,double>> order;
-        vector<double> interests = JVMAdapter::getInterest(queries, (*ist));
-        vector<int> times = JVMAdapter::getTime(queries, (*ist));
+        vector<double> interests = JVMAdapter::getInterest(queries, (ist));
+        vector<int> times = JVMAdapter::getTime(queries, (ist));
         for (int i = 0; i < size; i++) {
             order.emplace_back(std::make_pair(i, interests[i]/times[i]) );
         }
@@ -97,5 +97,5 @@ namespace cplex_tap {
         return best_insert_cost;
     }
 
-    KnapsackSolver::KnapsackSolver(CGTAPInstance *ist) : ist(ist) {}
+
 } // cplex_tap
