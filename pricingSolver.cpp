@@ -36,11 +36,7 @@ namespace cplex_tap {
         double prevRmpObj = 0;
         vector<double> objValues;
         bool isNewQuerySelected = true;
-        //Solution rmpSol(false, 0, 0, std::vector<int>());
-        //Solution prevRMPSol(false, 0, 0, std::vector<int>());
 
-        //Classes equivalence
-        vector<pair<Query, int>> eqval;
 
         int it = 0;
         time_t start;
@@ -49,34 +45,6 @@ namespace cplex_tap {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
-            /*
-            Solver tapSolver = Solver(rmpIST);
-            tapSolver.setTimeout(master_it_timeout);
-            prevRMPSol = rmpSol;
-            rmpSol = tapSolver.solve(dist_bound, time_bound, false, "");
-            if (!NO_PRINT) std::cout << "[STEP][END] Building RMP model - z*=" << std::to_string(rmpSol.z) << std::endl;
-            prevRmpObj = rmpSol.z;
-            objValues.emplace_back(rmpSol.z);
-
-            if (debug) {
-                std::cout << "[Solution DUMP]";
-                for (int i = 0; i < rmpSol.sequence.size(); ++i) {
-                    std::cout << rmpQSet[rmpSol.sequence[i] - 1];
-                    if (i < rmpSol.sequence.size() - 1)
-                        std::cout << ";";
-                }
-                std::cout << endl;
-            }
-
-            // Check convergence criterion
-            if (assessConvergence(objValues)){
-                std::cout << "[BREAK] Reason: convergence" << endl;
-                break;
-            }
-            if (!rmpSol.optimal){
-                //cout << "[BREAK] Reason: rmp timeout" << endl;
-                //break;
-            }*/
 
             // Init CPLEX environment and model objects
             IloEnv cplex;
@@ -279,25 +247,7 @@ namespace cplex_tap {
                 }
                 pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
                 expr.clear();
-            }/*
-
-            for (auto i = 0u; i < pricingIST.getNbDims(); ++i) {
-                for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
-                    for (int j = 0; j < k; ++j) {
-                        expr += cpLeftSel[i][j];
-                    }
-                    for (int j = 0; j < k; ++j) {
-                        expr -= cpRightSel[i][j];;
-                    }
-                    expr -= 1;
-                    for (int l = 0; l < pricingIST.getAdSize(i); ++l) {
-                        expr += cpRightSel[i][l];
-                    }
-                    pricing.add(IloRange(cplex, -IloInfinity, expr, 0,
-                                         ("sym_brk_series2_" + std::to_string(k) + "_" + std::to_string(i)).c_str()));
-                    expr.clear();
-                }
-            }*/
+            }
 
             /*
              *  --- Original Model Constraints ---
@@ -584,46 +534,6 @@ namespace cplex_tap {
                 expr.clear();
             }
 
-            /*
-             *  Forbid taking queries from large eq classes
-             */
-            /*
-            for (auto p : eqval){
-                if (p.second >= 10){
-                    cout << "[INFO] forbidden querry class added: " << p.first << endl;
-                    IloExpr h(cplex);
-                    Query q = p.first;
-
-                    int keyID = pricingIST.getDimId(q.getGbAttribute());
-                    h += (1 - cpGroupBy[keyID]);
-
-                    int lMeasureID = pricingIST.getMeasureId(q.getMeasureLeft());
-                    h += (1 - cpLeftMeasure[lMeasureID]);
-
-                    int rMeasureID = pricingIST.getMeasureId(q.getMeasureRight());
-                    h += (1 - cpRightMeasure[rMeasureID]);
-
-                    for (auto pair : q.getLeftPredicate()){
-                        int ldimID = pricingIST.getDimId(pair.first);
-                        IloExpr sum(cplex);
-                        for (int j = 0; j < pricingIST.getAdSize(ldimID); ++j) {
-                            sum += cpLeftSel[ldimID][j];
-                        }
-                        h += (1 - sum);
-                    }
-
-                    for (auto pair : q.getRightPredicate()){
-                        int rdimID = pricingIST.getDimId(pair.first);
-                        IloExpr sum(cplex);
-                        for (int j = 0; j < pricingIST.getAdSize(rdimID); ++j) {
-                            sum += cpRightSel[rdimID][j];
-                        }
-                        h += (1 - sum);
-                    }
-
-                    //pricing.add(IloRange(cplex, 1, h, 10));
-                }
-            }*/
 
             //Init solver
             IloCplex cplex_solver(pricing);
@@ -740,18 +650,6 @@ namespace cplex_tap {
                                  pricingIST.getMeasureName(lmIdx), pricingIST.getMeasureName(rmIdx),
                                  lPredicate, rPredicate);
 
-            // ajouter aux classes d'equivalence
-            bool found_eq = false;
-            for (int i = 0; i < eqval.size(); ++i) {
-                if (picked.equival(eqval[i].first)) {
-                    eqval[i].second++;
-                    found_eq = true;
-                    break;
-                }
-            }
-            if (!found_eq){
-                eqval.push_back(make_pair(picked, 1));
-            }
 
             if (!NO_PRINT) std::cout << "[Pricing Query] " << isNewQuerySelected << " - " << picked << endl;
 
@@ -794,19 +692,6 @@ namespace cplex_tap {
         std::cout <<endl;
         std::cout << "[INFO] iterations " << objValues.size() << endl;
 
-        /*
-        // If we time out on last mip we keep the previous solution
-        if (rmpSol.optimal){
-            for (auto i : rmpSol.sequence) {
-                std::cout << rmpQSet[i] << endl;
-            }
-            return rmpSol;
-        } else{
-            for (auto i : prevRMPSol.sequence) {
-                std::cout << rmpQSet[i] << endl;
-            }
-            return prevRMPSol;
-        }*/
 
         Instance rmpIST = buildRMPInstance(rmpQSet);
         auto tapSolver = Solver(rmpIST);
@@ -826,21 +711,6 @@ namespace cplex_tap {
 
 }
 
-bool pricingSolver::assessConvergence(vector<double> objValues){
-    int depth = 50;
-    double epsilon = 10e-8;
-
-    if (objValues.size() < depth)
-        return false;
-
-    bool change = false;
-    for (auto it = objValues.rbegin();*it != objValues[objValues.size()-depth];it++){
-        change |= *it - *(it + 1) > epsilon;
-    }
-
-    return !change;
-
-}
 
 Instance pricingSolver::buildRMPInstance(vector<Query>& queries) const {
     vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
