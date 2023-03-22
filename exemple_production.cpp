@@ -133,6 +133,8 @@ void dump_instance(vector<cplex_tap::Query> queries, cplex_tap::CGTAPInstance is
     }
 
     out.close();
+
+    std::cout << "Dump complete" << std::endl;
 }
 
 vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance *ist) {
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
     vector<cplex_tap::Query> starting_queries;
 
     // Dump instance for debug
-    //dump_instance(getAllQueries(&cgIST), cgIST, "/home/alex/tap_ist_dump");
+    dump_instance(getAllQueries(&cgIST), cgIST, "/home/alex/tap_ist_dump");
 
     time_t start, end;
     start = clock();

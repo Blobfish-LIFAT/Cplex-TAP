@@ -37,6 +37,9 @@ namespace cplex_tap {
         vector<double> objValues;
         bool isNewQuerySelected = true;
 
+        vector<vector<double>> I;
+        vector<vector<double>> T;
+
 
         int it = 0;
         time_t start;

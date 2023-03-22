@@ -6,6 +6,11 @@
 #include <fstream>
 #include <iostream>
 #include "ActiveDomains.h"
+#include "UserProfile.h"
+#include "FakeTimeStats.h"
+#include <fstream>
+#include <nlohmann/json.hpp>
+
 
 namespace cplex_tap {
     CGTAPInstance::CGTAPInstance(std::string folder_path) {
@@ -84,6 +89,31 @@ namespace cplex_tap {
             ad_map.insert({att, values});
         }
         ActiveDomains* adSingleton = ActiveDomains::GetInstance(ad_map);
+
+        //Load user profile
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> up_map;
+        string json_path = folder_path + "/_freq.json";
+        using json = nlohmann::json;
+        std::ifstream profile(json_path);
+        json data = json::parse(profile);
+
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            //std::cout << "key: " << it.key() << endl;
+            up_map.insert({it.key(), it.value().get<std::unordered_map<std::string,int>>()});
+        }
+        UserProfile* adUp = UserProfile::GetInstance(up_map);
+
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> time_map;
+        json_path = folder_path + "/_freq_timing.json";
+        using json = nlohmann::json;
+        std::ifstream profile2(json_path);
+        data = json::parse(profile2);
+
+        for (auto it = data.begin(); it != data.end(); ++it) {
+            //std::cout << "key: " << it.key() << endl;
+            time_map.insert({it.key(), it.value().get<std::unordered_map<std::string,int>>()});
+        }
+        FakeTimeStats* tmap = FakeTimeStats::GetInstance(time_map);
 
         //Load weights (for linear estimators)
         ifstream attWFile(folder_path + "/dim_weights.dat");

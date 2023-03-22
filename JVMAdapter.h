@@ -9,6 +9,8 @@
 #include "CGTAPInstance.h"
 #include "set"
 #include "ActiveDomains.h"
+#include "UserProfile.h"
+#include "FakeTimeStats.h"
 #include <cpr/cpr.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -17,7 +19,7 @@ using json = nlohmann::json;
 class JVMAdapter {
 
 public:
-    static vector<double> getInterest(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist) {
+    /*static vector<double> getInterest(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist) {
         using namespace cplex_tap;
         vector<double> interest;
         interest.reserve(qs.size());
@@ -38,8 +40,64 @@ public:
         }
 
         return interest;
+    }*/
+
+    static vector<double> getInterest(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist) {
+        UserProfile* upPT = UserProfile::GetInstance();
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> freqs = upPT->value();
+
+        ActiveDomains* adSingleton = ActiveDomains::GetInstance();
+        std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
+
+        using namespace cplex_tap;
+        vector<double> interest;
+        interest.reserve(qs.size());
+        double table_card = ist.getNbRows();
+
+        for (auto  q : qs){
+            string dim = q.getLeftPredicate()[0].first;
+            int lsel_id = q.getLeftPredicate()[0].second;
+            int rsel_id = q.getRightPredicate()[0].second;
+            string lsel = ad[dim][lsel_id];
+            string rsel = ad[dim][rsel_id];
+            double l_freq = freqs[dim][lsel];
+            double r_freq = freqs[dim][rsel];
+
+            interest.push_back((l_freq + r_freq)/table_card);
+        }
+
+        return interest;
     }
 
+    static vector<int> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
+        FakeTimeStats* upPT = FakeTimeStats::GetInstance();
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> freqs = upPT->value();
+
+        ActiveDomains* adSingleton = ActiveDomains::GetInstance();
+        std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
+
+        using namespace cplex_tap;
+        vector<int> interest;
+        interest.reserve(qs.size());
+        double table_card = ist.getNbRows();
+
+        for (auto  q : qs){
+            string dim = q.getLeftPredicate()[0].first;
+            int lsel_id = q.getLeftPredicate()[0].second;
+            int rsel_id = q.getRightPredicate()[0].second;
+            string lsel = ad[dim][lsel_id];
+            string rsel = ad[dim][rsel_id];
+            double l_freq = freqs[dim][lsel];
+            double r_freq = freqs[dim][rsel];
+
+            int tmp = l_freq + r_freq;
+            interest.push_back(tmp);
+        }
+
+        return interest;
+    }
+
+    /*
     static vector<int> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
 
         using namespace cplex_tap;
@@ -97,7 +155,7 @@ public:
             //cout << e << endl;
             times.push_back(e);
         }
-        return response;*/
+        return response;
     }
 
     /*
