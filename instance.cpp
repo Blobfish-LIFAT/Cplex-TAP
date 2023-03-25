@@ -36,14 +36,14 @@ namespace cplex_tap {
         cout << "  Interest loaded" << endl;
 
         // Load time to run
-        vector<uint32_t> times_(nbQueries);
+        vector<double> times_(nbQueries);
         getline(tapFile, line);
         pos = 0;
         i = 0;
         token = "";
         while ((pos = line.find(" ")) != string::npos) {
             token = line.substr(0, pos);
-            times_[i++] = stoi(token, nullptr);
+            times_[i++] = stod(token, nullptr);
             line.erase(0, pos + 1);
         }
         times_[i++] = stoi(line, nullptr);
@@ -79,13 +79,11 @@ namespace cplex_tap {
         return distances;
     }
 
-    Instance::Instance(int nbQ, std::vector<double> interest, std::vector<int> time,
+    Instance::Instance(int nbQ, std::vector<double> interest, std::vector<double> time,
                        std::vector<std::vector<int>> distance) {
         nbQueries = nbQ;
         interests = interest;
-        for (int i = 0; i < nbQ; ++i) {
-            times.emplace_back(time[i]);
-        }
+        times = time;
         for (int i = 0; i < nbQ; ++i) {
             std::vector<uint32_t> line;
             for (int j = 0; j < nbQ; ++j) {

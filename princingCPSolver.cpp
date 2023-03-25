@@ -554,7 +554,7 @@ namespace cplex_tap {
 
     Instance princingCPSolver::buildRMPInstance(vector<Query>& queries) const {
         vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
-        vector<int> time = JVMAdapter::getTime(queries, pricingIST);
+        vector<double> time = JVMAdapter::getTime(queries, pricingIST);
         vector<vector<int>> distMatrix;
         distMatrix.reserve(queries.size());
         for (int i = 0; i < queries.size(); ++i) {

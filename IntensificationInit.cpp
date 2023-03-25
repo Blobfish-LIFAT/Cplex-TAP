@@ -31,7 +31,7 @@ namespace cplex_tap {
                 }
                 S.emplace_back(tmp);
             }
-            vector<int> time = JVMAdapter::getTime(baseSet, pricingIST);
+            vector<double> time = JVMAdapter::getTime(baseSet, pricingIST);
             vector<double> interest = JVMAdapter::getInterest(baseSet, pricingIST);
 
             /*

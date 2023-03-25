@@ -69,7 +69,7 @@ public:
         return interest;
     }
 
-    static vector<int> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
+    static vector<double> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
         FakeTimeStats* upPT = FakeTimeStats::GetInstance();
         std::unordered_map<std::string, std::unordered_map<std::string,int>> freqs = upPT->value();
 
@@ -77,7 +77,7 @@ public:
         std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
 
         using namespace cplex_tap;
-        vector<int> interest;
+        vector<double> interest;
         interest.reserve(qs.size());
         double table_card = ist.getNbRows();
 
@@ -90,8 +90,7 @@ public:
             double l_freq = freqs[dim][lsel];
             double r_freq = freqs[dim][rsel];
 
-            int tmp = l_freq + r_freq;
-            interest.push_back(tmp);
+            interest.push_back( 10000 * ( (l_freq + r_freq)/table_card ) );
         }
 
         return interest;

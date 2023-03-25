@@ -17,7 +17,7 @@ namespace cplex_tap {
         std::vector<int> solution;
         std::vector<std::pair<int,double>> order;
         vector<double> interests = JVMAdapter::getInterest(queries, (ist));
-        vector<int> times = JVMAdapter::getTime(queries, (ist));
+        vector<double> times = JVMAdapter::getTime(queries, (ist));
         for (int i = 0; i < size; i++) {
             order.emplace_back(std::make_pair(i, interests[i]/times[i]) );
         }

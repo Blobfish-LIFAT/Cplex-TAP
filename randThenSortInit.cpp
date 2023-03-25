@@ -13,7 +13,7 @@ namespace cplex_tap {
             rdini = new RandomInit(pricingIST, seed);
         vector<Query> rands = rdini->build(rand_per_selected);
         vector<double> interests = JVMAdapter::getInterest(rands, pricingIST);
-        vector<int> times = JVMAdapter::getTime(rands, pricingIST);
+        vector<double> times = JVMAdapter::getTime(rands, pricingIST);
         vector<pair<int,double>> pos_ratio;
         for (int i = 0; i < rands.size(); ++i) {
             pos_ratio.emplace_back(make_pair(i, interests[i]/static_cast<double>(times[i])));

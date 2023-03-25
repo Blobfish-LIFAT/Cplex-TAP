@@ -13,7 +13,7 @@ namespace cplex_tap {
         std::vector<std::vector<std::uint32_t>> distances;
 
         // Time to run a query
-        std::vector<std::uint32_t> times;
+        std::vector<double> times;
 
         // Interstingness of a query
         std::vector<double> interests;
@@ -27,7 +27,7 @@ namespace cplex_tap {
         Instance(std::string file_path);
 
         //Build instance from memory
-        Instance(int nbQ, std::vector<double> interest, std::vector<int> time, std::vector<std::vector<int>> distance);
+        Instance(int nbQ, std::vector<double> interest, std::vector<double> time, std::vector<std::vector<int>> distance);
 
         virtual ~Instance();
 
@@ -36,7 +36,7 @@ namespace cplex_tap {
 
         // Getters
         std::uint32_t dist(std::uint32_t i, std::uint32_t j) const { return distances[i][j]; }
-        std::uint32_t time(std::uint32_t i) const { return times[i]; }
+        double time(std::uint32_t i) const { return times[i]; }
         double interest(std::uint32_t i) const { return interests[i]; }
 
 

@@ -40,6 +40,27 @@ namespace cplex_tap {
         vector<vector<double>> I;
         vector<vector<double>> T;
 
+        FakeTimeStats* sing1 = FakeTimeStats::GetInstance();
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> tmap = sing1->value();
+        UserProfile* sing2 = UserProfile::GetInstance();
+        std::unordered_map<std::string, std::unordered_map<std::string,int>> imap = sing2->value();
+        ActiveDomains* adSingleton = ActiveDomains::GetInstance();
+        std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
+
+        for (int dimId = 0; dimId < pricingIST.getNbDims(); ++dimId) {
+            double tableRows = pricingIST.getNbRows();
+            string dim = pricingIST.getDimName(dimId);
+            vector<double> intCoefs;
+            vector<double> timeCoefs;
+            intCoefs.reserve(pricingIST.getAdSize(dimId));
+            timeCoefs.reserve(pricingIST.getAdSize(dimId));
+            for (int i = 0; i < pricingIST.getAdSize(dimId); ++i) {
+                intCoefs.push_back(imap[dim][ad[dim][i]] / tableRows);
+                timeCoefs.push_back(tmap[dim][ad[dim][i]] / tableRows);
+            }
+            I.push_back(intCoefs);
+            T.push_back(timeCoefs);
+        }
 
         int it = 0;
         time_t start;
@@ -158,19 +179,16 @@ namespace cplex_tap {
             IloExpr expr(cplex);
             for (auto i = 0u; i < rmpQSet.size(); ++i)
                 expr += rmpIST.interest(i) * tap_s[i];
-            //expr += lin_I;
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-                expr += cpSelection[i] * pricingIST.getDimWeight(i);
+                for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                    expr += I[i][j] * cpLeftSel[i][j];
+                    expr += I[i][j] * cpRightSel[i][j];
+                }
             }
             IloObjective obj(cplex, expr, IloObjective::Maximize);
             pricing.add(obj);
             expr.clear();
 
-            //expr += (1 - tap_s[rmpQSet.size()]) * HV1;
-            //expr -= lin_I;
-            //pricing.add(IloRange(cplex, 0, expr, IloInfinity, "lin_I"));
-            //expr.clear();
-            //pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV1) - lin_I));
             if (debug) std::cout << "[INFO]Added Objective to pricing model\n";
 
             /*
@@ -316,7 +334,10 @@ namespace cplex_tap {
             for (auto i = 0; i < rmpQSet.size(); ++i)
                 time_expr += tap_s[i] * (int) rmpIST.time(i);
             for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-                time_expr += cpSelection[i] * timeWeights[i];
+                for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                    time_expr += (cpLeftSel[i][j] * T[i][j])*10000.0;
+                    time_expr += (cpRightSel[i][j] * T[i][j])*10.0;
+                }
             }
             //expr + lin_T;
             pricing.add(IloRange(cplex, 0, time_expr, time_bound, "time_epsilon"));
@@ -717,7 +738,7 @@ namespace cplex_tap {
 
 Instance pricingSolver::buildRMPInstance(vector<Query>& queries) const {
     vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
-    vector<int> time = JVMAdapter::getTime(queries, pricingIST);
+    vector<double> time = JVMAdapter::getTime(queries, pricingIST);
     vector<vector<int>> distMatrix;
     for (int i = 0; i < queries.size(); ++i) {
         vector<int> line;
