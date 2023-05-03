@@ -26,6 +26,14 @@ namespace cplex_tap {
         std::cout << "[INFO] CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         int global_t = 0;
 
+        const int N_Dims = pricingIST.getNbDims();
+        vector<int> timing_flat;
+        for (int i = 0; i < N_Dims; ++i) {
+            for (int j = i + 1; j < N_Dims; ++j) {
+                timing_flat.push_back(pricingIST.getTiming()[i][j]);
+            }
+        }
+
         vector<Query> rmpQSet;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
 
@@ -38,28 +46,21 @@ namespace cplex_tap {
         bool isNewQuerySelected = true;
 
         vector<vector<double>> I;
-        vector<vector<double>> T;
 
-        FakeTimeStats* sing1 = FakeTimeStats::GetInstance();
-        std::unordered_map<std::string, std::unordered_map<std::string,int>> tmap = sing1->value();
         UserProfile* sing2 = UserProfile::GetInstance();
         std::unordered_map<std::string, std::unordered_map<std::string,int>> imap = sing2->value();
         ActiveDomains* adSingleton = ActiveDomains::GetInstance();
         std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
 
-        for (int dimId = 0; dimId < pricingIST.getNbDims(); ++dimId) {
+        for (int dimId = 0; dimId < N_Dims; ++dimId) {
             double tableRows = pricingIST.getNbRows();
             string dim = pricingIST.getDimName(dimId);
             vector<double> intCoefs;
-            vector<double> timeCoefs;
             intCoefs.reserve(pricingIST.getAdSize(dimId));
-            timeCoefs.reserve(pricingIST.getAdSize(dimId));
             for (int i = 0; i < pricingIST.getAdSize(dimId); ++i) {
                 intCoefs.push_back(imap[dim][ad[dim][i]] / tableRows);
-                timeCoefs.push_back(tmap[dim][ad[dim][i]] / tableRows);
             }
             I.push_back(intCoefs);
-            T.push_back(timeCoefs);
         }
 
         int it = 0;
@@ -77,10 +78,12 @@ namespace cplex_tap {
             /*
              *  Data about queries in the RMP
              */
-            vector<vector<bool>> S;
+            vector<vector<bool>> S; // selection attribute
+            vector<vector<bool>> G; // Group by attribute
             for (int i = 0; i < rmpQSet.size(); ++i) {
                 vector<bool> tmp;
-                for (int j = 0; j < pricingIST.getNbDims(); ++j) {
+                vector<bool> tmp2;
+                for (int j = 0; j < N_Dims; ++j) {
                     bool appears = false;
                     const string dimName = pricingIST.getDimName(j);
                     for (int k = 0; k < rmpQSet[i].getLeftPredicate().size(); ++k) {
@@ -90,8 +93,10 @@ namespace cplex_tap {
                         appears |= rmpQSet[i].getRightPredicate()[k].first == dimName;
                     }
                     tmp.emplace_back(appears);
+                    tmp2.emplace_back(rmpQSet[i].getGbAttribute() == dimName);
                 }
                 S.emplace_back(tmp);
+                G.emplace_back(tmp2);
             }
 
             /*
@@ -99,22 +104,24 @@ namespace cplex_tap {
              */
             IloNumVarArray cpLeftMeasure(cplex, pricingIST.getNbMeasures());
             IloNumVarArray cpRightMeasure(cplex, pricingIST.getNbMeasures());
-            IloNumVarArray cpGroupBy(cplex, pricingIST.getNbDims());
-            IloNumVarArray cpSelection(cplex, pricingIST.getNbDims());
-            IloArray<IloNumVarArray> cpLeftSel(cplex, pricingIST.getNbDims());
-            IloArray<IloNumVarArray> cpRightSel(cplex, pricingIST.getNbDims());
-            IloArray<IloNumVarArray> cpSelExclusive(cplex, pricingIST.getNbDims());
+            IloBoolVarArray cpGroupBy(cplex, N_Dims);
+            IloBoolVarArray cpSelection(cplex, N_Dims);
+            IloArray<IloNumVarArray> cpLeftSel(cplex, N_Dims);
+            IloArray<IloNumVarArray> cpRightSel(cplex, N_Dims);
+            IloBoolVarArray cpCombiAB(cplex, (N_Dims * (N_Dims - 1) ) / 2);
+            IloBoolVarArray cpCombiBA(cplex, (N_Dims * (N_Dims - 1) ) / 2);
+            //IloArray<IloNumVarArray> cpSelExclusive(cplex, pricingIST.getNbDims());
             // original model vars
             IloArray<IloNumVarArray> tap_x(cplex, rmpQSet.size() + 3u);
             IloNumVarArray tap_s(cplex, rmpQSet.size() + 1);
             //IloNumVarArray tap_u(cplex, rmpQSet.size() + 1);
             // HV1 sum of all weights
-            auto dimWeights = pricingIST.getDimWeights();
-            auto HV1 = std::accumulate(dimWeights.begin(), dimWeights.end(), decltype(dimWeights)::value_type(0));
+            //auto dimWeights = pricingIST.getDimWeights();
+            //auto HV1 = std::accumulate(dimWeights.begin(), dimWeights.end(), decltype(dimWeights)::value_type(0));
             // HV1 sum of all time weights
-            auto timeWeights = pricingIST.getDimWeights();
-            auto HV2 = std::accumulate(timeWeights.begin(), timeWeights.end(), decltype(timeWeights)::value_type(0));
-            auto HV3 = 10 * (2 * (pricingIST.getNbDims() + pricingIST.getNbMeasures() + 1) + 1);
+            //auto timeWeights = pricingIST.getDimWeights();
+            //auto HV2 = std::accumulate(timeWeights.begin(), timeWeights.end(), decltype(timeWeights)::value_type(0));
+            auto HV3 = 10 * (2 * (N_Dims + pricingIST.getNbMeasures() + 1) + 1);
             // Linearization variables
             //IloNumVar lin_I(cplex, 0, HV1, IloNumVar::Float, "I");
             //IloNumVar lin_T(cplex, 0, HV2, IloNumVar::Float, "T");
@@ -125,25 +132,25 @@ namespace cplex_tap {
             /*
              * Variables Initialisation
              */
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 cpGroupBy[i] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("Gamma_" + std::to_string(i)).c_str());
                 cpSelection[i] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("psi_" + std::to_string(i)).c_str());
                 cpLeftSel[i] = IloNumVarArray(cplex, pricingIST.getAdSize(i));
                 cpRightSel[i] = IloNumVarArray(cplex, pricingIST.getAdSize(i));
-                cpSelExclusive[i] = IloNumVarArray(cplex, pricingIST.getAdSize(i));
+                //cpSelExclusive[i] = IloNumVarArray(cplex, pricingIST.getAdSize(i));
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                     cpLeftSel[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Bool,
                                                 ("l_" + std::to_string(i) + "," + std::to_string(j)).c_str());
                     cpRightSel[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Bool,
                                                  ("r_" + std::to_string(i) + "," + std::to_string(j)).c_str());
-                    cpSelExclusive[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Bool,
-                                                     ("c_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                    //cpSelExclusive[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("c_" + std::to_string(i) + "," + std::to_string(j)).c_str());
                 }
             }
             for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
                 cpRightMeasure[i] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("alpha_" + std::to_string(i)).c_str());
                 cpLeftMeasure[i] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("beta_" + std::to_string(i)).c_str());
             }
+
             // Init variables x for arcs
             std::stringstream vname;
             for (auto i = 0; i < rmpQSet.size() + 3; ++i) {
@@ -157,6 +164,7 @@ namespace cplex_tap {
                                                 ("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
                 }
             }
+
             // Init variables for (query) selection
             for (auto i = 0; i < rmpQSet.size(); ++i) {
                 tap_s[i] = IloNumVar(cplex, 0, 1, TYPE_VAR_TAP, ("s_" + std::to_string(i)).c_str());
@@ -165,13 +173,6 @@ namespace cplex_tap {
             //TODO remove me to allow selection or not
             tap_s[rmpQSet.size()] = IloNumVar(cplex, 1, 1, IloNumVar::Bool, "s_new");
 
-            // Init variables for MTZ subtour elimination and enforce part of (8)
-            /*for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
-                vname << "u_" << i;
-                tap_u[i - 1] = IloNumVar(cplex, 2, rmpQSet.size() + 1, TYPE_VAR_TAP, vname.str().c_str());
-                vname.str("");
-            }*/
-
 
             //
             // --- Pricing objective ---
@@ -179,7 +180,7 @@ namespace cplex_tap {
             IloExpr expr(cplex);
             for (auto i = 0u; i < rmpQSet.size(); ++i)
                 expr += rmpIST.interest(i) * tap_s[i];
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                     expr += I[i][j] * cpLeftSel[i][j];
                     expr += I[i][j] * cpRightSel[i][j];
@@ -204,23 +205,23 @@ namespace cplex_tap {
             pricing.add(IloRange(cplex, 1, expr, 1, "right_one_measure"));
             expr.clear();
             // One group key
-            for (int i = 0; i < pricingIST.getNbDims(); ++i)
+            for (int i = 0; i < N_Dims; ++i)
                 expr += cpGroupBy[i];
             pricing.add(IloRange(cplex, 1, expr, 1, "one_gk"));
             expr.clear();
             // One or more for selection
-            for (int i = 0; i < pricingIST.getNbDims(); ++i)
+            for (int i = 0; i < N_Dims; ++i)
                 expr += cpSelection[i];
             //TODO pricingIST.getNbDims()
             pricing.add(IloRange(cplex, 1, expr, 1, "one_more_selection"));
             expr.clear();
             // No overlap selection / group by
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 pricing.add(
                         IloRange(cplex, 0, cpSelection[i] + cpGroupBy[i], 1, ("sel_gk_" + std::to_string(i)).c_str()));
             }
             //Allow for similar predicates in left and right column if measure is different only
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 IloExpr lexp(cplex);
                 IloExpr rexp(cplex);
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
@@ -230,34 +231,16 @@ namespace cplex_tap {
                 pricing.add(IloRange(cplex, 0, lexp - cpSelection[i], 0));
                 pricing.add(IloRange(cplex, 0, rexp - cpSelection[i], 0));
             }
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                     pricing.add(IloRange(cplex, 0, cpLeftSel[i][j] + cpRightSel[i][j], 1)); // (12)
-                    // (13)
-                    pricing.add(IloRange(cplex, 0, ((cpLeftSel[i][j] + cpRightSel[i][j]) / 2.0) - cpSelExclusive[i][j],
-                                         IloInfinity));
-                    expr += cpSelection[i];
-                    for (int k = 0; k < pricingIST.getAdSize(i); ++k) {
-                        if (k != j) {
-                            expr -= cpLeftSel[i][k];
-                            expr -= cpRightSel[i][k];
-                        }
-                    }
-                    expr -= cpSelExclusive[i][j];
-                    pricing.add(IloRange(cplex, -IloInfinity, expr, 0));
-                    expr.clear();
-                    // (14)
-                    for (int k = 0; k < pricingIST.getNbMeasures(); ++k) {
-                        pricing.add(IloRange(cplex, 0, 2 - cpSelExclusive[i][j] - cpLeftMeasure[k] - cpRightMeasure[k],
-                                             IloInfinity));
-                    }
                 }
             }
             /*
              *  --- Symmetry breaking ---
              */
 
-            for (auto k = 0u; k < pricingIST.getNbDims(); ++k) {
+            for (auto k = 0u; k < N_Dims; ++k) {
                 for (auto i = 0u; i < k; ++i) {
                     for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                         expr += cpLeftSel[i][j];
@@ -314,41 +297,31 @@ namespace cplex_tap {
             pricing.add(IloRange(cplex, 0, expr, 0, "path_structure"));
             expr.clear();
 
-            //subtour elimination constraints
-            /*
-            IloArray<IloRangeArray> mtz(cplex, rmpQSet.size() + 1);
-            for (auto i = 1u; i <= rmpQSet.size() + 1; ++i) {
-                mtz[i - 1] = IloRangeArray(cplex, rmpQSet.size() + 1);
-                for (auto j = 1u; j <= rmpQSet.size() + 1; ++j) {
-                    expr = ((rmpQSet.size() + 1 - 1) * (1 - tap_x[i][j])) - tap_u[i - 1] + tap_u[j - 1]; // >= 1
-                    vname << "mtz_" << i << "_" << j;
-                    mtz[i - 1][j - 1] = IloRange(cplex, 1, expr, IloInfinity, vname.str().c_str());
-                    vname.str("");
-                    expr.clear();
-                }
-                pricing.add(mtz[i - 1]);
-            }*/
 
             // Time
+            int pos = 0;
+            for (int i = 0; i < N_Dims; ++i) {
+                for (int j = i + 1; j < N_Dims; ++j) {
+                    pricing.add(IloRange(cplex, cpCombiAB[pos] - cpSelection[i] , 0));
+                    pricing.add(IloRange(cplex, cpCombiAB[pos] - cpGroupBy[j] , 0));
+                    pricing.add(IloRange(cplex, - 1 - cpCombiAB[pos] + cpGroupBy[j] + cpSelection[i], 0));
+
+                    pricing.add(IloRange(cplex, cpCombiBA[pos] - cpSelection[j] , 0));
+                    pricing.add(IloRange(cplex, cpCombiBA[pos] - cpGroupBy[i] , 0));
+                    pricing.add(IloRange(cplex, - 1 - cpCombiBA[pos] + cpGroupBy[i] + cpSelection[j], 0));
+                    pos ++;
+                }
+            }
+
             IloExpr time_expr(cplex);
             for (auto i = 0; i < rmpQSet.size(); ++i)
                 time_expr += tap_s[i] * (int) rmpIST.time(i);
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-                for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                    time_expr += (cpLeftSel[i][j] * T[i][j])*10000.0;
-                    time_expr += (cpRightSel[i][j] * T[i][j])*10.0;
-                }
+            for (int i = 0; i < (N_Dims * (N_Dims - 1))/2; ++i) {
+                time_expr += cpCombiAB[i] * timing_flat[i];
+                time_expr += cpCombiBA[i] * timing_flat[i];
             }
-            //expr + lin_T;
-            pricing.add(IloRange(cplex, 0, time_expr, time_bound, "time_epsilon"));
-            /*for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-                expr += cpSelection[i] * timeWeights[i];
-            }
-            expr -= (1 - tap_s[rmpQSet.size()]) * HV2;
-            expr -= lin_T;
-            pricing.add(IloRange(cplex, -IloInfinity, expr, 0, "time_linearization"));
-            expr.clear();
-            pricing.add(IloRange(cplex, 0, (tap_s[rmpQSet.size()]*HV2)-lin_T));*/
+            pricing.add(IloRange(cplex, 0, time_expr , time_bound, "time_epsilon"));
+
 
             //Distance
             IloExpr distance_expr(cplex);
@@ -362,7 +335,7 @@ namespace cplex_tap {
             pricing.add(IloRange(cplex, -IloInfinity, distance_expr, dist_bound, "distance_epsilon"));
 
             for (int i = 0; i < rmpQSet.size(); ++i) {
-                for (int k = 0; k < pricingIST.getNbDims(); ++k) {
+                for (int k = 0; k < N_Dims; ++k) {
                     expr += cpSelection[k] * (1 - S[i][k]) + S[i][k] * (1 - cpSelection[k]);
                 }
                 expr -= (1 - tap_x[i][rmpQSet.size()+1]) * HV3;
@@ -371,7 +344,7 @@ namespace cplex_tap {
                 expr.clear();
             }
             for (int i = 0; i < rmpQSet.size(); ++i) {
-                for (int k = 0; k < pricingIST.getNbDims(); ++k) {
+                for (int k = 0; k < N_Dims; ++k) {
                     expr += cpSelection[k] * (1 - S[i][k]) + S[i][k] * (1 - cpSelection[k]);
                 }
                 expr -= (1 - tap_x[rmpQSet.size()+1][i]) * HV3;
@@ -390,7 +363,7 @@ namespace cplex_tap {
             for (auto q : rmpQSet) {
                 int var_cnt = 0;
                 // GB Key
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     int keyID = pricingIST.getDimId(q.getGbAttribute());
                     if (i == keyID)
                         expr += cpGroupBy[i];
@@ -417,7 +390,7 @@ namespace cplex_tap {
                     var_cnt++;
                 }
                 // Selection predicate - Left
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     bool dimPresent = false;
                     int valueIdx = -1;
                     for (auto p : q.getLeftPredicate()){
@@ -442,7 +415,7 @@ namespace cplex_tap {
                     }
                 }
                 // Selection predicate - Right
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     bool dimPresent = false;
                     int valueIdx = -1;
                     for (auto p : q.getRightPredicate()){
@@ -477,7 +450,7 @@ namespace cplex_tap {
             for (auto q : rmpQSet) {
                 int var_cnt = 0;
                 // GB Key
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     int keyID = pricingIST.getDimId(q.getGbAttribute());
                     if (i == keyID)
                         expr += cpGroupBy[i];
@@ -504,7 +477,7 @@ namespace cplex_tap {
                     var_cnt++;
                 }
                 // Selection predicate - Left
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     bool dimPresent = false;
                     int valueIdx = -1;
                     for (auto p : q.getLeftPredicate()){
@@ -529,7 +502,7 @@ namespace cplex_tap {
                     }
                 }
                 // Selection predicate - Right
-                for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+                for (int i = 0; i < N_Dims; ++i) {
                     bool dimPresent = false;
                     int valueIdx = -1;
                     for (auto p : q.getRightPredicate()){
@@ -619,27 +592,27 @@ namespace cplex_tap {
             IloNumArray solGBKey(cplex);
             IloNumArray solLeftMeasure(cplex);
             IloNumArray solRightMeasure(cplex);
-            IloArray<IloNumArray> solLeftSelection(cplex, pricingIST.getNbDims());
-            IloArray<IloNumArray> solRightSelection(cplex, pricingIST.getNbDims());
+            IloArray<IloNumArray> solLeftSelection(cplex, N_Dims);
+            IloArray<IloNumArray> solRightSelection(cplex, N_Dims);
             isNewQuerySelected = cplex_solver.getValue(tap_s[rmpQSet.size()]);
 
             //cplex_solver.getValues(solSelection, cpSelection);
             cplex_solver.getValues(solGBKey, cpGroupBy);
             cplex_solver.getValues(solLeftMeasure, cpLeftMeasure);
             cplex_solver.getValues(solRightMeasure, cpRightMeasure);
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 IloNumArray line(cplex);
                 cplex_solver.getValues(line, cpLeftSel[i]);
                 solLeftSelection[i] = line;
             }
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 IloNumArray line(cplex);
                 cplex_solver.getValues(line, cpRightSel[i]);
                 solRightSelection[i] = line;
             }
 
             int gbKeyIdx = 0;
-            while (gbKeyIdx < pricingIST.getNbDims()) {
+            while (gbKeyIdx < N_Dims) {
                 if (abs(solGBKey[gbKeyIdx] - 1) < 10e-6)
                     break;
                 else
@@ -661,7 +634,7 @@ namespace cplex_tap {
             }
             std::vector<std::pair<std::string, int>> lPredicate;
             std::vector<std::pair<std::string, int>> rPredicate;
-            for (int i = 0; i < pricingIST.getNbDims(); ++i) {
+            for (int i = 0; i < N_Dims; ++i) {
                 for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                     if (abs(solLeftSelection[i][j] - 1) < 10e-6)
                         lPredicate.emplace_back(make_pair(pricingIST.getDimName(i), j));

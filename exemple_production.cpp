@@ -8,20 +8,10 @@
 #include "pricingSolver.h"
 #include "KnapsackSolver.h"
 #include "princingCPSolver.h"
+#include <sstream>
+#include <regex>
 
 #include "InitTargets.h"
-
-inline constexpr auto hash_djb2a(const std::string_view sv) {
-    unsigned long hash{ 5381 };
-    for (unsigned char c : sv) {
-        hash = ((hash << 5) + hash) ^ c;
-    }
-    return hash;
-}
-
-inline constexpr auto operator"" _sh(const char *str, size_t len) {
-    return hash_djb2a(std::string_view{ str, len });
-}
 
 
 int run_exact_test(char* argv[]) {
@@ -139,6 +129,7 @@ void dump_instance(vector<cplex_tap::Query> queries, cplex_tap::CGTAPInstance is
 
 vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance *ist) {
     vector<cplex_tap::Query> queries;
+    int n = 0;
     for (int i = 0; i < ist->getNbDims(); ++i) {
         for (int j = 0; j < ist->getNbDims(); ++j) {
             if (i != j){
@@ -146,12 +137,14 @@ vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance *ist) {
                     for (int l = k+1; l < ist->getAdSize(j); ++l) {
                         vector<pair<string, int> > lPred = {{ist->getDimName(j), l}};
                         vector<pair<string, int> > rPred = {{ist->getDimName(j), k}};
-                        queries.emplace_back(cplex_tap::Query(ist->getTableName(), "sum", ist->getDimName(i), ist->getMeasureName(0), ist->getMeasureName(0), lPred, rPred));
+                        n++;
+                        //queries.emplace_back(cplex_tap::Query(ist->getTableName(), "sum", ist->getDimName(i), ist->getMeasureName(0), ist->getMeasureName(0), lPred, rPred));
                     }
                 }
             }
         }
     }
+    cout << "[INFO] Generated all queries " << n++ << endl;
     return queries;
 }
 
@@ -203,172 +196,76 @@ int main(int argc, char* argv[]) {
     vector<cplex_tap::Query> starting_queries;
 
     // Dump instance for debug
-    dump_instance(getAllQueries(&cgIST), cgIST, "/home/alex/tap_ist_dump");
+    //dump_instance(getAllQueries(&cgIST), cgIST, "/home/alex/tap_ist_dump");
+
+    //getAllQueries(&cgIST);
+    //exit(0);
 
     time_t start, end;
     start = clock();
 
-    switch (hash_djb2a(init_profile)) {
-        case "rd_300"_sh:
-            starting_queries = rd_300(cgIST, rng_seed);
-            break;
-        case "rd_50"_sh:
-            starting_queries = rd_50(cgIST, rng_seed);
-            break;
-        case "rd_100"_sh:
-            starting_queries = rd_100(cgIST, rng_seed);
-            break;
-        case "rd_150"_sh:
-            starting_queries = rd_150(cgIST, rng_seed);
-            break;
-        case "rd_200"_sh:
-            starting_queries = rd_200(cgIST, rng_seed);
-            break;
-        case "rd_div_50"_sh:
-            starting_queries = rd_div_50(cgIST, rng_seed);
-            break;
-        case "rd_div_100"_sh:
-            starting_queries = rd_div_100(cgIST, rng_seed);
-            break;
-        case "rd_div_150"_sh:
-            starting_queries = rd_div_150(cgIST, rng_seed);
-            break;
-        case "rd_div_25_25"_sh:
-            starting_queries = rd_div_25_25(cgIST, rng_seed);
-            break;
-        case "rd_div_50_50"_sh:
-            starting_queries = rd_div_50_50(cgIST, rng_seed);
-            break;
-        case "rd_div_int_2_24_24"_sh:
-            starting_queries = rd_div_int_2_24_24(cgIST, rng_seed);
-            break;
-        case "rd_div_int_2_49_49"_sh:
-            starting_queries = rd_div_int_2_49_49(cgIST, rng_seed);
-            break;
-        case "rd_div_int_2_74_74"_sh:
-            starting_queries = rd_div_int_2_74_74(cgIST, rng_seed);
-            break;
-        case "rd_div_int_2_99_99"_sh:
-            starting_queries = rd_div_int_2_99_99(cgIST, rng_seed);
-            break;
-        case "rd_div_int_2_149_149"_sh:
-            starting_queries = rd_div_int_2_149_149(cgIST, rng_seed);
-            break;
-        case "rd_div_int_17_17_17"_sh:
-            starting_queries = rd_div_int_17_17_17(cgIST, rng_seed);
-            break;
-        case "rd_div_int_33_33_33"_sh:
-            starting_queries = rd_div_int_33_33_33(cgIST, rng_seed);
-            break;
-        case "rd_div_int_50_50_50"_sh:
-            starting_queries = rd_div_int_50_50_50(cgIST, rng_seed);
-            break;
-        case "rd_div_int_68_66_66"_sh:
-            starting_queries = rd_div_int_68_66_66(cgIST, rng_seed);
-            break;
-        case "rd_div_int_100_100_100"_sh:
-            starting_queries = rd_div_int_100_100_100(cgIST, rng_seed);
-            break;
-        case "rd_int_div_17_17_17"_sh:
-            starting_queries = rd_int_div_17_17_17(cgIST, rng_seed);
-            break;
-        case "rd_int_div_33_33_33"_sh:
-            starting_queries = rd_int_div_33_33_33(cgIST, rng_seed);
-            break;
-        case "rd_int_div_50_50_50"_sh:
-            starting_queries = rd_int_div_50_50_50(cgIST, rng_seed);
-            break;
-        case "rd_int_div_68_66_66"_sh:
-            starting_queries = rd_int_div_68_66_66(cgIST, rng_seed);
-            break;
-        case "rd_int_div_100_100_100"_sh:
-            starting_queries = rd_int_div_100_100_100(cgIST, rng_seed);
-            break;
-        case "rd_int_div_2_24_24"_sh:
-            starting_queries = rd_int_div_2_24_24(cgIST, rng_seed);
-            break;
-        case "rd_int_div_2_49_49"_sh:
-            starting_queries = rd_int_div_2_49_49(cgIST, rng_seed);
-            break;
-        case "rd_int_div_2_74_74"_sh:
-            starting_queries = rd_int_div_2_74_74(cgIST, rng_seed);
-            break;
-        case "rd_int_div_2_99_99"_sh:
-            starting_queries = rd_int_div_2_99_99(cgIST, rng_seed);
-            break;
-        case "rd_int_div_2_149_149"_sh:
-            starting_queries = rd_int_div_2_149_149(cgIST, rng_seed);
-            break;
-        case "rdsrt_50"_sh:
-            starting_queries = rdsrt_50(cgIST, rng_seed);
-            break;
-        case "rdsrt_100"_sh:
-            starting_queries = rdsrt_100(cgIST, rng_seed);
-            break;
-        case "rdsrt_150"_sh:
-            starting_queries = rdsrt_150(cgIST, rng_seed);
-            break;
-        case "rdsrt_200"_sh:
-            starting_queries = rdsrt_200(cgIST, rng_seed);
-            break;
-        case "rdsrt_300"_sh:
-            starting_queries = rdsrt_300(cgIST, rng_seed);
-            break;
-        case "rdsk_50"_sh:
-            starting_queries = rdsk_50(cgIST, rng_seed);
-            break;
-        case "rdsk_100"_sh:
-            starting_queries = rdsk_100(cgIST, rng_seed);
-            break;
-        case "rdsk_150"_sh:
-            starting_queries = rdsk_150(cgIST, rng_seed);
-            break;
-        case "rdsk_200"_sh:
-            starting_queries = rdsk_200(cgIST, rng_seed);
-            break;
-        case "rdsk_300"_sh:
-            starting_queries = rdsk_300(cgIST, rng_seed);
-            break;
-        case "rdks_50"_sh:
-            starting_queries = rdks_50(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "rdks_100"_sh:
-            starting_queries = rdks_100(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "rdks_200"_sh:
-            starting_queries = rdks_200(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "rdks_150"_sh:
-            starting_queries = rdks_150(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "rdks_300"_sh:
-            starting_queries = rdks_300(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "kmeanspp_50"_sh:
-            starting_queries = kmeanspp_50(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "kmeanspp_100"_sh:
-            starting_queries = kmeanspp_100(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "kmeanspp_150"_sh:
-            starting_queries = kmeanspp_150(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "kmeanspp_200"_sh:
-            starting_queries = kmeanspp_200(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "kmeanspp_300"_sh:
-            starting_queries = kmeanspp_300(cgIST, ep_t, ep_d, rng_seed);
-            break;
-        case "ks"_sh:
-            std::cout<< "--- INIT COMPLETE ["<< 0 <<"]---" << std::endl;
-            start = clock();
-            auto queries = getAllQueries(&cgIST);
-            cplex_tap::KnapsackSolver solver = cplex_tap::KnapsackSolver(cgIST);
-            cplex_tap::Solution s = solver.solve(getAllQueries(&cgIST), ep_t, ep_d);
-            std::cout << "[STEP][END] - z*=" << s.z << std::endl;
-            cout << "[TIME][ITER][s] " << s.time << endl;
-            cout << "[TIME] TOTAL " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
-            return 0;
+    // Parse and select init method
+    std::stringstream ini(init_profile);
+    std::string segment;
+    std::vector<std::string> seglist;
+    while(std::getline(ini, segment, '_'))
+        seglist.push_back(segment);
+
+    // Simple regular expression matching
+    const std::string fnames[] = {"foo.txt", "bar.txt", "baz.dat", "zoidberg"};
+    const std::regex rd_regex("rd_[0-9]+");
+    const std::regex rd_div_regex("rd_div_[0-9]+");
+    const std::regex rd_int_regex("rd_int_[0-9]+");
+    const std::regex rd_div_int_regex("rd_div_int_[0-9]+");
+    const std::regex rd_int_div_regex("rd_int_div_[0-9]+");
+    const std::regex rdsrt_regex("rdsrt_[0-9]+");
+    const std::regex rdks_regex("rdks_[0-9]+");
+    const std::regex kmeanspp_regex("kmeanspp_[0-9]+");
+
+    if (std::regex_match(init_profile, rd_regex)){
+        int xx = stoi(seglist[1]);
+        starting_queries = rd_xx(xx, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rd_div_regex)){
+        int xx = stoi(seglist[2]);
+        starting_queries = rd_div_xx(xx, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rd_int_regex)){
+        int xx = stoi(seglist[2]);
+        starting_queries = rd_int_xx(xx, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rd_div_int_regex)){
+        int uval = stoi(seglist[3]);
+        int split = uval / 2;
+        starting_queries = rd_div_int_xx_yy_zz(1, split -1, split, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rd_int_div_regex)){
+        int uval = stoi(seglist[3]);
+        int split = uval / 2;
+        starting_queries = rd_int_div_xx_yy_zz(1, split -1, split, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rdsrt_regex)){
+        int xx = stoi(seglist[1]);
+        starting_queries = rdstr_xx(xx, cgIST, rng_seed);
+    }
+    else if (std::regex_match(init_profile, rdks_regex)){
+        int xx = stoi(seglist[1]);
+        starting_queries = rdks_xx(xx, cgIST, ep_t, ep_d, rng_seed);
+    }
+    else if (std::regex_match(init_profile, kmeanspp_regex)){
+        int xx = stoi(seglist[1]);
+        starting_queries = kmeanspp_xx(xx, cgIST, ep_t, ep_d, rng_seed);
+    }
+    else {
+        std::cout<< "--- INIT COMPLETE ["<< 0 <<"]---" << std::endl;
+        start = clock();
+        auto queries = getAllQueries(&cgIST);
+        cplex_tap::KnapsackSolver solver = cplex_tap::KnapsackSolver(cgIST);
+        cplex_tap::Solution s = solver.solve(getAllQueries(&cgIST), ep_t, ep_d);
+        std::cout << "[STEP][END] - z*=" << s.z << std::endl;
+        cout << "[TIME][ITER][s] " << s.time << endl;
+        cout << "[TIME] TOTAL " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
+        return 0;
     }
 
     end = clock();

@@ -18,7 +18,7 @@ namespace cplex_tap {
         vector<Query> rmpQSet;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
 
-        const auto timeWeights = pricingIST.getDimWeights();
+        //const auto timeWeights = pricingIST.getDimWeights();
 
 
         // Build a rmp problem instances
@@ -126,7 +126,7 @@ namespace cplex_tap {
         for (auto i = 0u; i < rmpQSet.size(); ++i)
             expr += rmpIST.interest(i) * tap_s[i];
         for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-            expr += cpSelection[i] * pricingIST.getDimWeight(i);
+            //expr += cpSelection[i] * pricingIST.getDimWeight(i);
         }
         IloObjective obj(cplex, expr, IloObjective::Maximize);
         pricing.add(obj);
@@ -253,7 +253,7 @@ namespace cplex_tap {
         for (auto i = 0; i < rmpQSet.size(); ++i)
             expr += tap_s[i] * (int) rmpIST.time(i);
         for (int i = 0; i < pricingIST.getNbDims(); ++i) {
-            expr += cpSelection[i] * timeWeights[i];
+            //expr += cpSelection[i] * timeWeights[i];
         }
         //expr + lin_T;
         pricing.add(IloRange(cplex, 0, expr, time_bound, "time_epsilon"));

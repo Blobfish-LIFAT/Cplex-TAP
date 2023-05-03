@@ -10,7 +10,7 @@
 #include "set"
 #include "ActiveDomains.h"
 #include "UserProfile.h"
-#include "FakeTimeStats.h"
+//#include "FakeTimeStats.h"
 #include <cpr/cpr.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -70,27 +70,12 @@ public:
     }
 
     static vector<double> getTime(const std::vector<cplex_tap::Query>& qs, const cplex_tap::CGTAPInstance& ist){
-        FakeTimeStats* upPT = FakeTimeStats::GetInstance();
-        std::unordered_map<std::string, std::unordered_map<std::string,int>> freqs = upPT->value();
-
-        ActiveDomains* adSingleton = ActiveDomains::GetInstance();
-        std::unordered_map<std::string,std::vector<std::string>> ad = adSingleton->value();
-
         using namespace cplex_tap;
         vector<double> interest;
         interest.reserve(qs.size());
-        double table_card = ist.getNbRows();
 
-        for (auto  q : qs){
-            string dim = q.getLeftPredicate()[0].first;
-            int lsel_id = q.getLeftPredicate()[0].second;
-            int rsel_id = q.getRightPredicate()[0].second;
-            string lsel = ad[dim][lsel_id];
-            string rsel = ad[dim][rsel_id];
-            double l_freq = freqs[dim][lsel];
-            double r_freq = freqs[dim][rsel];
-
-            interest.push_back( 10000 * ( (l_freq + r_freq)/table_card ) );
+        for (const auto&  q : qs){
+            interest.push_back(ist.getTiming()[ist.getDimId(q.getGbAttribute())][ist.getDimId(q.getLeftPredicate()[0].first)]);
         }
 
         return interest;

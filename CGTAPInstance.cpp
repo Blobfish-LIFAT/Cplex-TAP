@@ -7,7 +7,7 @@
 #include <iostream>
 #include "ActiveDomains.h"
 #include "UserProfile.h"
-#include "FakeTimeStats.h"
+//#include "FakeTimeStats.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -89,8 +89,9 @@ namespace cplex_tap {
             ad_map.insert({att, values});
         }
         ActiveDomains* adSingleton = ActiveDomains::GetInstance(ad_map);
+        if (DEBUG) cout << "  AD loaded" << endl;
 
-        //Load user profile
+        //Load Interest data
         std::unordered_map<std::string, std::unordered_map<std::string,int>> up_map;
         string json_path = folder_path + "/_freq.json";
         using json = nlohmann::json;
@@ -102,48 +103,46 @@ namespace cplex_tap {
             up_map.insert({it.key(), it.value().get<std::unordered_map<std::string,int>>()});
         }
         UserProfile* adUp = UserProfile::GetInstance(up_map);
+        if (DEBUG) cout << "  Interest loaded" << endl;
+        // Load time data
 
-        std::unordered_map<std::string, std::unordered_map<std::string,int>> time_map;
-        json_path = folder_path + "/_freq_timing.json";
-        using json = nlohmann::json;
-        std::ifstream profile2(json_path);
-        data = json::parse(profile2);
-
-        for (auto it = data.begin(); it != data.end(); ++it) {
-            //std::cout << "key: " << it.key() << endl;
-            time_map.insert({it.key(), it.value().get<std::unordered_map<std::string,int>>()});
-        }
-        FakeTimeStats* tmap = FakeTimeStats::GetInstance(time_map);
 
         //Load weights (for linear estimators)
-        ifstream attWFile(folder_path + "/dim_weights.dat");
-        pos = 0;i = 0;token = "";
-        getline(attWFile, line);
-        while ((pos = line.find(',')) != string::npos) {
-            token = line.substr(0, pos);
-            dimWeights.push_back(stod(token, nullptr));
-            line.erase(0, pos + 1);
+        timing.reserve(dimNames.size());
+        for (int j = 0; j < dimNames.size(); ++j) {
+            std::vector<int> vector1(dimNames.size(), 0);
+            timing.emplace_back(vector1);
         }
-        dimWeights.push_back(stod(line, nullptr));
-        attWFile.close();
+        ifstream attWFile(folder_path + "/_time.dat");
+        for (int j = 0; j < dimNames.size(); ++j) {
+            for (int k = j + 1; k < dimNames.size(); ++k) {
+                pos = 0;i = 0;
+                getline(attWFile, line);
 
-        ifstream timeWFile(folder_path + "/dim_time.dat");
-        pos = 0;i = 0;token = "";
-        getline(timeWFile, line);
-        while ((pos = line.find(',')) != string::npos) {
-            token = line.substr(0, pos);
-            dimTimes.push_back(stod(token, nullptr));
-            line.erase(0, pos + 1);
+                pos = line.find(',');
+                string a = line.substr(0, pos);
+                line.erase(0, pos + 1);
+
+                pos = line.find(',');
+                string b = line.substr(0, pos);
+                line.erase(0, pos + 1);
+
+                pos = line.find(',');
+                int t = stoi(line.substr(0, pos), nullptr);
+                line.erase(0, pos + 1);
+
+                timing[j][k] = t;
+                timing[k][j] = t;
+            }
         }
-        dimTimes.push_back(stod(line, nullptr));
-        timeWFile.close();
+
+        cout << "Instance Loaded" << endl;
+
     }
 
-    const vector<double> &CGTAPInstance::getDimWeights() const {
-        return dimWeights;
+    const vector<std::vector<int>> &CGTAPInstance::getTiming() const {
+        return timing;
     }
 
-    const vector<double> &CGTAPInstance::getDimTimes() const {
-        return dimTimes;
-    }
+
 } // cplex_tap

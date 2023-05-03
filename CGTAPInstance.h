@@ -32,9 +32,10 @@ namespace cplex_tap {
         std::vector<int> adSizes;
         std::vector<std::vector<string>> activeDomains;
 
-        //weights
-        std::vector<double> dimWeights;
-        std::vector<double> dimTimes;
+        //Time weights
+        std::vector<std::vector<int>>  timing;
+    public:
+        const vector<std::vector<int>> &getTiming() const;
 
     public:
 
@@ -96,36 +97,6 @@ namespace cplex_tap {
             return idx;
         }
 
-        double getDimWeight(int n) const {
-            return dimWeights[n];
-        }
-
-        double getDimWeight(string atName) const{
-            int idx = -1;
-            for(int i = 0; i < dimNames.size(); ++i){
-                if (dimNames[i] == atName) {
-                    idx = i;
-                    break;
-                }
-            }
-            return dimWeights[idx];
-        }
-
-        double getDimTime(int n) const {
-            return dimTimes[n];
-        }
-
-        double getDimTime(string atName) const{
-            int idx = -1;
-            for(int i = 0; i < dimNames.size(); ++i){
-                if (dimNames[i] == atName) {
-                    idx = i;
-                    break;
-                }
-            }
-            return dimTimes[idx];
-        }
-
         string getDimName(int n) const{
             return dimNames[n];
         }
@@ -134,7 +105,6 @@ namespace cplex_tap {
             return measNames[n];
         }
 
-        const vector<double> &getDimTimes() const;
 
     };
 
