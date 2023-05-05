@@ -21,7 +21,7 @@ namespace cplex_tap {
 
 
     public:
-        const std::vector<std::vector<std::uint32_t>> &getDistances() const;
+        [[nodiscard]] const std::vector<std::vector<std::uint32_t>> &getDistances() const;
 
         // Load instance from a text file
         Instance(std::string file_path);
@@ -32,12 +32,12 @@ namespace cplex_tap {
         virtual ~Instance();
 
         // Size of the instance
-        std::uint32_t size() const { return nbQueries; }
+        [[nodiscard]] std::uint32_t size() const { return nbQueries; }
 
         // Getters
-        std::uint32_t dist(std::uint32_t i, std::uint32_t j) const { return distances[i][j]; }
-        double time(std::uint32_t i) const { return times[i]; }
-        double interest(std::uint32_t i) const { return interests[i]; }
+        [[nodiscard]] std::uint32_t dist(std::uint32_t i, std::uint32_t j) const { return distances[i][j]; }
+        [[nodiscard]] double time(std::uint32_t i) const { return times[i]; }
+        [[nodiscard]] double interest(std::uint32_t i) const { return interests[i]; }
 
 
     };
