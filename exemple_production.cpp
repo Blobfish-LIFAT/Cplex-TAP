@@ -10,9 +10,22 @@
 #include "princingCPSolver.h"
 #include <sstream>
 #include <regex>
-
+#include "solver.h"
 #include "InitTargets.h"
 
+static cplex_tap::Instance buildRMPInstance(vector<cplex_tap::Query>& queries, cplex_tap::CGTAPInstance pricingIST) {
+    vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
+    vector<double> time = JVMAdapter::getTime(queries, pricingIST);
+    vector<vector<int>> distMatrix;
+    for (int i = 0; i < queries.size(); ++i) {
+        vector<int> line;
+        for (int j = 0; j < queries.size(); ++j) {
+            line.emplace_back(queries[i].dist(queries[j]));
+        }
+        distMatrix.emplace_back(line);
+    }
+    return {static_cast<int>(queries.size()), interest, time, distMatrix};
+}
 
 int run_exact_test(char* argv[]) {
 
@@ -275,11 +288,25 @@ int main(int argc, char* argv[]) {
 
     start = clock();
 
-    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
+    //cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
+    //solver.setCplexSym(cplex_sym);
+    //cplex_tap::Solution s = solver.solve();
+    auto solver = cplex_tap::KnapsackSolver(cgIST);
+    cplex_tap::Solution s = solver.solve(starting_queries, ep_t, ep_d);
+    std::cout << "[POOL][ks] - z*=" << s.z << std::endl;
 
-    solver.setCplexSym(cplex_sym);
+    if (starting_queries.size() < 1001) {
+        auto solver_math = cplex_tap::SolverVPLSHammingSX(buildRMPInstance(starting_queries, cgIST), 15, 15, 30, 20);
+        s = solver_math.solve(ep_d, ep_t, false, "");
+        std::cout << "[POOL][math] - z*=" << s.z << std::endl;
+    }
 
-    cplex_tap::Solution s = solver.solve();
+    if (starting_queries.size() < 501){
+        auto solver_exact = cplex_tap::Solver(buildRMPInstance(starting_queries, cgIST));
+        s = solver_exact.solve(ep_d, ep_t, false, "");
+        std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
+    }
+
 
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
@@ -287,4 +314,6 @@ int main(int argc, char* argv[]) {
 
 
 }
+
+
 
