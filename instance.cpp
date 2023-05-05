@@ -50,11 +50,11 @@ namespace cplex_tap {
         times = times_;
         cout << "  Time loaded" << endl;
 
-        vector<vector<std::uint32_t>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
+        vector<vector<int>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
         // Load distnces
         for (auto j = 0; j < nbQueries; j++)
         {
-            vector<std::uint32_t>  line_vec(nbQueries);
+            vector<int>  line_vec(nbQueries);
             getline(tapFile, line);
             pos = 0;
             i = 0;
@@ -75,7 +75,7 @@ namespace cplex_tap {
         tapFile.close();
     }
 
-    const std::vector<std::vector<std::uint32_t>> &Instance::getDistances() const {
+    const std::vector<std::vector<int>> &Instance::getDistances() const {
         return distances;
     }
 

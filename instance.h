@@ -7,10 +7,10 @@
 namespace cplex_tap {
     class Instance {
         // Number of queries
-        std::uint32_t nbQueries;
+        int nbQueries;
 
         // Distance between queries
-        std::vector<std::vector<std::uint32_t>> distances;
+        std::vector<std::vector<int>> distances;
 
         // Time to run a query
         std::vector<double> times;
@@ -21,7 +21,7 @@ namespace cplex_tap {
 
 
     public:
-        [[nodiscard]] const std::vector<std::vector<std::uint32_t>> &getDistances() const;
+        [[nodiscard]] const std::vector<std::vector<int>> &getDistances() const;
 
         // Load instance from a text file
         Instance(std::string file_path);
@@ -32,12 +32,12 @@ namespace cplex_tap {
         virtual ~Instance();
 
         // Size of the instance
-        [[nodiscard]] std::uint32_t size() const { return nbQueries; }
+        [[nodiscard]] int size() const { return nbQueries; }
 
         // Getters
-        [[nodiscard]] std::uint32_t dist(std::uint32_t i, std::uint32_t j) const { return distances[i][j]; }
-        [[nodiscard]] double time(std::uint32_t i) const { return times[i]; }
-        [[nodiscard]] double interest(std::uint32_t i) const { return interests[i]; }
+        [[nodiscard]] int dist(int i, int j) const { return distances[i][j]; }
+        [[nodiscard]] double time(int i) const { return times[i]; }
+        [[nodiscard]] double interest(int i) const { return interests[i]; }
 
 
     };
