@@ -31,7 +31,7 @@ namespace cplex_tap {
         // dump decision variables
         void dump(const IloCplex& cplex, const IloArray<IloNumVarArray>& x, const IloEnv& env, const IloNumVarArray &s, const IloNumVarArray &u) const {
             cout << "--- DUMP STARTED --" << endl;
-            const uint64_t n = tap.size();
+            const int n = tap.size();
             IloNumArray vals_s(env);
             cplex.getValues(vals_s, s);
             env.out() << "s = " << vals_s << endl;
@@ -62,7 +62,7 @@ namespace cplex_tap {
         }
 
         int** getX_center(const IloCplex& cplex, const IloArray<IloNumVarArray>& x) const {
-            const uint64_t n = tap.size();
+            const int n = tap.size();
             int** out = new int*[n];
             for (IloInt i = 1; i <= n; ++i) {
                 out[i-1] = new int[n];
@@ -86,15 +86,15 @@ namespace cplex_tap {
             return out;
         }
 
-        static void init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
+        static void init_vars(const IloEnv &env, const int n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
                        IloNumVarArray &u);
 
         void
-        build_constraints(int dist_bound, int time_bound, const IloEnv &env, const IloModel &model, const uint64_t n,
+        build_constraints(int dist_bound, int time_bound, const IloEnv &env, const IloModel &model, const int n,
                           const IloArray<IloNumVarArray> &x, const IloNumVarArray &s) const;
 
         void
-        build_subtour_const_all(const IloEnv &env, const IloModel &model, const uint64_t n,
+        build_subtour_const_all(const IloEnv &env, const IloModel &model, const int n,
                                 const IloArray<IloNumVarArray> &x,
                                 const IloNumVarArray &u) const;
 
@@ -112,7 +112,7 @@ namespace cplex_tap {
         // Run solver and dump result to stdout
         virtual Solution solve(int dist_bound, int time_bound, bool seed, string warmStart) const;
 
-        void warm_start(std::string warm_file, IloEnv &env, uint64_t n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
+        void warm_start(std::string warm_file, IloEnv &env, int n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
             cout << "loading warm start from " << warm_file << endl;
             //Read file
             vector<int> ssol;
@@ -184,14 +184,14 @@ namespace cplex_tap {
 
         // Ids from 1
         vector<int> get_solution(const IloCplex& cplex, const IloArray<IloNumVarArray>& x)  const {
-            const uint64_t n = tap.size();
+            const int n = tap.size();
             const auto start_node = 0u;
             bool first = true;
             auto current_node = start_node;
             vector<int> path;
 
-            uint64_t iter = 0;
-            uint64_t max_iter = n+2;
+            int iter = 0;
+            int max_iter = n+2;
 
             while (current_node != n + 1) {
                 //std::cout << current_node << "|" << n+1 << std::endl;
@@ -214,7 +214,7 @@ namespace cplex_tap {
             return path;
         }
 
-        void warm_start(std::vector<int> warm_sol, IloEnv &env, uint64_t n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
+        void warm_start(std::vector<int> warm_sol, IloEnv &env, int n,  IloArray <IloNumVarArray> &x, IloNumVarArray &s, IloCplex &cplex) const{
             // Build MIP Start
             IloNumVarArray startVar(env);
             IloNumArray startVal(env);

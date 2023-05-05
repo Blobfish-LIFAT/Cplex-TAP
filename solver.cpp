@@ -24,7 +24,7 @@ namespace cplex_tap {
         IloEnv env;
         IloModel model(env);
 
-        const uint64_t n = tap.size();
+        const int n = tap.size();
 
         // Variables
         IloArray<IloNumVarArray> x(env, n + 2u);
@@ -112,7 +112,7 @@ namespace cplex_tap {
         return result;
     }
 
-    void Solver::build_subtour_const_all(const IloEnv &env, const IloModel &model, const uint64_t n,
+    void Solver::build_subtour_const_all(const IloEnv &env, const IloModel &model, const int n,
                                          const IloArray<IloNumVarArray> &x, const IloNumVarArray &u) const {
         IloExpr expr(env);
         stringstream vname;
@@ -136,7 +136,7 @@ namespace cplex_tap {
 
     void
     Solver::build_constraints(int dist_bound, int time_bound, const IloEnv &env, const IloModel &model,
-                              const uint64_t n, const IloArray<IloNumVarArray> &x, const IloNumVarArray &s) const {
+                              const int n, const IloArray<IloNumVarArray> &x, const IloNumVarArray &s) const {
 
         IloExpr expr(env);
         std::stringstream vname;
@@ -235,7 +235,7 @@ namespace cplex_tap {
         expr.end();
     }
 
-    void Solver::init_vars(const IloEnv &env, const uint64_t n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
+    void Solver::init_vars(const IloEnv &env, const int n, IloArray<IloNumVarArray> &x, IloNumVarArray &s,
                            IloNumVarArray &u) {
         // Init variables x for arcs
         std::stringstream vname;
