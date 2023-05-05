@@ -50,7 +50,7 @@ namespace cplex_tap {
         times = times_;
         cout << "  Time loaded" << endl;
 
-        vector<vector<int>> distances_; //(nbQueries, vector<uint32_t>(nbQueries));
+        vector<vector<int>> distances_; //(nbQueries, vector<int>(nbQueries));
         // Load distnces
         for (auto j = 0; j < nbQueries; j++)
         {
@@ -85,7 +85,7 @@ namespace cplex_tap {
         interests = interest;
         times = time;
         for (int i = 0; i < nbQ; ++i) {
-            std::vector<uint32_t> line;
+            std::vector<int> line;
             for (int j = 0; j < nbQ; ++j) {
                 line.emplace_back(distance[i][j]);
             }
