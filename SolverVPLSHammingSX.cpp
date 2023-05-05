@@ -17,7 +17,7 @@ namespace cplex_tap {
         IloEnv env;
         IloModel model(env);
 
-        const uint64_t n = tap.size();
+        auto n = tap.size();
 
         // Variables
         IloArray<IloNumVarArray> x(env, n + 2u);
