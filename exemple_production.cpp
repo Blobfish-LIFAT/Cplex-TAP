@@ -295,14 +295,15 @@ int main(int argc, char* argv[]) {
     cplex_tap::Solution s = solver.solve(starting_queries, ep_t, ep_d);
     std::cout << "[POOL][ks] - z*=" << s.z << std::endl;
 
+    const cplex_tap::Instance &rmpInstance = buildRMPInstance(starting_queries, cgIST);
     if (starting_queries.size() < 1001) {
-        auto solver_math = cplex_tap::SolverVPLSHammingSX(buildRMPInstance(starting_queries, cgIST), 15, 15, 30, 20);
+        auto solver_math = cplex_tap::SolverVPLSHammingSX(rmpInstance, 15, 15, 30, 20);
         s = solver_math.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][math] - z*=" << s.z << std::endl;
     }
 
     if (starting_queries.size() < 501){
-        auto solver_exact = cplex_tap::Solver(buildRMPInstance(starting_queries, cgIST));
+        auto solver_exact = cplex_tap::Solver(rmpInstance);
         s = solver_exact.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
     }
@@ -311,7 +312,6 @@ int main(int argc, char* argv[]) {
     end = clock();
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
-
 
 }
 

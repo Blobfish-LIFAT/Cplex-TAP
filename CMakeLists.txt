@@ -68,4 +68,6 @@ set(CMAKE_CXX_LINK_EXECUTABLE  "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 ###### Verbose ON/OFF
 set(CMAKE_VERBOSE_MAKEFILE on)
 
+message("Sortie bin: ${CMAKE_BINARY_DIR}")
+
 
