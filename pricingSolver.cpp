@@ -13,9 +13,26 @@
 
 //#define TYPE_VAR_TAP ILOBOOL
 #define TYPE_VAR_TAP ILOFLOAT
-#define NO_PRINT false
+#define NO_PRINT true
 
 namespace cplex_tap {
+
+    pricingSolver::ConfMap pricingSolver::confMap_ = {
+            //Symetry breaking -> Constraints (21) and (22) : 1 - Constraints (23) : 2 - CPLEX : 3
+            //CPLEX Presolve -> ON : 1 - OFF : 0
+            //CPLEX SubMIP Node limit -> 500 - 250 - 50
+            //CPLEX MIP Emphasis -> balanced : 0 - feasibility : 1 - optimality : 2
+            {"best", { 2, 0, 50, 2}},
+            {"default", { 3, 1, 500, 0}},
+            {"cstr_2122", { 1, 1, 500, 0}},
+            {"cstr_23", { 2, 1, 500, 0}},
+            {"presolve_off", { 3, 0, 500, 0}},
+            {"node_lim_50", { 3, 1, 50, 0}},
+            {"node_lim_250", { 3, 1, 250, 0}},
+            {"emp_feas", { 3, 1, 500, 1}},
+            {"emp_opt", { 3, 1, 500, 2}}
+
+    };
 
     ILOMIPINFOCALLBACK0(print_z) {
         IloEnv env = getEnv();
@@ -239,20 +256,21 @@ namespace cplex_tap {
             /*
              *  --- Symmetry breaking ---
              */
-
-            for (auto k = 0u; k < N_Dims; ++k) {
-                for (auto i = 0u; i < k; ++i) {
-                    for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                        expr += cpLeftSel[i][j];
+            if (confMap_[selectedConf][0] == 1) {
+                for (auto k = 0u; k < N_Dims; ++k) {
+                    for (auto i = 0u; i < k; ++i) {
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            expr += cpLeftSel[i][j];
+                        }
+                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                            expr -= cpRightSel[i][j];;
+                        }
                     }
-                    for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                        expr -= cpRightSel[i][j];;
-                    }
+                    pricing.add(
+                            IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
+                    expr.clear();
                 }
-                pricing.add(IloRange(cplex, -IloInfinity, expr, 0, ("sym_brk_series1_" + std::to_string(k)).c_str()));
-                expr.clear();
             }
-
             /*
              *  --- Original Model Constraints ---
              */
@@ -447,103 +465,106 @@ namespace cplex_tap {
             /*
              *  --- Constraints forbidding having symmetries of an existing query ---
              */
-            for (auto q : rmpQSet) {
-                int var_cnt = 0;
-                // GB Key
-                for (int i = 0; i < N_Dims; ++i) {
-                    int keyID = pricingIST.getDimId(q.getGbAttribute());
-                    if (i == keyID)
-                        expr += cpGroupBy[i];
-                    else
-                        expr += (1 - cpGroupBy[i]);
-                    var_cnt++;
-                }
-                // Measure - Left
-                for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
-                    int lMeasureID = pricingIST.getMeasureId(q.getMeasureLeft());
-                    if (i == lMeasureID)
-                        expr += cpLeftMeasure[i];
-                    else
-                        expr += (1 - cpLeftMeasure[i]);
-                    var_cnt++;
-                }
-                // Measure - Right
-                for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
-                    int rMeasureID = pricingIST.getMeasureId(q.getMeasureRight());
-                    if (i == rMeasureID)
-                        expr += cpRightMeasure[i];
-                    else
-                        expr += (1 - cpRightMeasure[i]);
-                    var_cnt++;
-                }
-                // Selection predicate - Left
-                for (int i = 0; i < N_Dims; ++i) {
-                    bool dimPresent = false;
-                    int valueIdx = -1;
-                    for (auto p : q.getLeftPredicate()){
-                        if (p.first == pricingIST.getDimName(i)) {
-                            dimPresent = true;
-                            valueIdx = p.second;
-                        }
+            if(confMap_[selectedConf][0] == 2) {
+                for (auto q: rmpQSet) {
+                    int var_cnt = 0;
+                    // GB Key
+                    for (int i = 0; i < N_Dims; ++i) {
+                        int keyID = pricingIST.getDimId(q.getGbAttribute());
+                        if (i == keyID)
+                            expr += cpGroupBy[i];
+                        else
+                            expr += (1 - cpGroupBy[i]);
+                        var_cnt++;
                     }
-                    if (dimPresent){
-                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                            if (valueIdx == j)
-                                expr += cpRightSel[i][j];
-                            else
+                    // Measure - Left
+                    for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
+                        int lMeasureID = pricingIST.getMeasureId(q.getMeasureLeft());
+                        if (i == lMeasureID)
+                            expr += cpLeftMeasure[i];
+                        else
+                            expr += (1 - cpLeftMeasure[i]);
+                        var_cnt++;
+                    }
+                    // Measure - Right
+                    for (int i = 0; i < pricingIST.getNbMeasures(); ++i) {
+                        int rMeasureID = pricingIST.getMeasureId(q.getMeasureRight());
+                        if (i == rMeasureID)
+                            expr += cpRightMeasure[i];
+                        else
+                            expr += (1 - cpRightMeasure[i]);
+                        var_cnt++;
+                    }
+                    // Selection predicate - Left
+                    for (int i = 0; i < N_Dims; ++i) {
+                        bool dimPresent = false;
+                        int valueIdx = -1;
+                        for (auto p: q.getLeftPredicate()) {
+                            if (p.first == pricingIST.getDimName(i)) {
+                                dimPresent = true;
+                                valueIdx = p.second;
+                            }
+                        }
+                        if (dimPresent) {
+                            for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                                if (valueIdx == j)
+                                    expr += cpRightSel[i][j];
+                                else
+                                    expr += (1 - cpRightSel[i][j]);
+                                var_cnt++;
+                            }
+                        } else {
+                            for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                                 expr += (1 - cpRightSel[i][j]);
-                            var_cnt++;
-                        }
-                    } else {
-                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                            expr += (1 - cpRightSel[i][j]);
-                            var_cnt++;
+                                var_cnt++;
+                            }
                         }
                     }
-                }
-                // Selection predicate - Right
-                for (int i = 0; i < N_Dims; ++i) {
-                    bool dimPresent = false;
-                    int valueIdx = -1;
-                    for (auto p : q.getRightPredicate()){
-                        if (p.first == pricingIST.getDimName(i)) {
-                            dimPresent = true;
-                            valueIdx = p.second;
+                    // Selection predicate - Right
+                    for (int i = 0; i < N_Dims; ++i) {
+                        bool dimPresent = false;
+                        int valueIdx = -1;
+                        for (auto p: q.getRightPredicate()) {
+                            if (p.first == pricingIST.getDimName(i)) {
+                                dimPresent = true;
+                                valueIdx = p.second;
+                            }
                         }
-                    }
-                    if (dimPresent){
-                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                            if (valueIdx == j)
-                                expr += cpLeftSel[i][j];
-                            else
+                        if (dimPresent) {
+                            for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
+                                if (valueIdx == j)
+                                    expr += cpLeftSel[i][j];
+                                else
+                                    expr += (1 - cpLeftSel[i][j]);
+                                var_cnt++;
+                            }
+                        } else {
+                            for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
                                 expr += (1 - cpLeftSel[i][j]);
-                            var_cnt++;
-                        }
-                    } else {
-                        for (int j = 0; j < pricingIST.getAdSize(i); ++j) {
-                            expr += (1 - cpLeftSel[i][j]);
-                            var_cnt++;
+                                var_cnt++;
+                            }
                         }
                     }
+
+                    pricing.add(IloRange(cplex, 0, expr, var_cnt - 1));
+                    expr.clear();
                 }
-
-                pricing.add(IloRange(cplex, 0, expr, var_cnt - 1));
-                expr.clear();
             }
-
 
             //Init solver
             IloCplex cplex_solver(pricing);
             cplex_solver.setParam(IloCplex::Param::TimeLimit, pricing_it_timeout);
             cplex_solver.setParam(IloCplex::Param::Threads, 1);
-            cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
-            cplex_solver.setParam(IloCplex::Param::Preprocessing::Aggregator, 0);
-            cplex_solver.setParam(IloCplex::Param::Preprocessing::Presolve	, 0);
+            if (confMap_[selectedConf][0] != 3) {
+                cplex_solver.setParam(IloCplex::Param::Preprocessing::Symmetry, cplex_sym);
+            }
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Aggregator, confMap_[selectedConf][1]);
+            cplex_solver.setParam(IloCplex::Param::Preprocessing::Presolve	, confMap_[selectedConf][1]);
             cplex_solver.setParam(IloCplex::Param::MIP::Display, 0); //5 is max
             cplex_solver.setParam(IloCplex::Param::Simplex::Display, 0);
             cplex_solver.setParam(IloCplex::Param::MIP::Strategy::HeuristicEffort, 0);
-            cplex_solver.setParam(IloCplex::Param::Emphasis::MIP	, 2);
-            cplex_solver.setParam(IloCplex::Param::MIP::SubMIP::NodeLimit, 50);
+            cplex_solver.setParam(IloCplex::Param::Emphasis::MIP	, confMap_[selectedConf][3]);
+            cplex_solver.setParam(IloCplex::Param::MIP::SubMIP::NodeLimit, confMap_[selectedConf][2]);
             //cplex_solver.setParam(IloCplex::Param::MIP::Tolerances::MIPGap	, 0.0);
             //cplex_solver.setParam(IloCplex::Param::Simplex::Tolerances::Optimality	, 10e-9);
             //cplex_solver.setOut(cplex.getNullStream());
@@ -679,15 +700,18 @@ namespace cplex_tap {
             }
         }
 
-        std::cout << "[OBJ]";
-        for (auto it = objValues.begin(); it != objValues.end() ; ++it) {
-            std::cout << *it;
-            if (it != objValues.end()-1)
-                std::cout << std::string(";");
+        if (!NO_PRINT) {
+            std::cout << "[OBJ]";
+            for (auto it = objValues.begin(); it != objValues.end(); ++it) {
+                std::cout << *it;
+                if (it != objValues.end() - 1)
+                    std::cout << std::string(";");
 
+            }
+            std::cout << endl;
         }
-        std::cout <<endl;
         std::cout << "[INFO] iterations " << objValues.size() << endl;
+        std::cout << "[INFO][TIME] iterations " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
 
         Instance rmpIST = buildRMPInstance(rmpQSet);
@@ -742,4 +766,13 @@ void pricingSolver::setMasterItTimeout(int masterItTimeout) {
 void pricingSolver::setCplexSym(int cplexSym) {
     cplex_sym = cplexSym;
 }
+
+    void pricingSolver::setSelectedConf(const string &selectedConf) {
+        if (confMap_.find(selectedConf) == confMap_.end()) {
+            cout << "[WARNING] Configuration " << selectedConf << " not found. Using " << pricingSolver::selectedConf << " instead." << endl;
+        } else {
+            pricingSolver::selectedConf = selectedConf;
+        }
+
+    }
 } // cplex_tap

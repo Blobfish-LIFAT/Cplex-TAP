@@ -192,6 +192,7 @@ int run_debug(char* argv[]) {
     return 0;
 }
 
+
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     //return run_debug(argv);
@@ -202,7 +203,7 @@ int main(int argc, char* argv[]) {
     std::string ist_path = argv[1];
     std::string init_profile = argv[2];
 
-    int cplex_sym = stoi(argv[5]);
+    string solver_conf = argv[5];
     long rng_seed = stol(argv[6]);
 
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
@@ -288,9 +289,14 @@ int main(int argc, char* argv[]) {
 
     start = clock();
 
-    //cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
-    //solver.setCplexSym(cplex_sym);
-    //cplex_tap::Solution s = solver.solve();
+    cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
+    solver.setCplexSym(0);
+    solver.setSelectedConf(solver_conf);
+    cplex_tap::Solution s = solver.solve();
+
+    /*
+     * Test staring pools
+     *
     auto solver = cplex_tap::KnapsackSolver(cgIST);
     cplex_tap::Solution s = solver.solve(starting_queries, ep_t, ep_d);
     std::cout << "[POOL][ks] - z*=" << s.z << std::endl;
@@ -306,7 +312,7 @@ int main(int argc, char* argv[]) {
         auto solver_exact = cplex_tap::Solver(rmpInstance);
         s = solver_exact.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
-    }
+    }*/
 
 
     end = clock();

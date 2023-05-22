@@ -39,6 +39,12 @@ namespace cplex_tap {
         //cplex symmetry setting
         int cplex_sym = 0;
 
+        typedef std::map<std::string, vector<int>> ConfMap;
+        static ConfMap confMap_;
+        string selectedConf = "best";
+    public:
+        void setSelectedConf(const string &selectedConf);
+
     public:
         void setCplexSym(int cplexSym);
 
