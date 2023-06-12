@@ -721,7 +721,7 @@ namespace cplex_tap {
         std::cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
 
         for ( auto qid : final_sol.sequence){
-            std::cout << rmpQSet[qid] << endl;
+            //std::cout << rmpQSet[qid] << endl;
         }
 
         auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
