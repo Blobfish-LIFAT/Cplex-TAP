@@ -730,6 +730,10 @@ namespace cplex_tap {
             //std::cout << rmpQSet[qid] << endl;
         }
 
+        auto ks_solver = cplex_tap::KnapsackSolver(pricingIST);
+        cplex_tap::Solution s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
+        std::cout << "[MASTER][KS] " << s.z << std::endl;
+
         auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
         auto mathsol = matheuristic.solve(dist_bound, time_bound, false, "");
         std::cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
