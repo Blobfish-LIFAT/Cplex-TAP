@@ -32,6 +32,7 @@ namespace cplex_tap {
         int pricing_it_timeout = 10;
         int master_it_timeout = 600;
         int global_timeout = 3600;
+        int iterationsTimeout = 80000;
 
     public:
         // Builds a solver with the specified instance

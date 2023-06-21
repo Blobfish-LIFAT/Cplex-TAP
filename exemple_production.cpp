@@ -287,12 +287,33 @@ int main(int argc, char* argv[]) {
     std::cout << "Generated " << starting_queries.size() << " queries" << std::endl;
     std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
 
+    // LP
     start = clock();
 
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     solver.setCplexSym(0);
-    solver.setSelectedConf(solver_conf);
+    solver.setPricingItTimeout(12);
+    solver.setGlobalTimeout(1600);
+    solver.setSelectedConf("best");
     cplex_tap::Solution s = solver.solve();
+
+    end = clock();
+    double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    cout << "[TIME] TOTAL " << time_to_sol << endl;
+
+    //MIP
+    start = clock();
+
+    cplex_tap::pricingSolver solver_mip  = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
+    solver_mip.setCplexSym(0);
+    solver_mip.setPricingItTimeout(600);
+    solver_mip.setGlobalTimeout(1600);
+    solver_mip.setSelectedConf("default");
+    s = solver_mip.solve();
+
+    end = clock();
+    time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    cout << "[TIME] TOTAL " << time_to_sol << endl;
 
     /*
      * Test staring pools

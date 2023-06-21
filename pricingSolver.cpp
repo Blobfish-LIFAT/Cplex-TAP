@@ -11,8 +11,6 @@
 #include "SolverVPLSHammingSX.h"
 #include "KnapsackSolver.h"
 
-//#define TYPE_VAR_TAP ILOBOOL
-#define TYPE_VAR_TAP ILOFLOAT
 #define NO_PRINT true
 
 namespace cplex_tap {
@@ -22,7 +20,7 @@ namespace cplex_tap {
             //CPLEX Presolve -> ON : 1 - OFF : 0
             //CPLEX SubMIP Node limit -> 500 - 250 - 50
             //CPLEX MIP Emphasis -> balanced : 0 - feasibility : 1 - optimality : 2
-            {"best", { 2, 0, 50, 2}},
+            {"best", { 1, 0, 250, 1}},
             {"default", { 3, 1, 500, 0}},
             {"cstr_2122", { 1, 1, 500, 0}},
             {"cstr_23", { 2, 1, 500, 0}},
@@ -173,18 +171,26 @@ namespace cplex_tap {
             for (auto i = 0; i < rmpQSet.size() + 3; ++i) {
                 tap_x[i] = IloNumVarArray(cplex, rmpQSet.size() + 3);
                 for (auto j = 0u; j < rmpQSet.size() + 3; ++j) {
-                    if (i == j)
-                        tap_x[i][j] = IloNumVar(cplex, 0, 0, TYPE_VAR_TAP,
-                                                ("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
-                    else
-                        tap_x[i][j] = IloNumVar(cplex, 0, 1, TYPE_VAR_TAP,
-                                                ("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                    if (i == j) {
+                        if (useFloat)
+                            tap_x[i][j] = IloNumVar(cplex, 0, 0, IloNumVar::Float,("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                        else
+                            tap_x[i][j] = IloNumVar(cplex, 0, 0, IloNumVar::Bool,("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                    } else {
+                        if (useFloat)
+                            tap_x[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Float,("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                        else
+                            tap_x[i][j] = IloNumVar(cplex, 0, 1, IloNumVar::Bool,("x_" + std::to_string(i) + "," + std::to_string(j)).c_str());
+                    }
                 }
             }
 
             // Init variables for (query) selection
             for (auto i = 0; i < rmpQSet.size(); ++i) {
-                tap_s[i] = IloNumVar(cplex, 0, 1, TYPE_VAR_TAP, ("s_" + std::to_string(i)).c_str());
+                if (useFloat)
+                    tap_s[i] = IloNumVar(cplex, 0, 1, IloNumVar::Float, ("s_" + std::to_string(i)).c_str());
+                else
+                    tap_s[i] = IloNumVar(cplex, 0, 1, IloNumVar::Bool, ("s_" + std::to_string(i)).c_str());
             }
             // Last one from the pricing is binary taken or not
             //TODO remove me to allow selection or not
@@ -774,5 +780,13 @@ void pricingSolver::setCplexSym(int cplexSym) {
             pricingSolver::selectedConf = selectedConf;
         }
 
+    }
+
+    void pricingSolver::setUseFloat(bool useFloat) {
+        pricingSolver::useFloat = useFloat;
+    }
+
+    void pricingSolver::setGlobalTimeout(int globalTimeout) {
+        global_timeout = globalTimeout;
     }
 } // cplex_tap

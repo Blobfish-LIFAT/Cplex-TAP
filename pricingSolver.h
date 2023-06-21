@@ -35,9 +35,20 @@ namespace cplex_tap {
         int pricing_it_timeout = 10;
         int master_it_timeout = 600;
         int global_timeout = 3600;
+    public:
+        void setGlobalTimeout(int globalTimeout);
+
+    protected:
 
         //cplex symmetry setting
         int cplex_sym = 0;
+
+        //use dual-lp vs dual-mip
+        bool useFloat = true;
+    public:
+        void setUseFloat(bool useFloat);
+
+    protected:
 
         typedef std::map<std::string, vector<int>> ConfMap;
         static ConfMap confMap_;
