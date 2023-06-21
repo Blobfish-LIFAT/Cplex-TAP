@@ -306,6 +306,7 @@ int main(int argc, char* argv[]) {
 
     cplex_tap::pricingSolver solver_mip  = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     solver_mip.setCplexSym(0);
+    solver_mip.setUseFloat(false);
     solver_mip.setPricingItTimeout(600);
     solver_mip.setGlobalTimeout(1600);
     solver_mip.setSelectedConf("default");
@@ -334,11 +335,6 @@ int main(int argc, char* argv[]) {
         s = solver_exact.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
     }*/
-
-
-    end = clock();
-    double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
-    cout << "[TIME] TOTAL " << time_to_sol << endl;
 
 }
 
