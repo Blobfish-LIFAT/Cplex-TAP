@@ -726,16 +726,27 @@ namespace cplex_tap {
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
         std::cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
 
-        for ( auto qid : final_sol.sequence){
-            //std::cout << rmpQSet[qid] << endl;
-        }
+
 
         auto ks_solver = cplex_tap::KnapsackSolver(pricingIST);
         cplex_tap::Solution s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
-        auto matheuristic = SolverVPLSHammingSX(rmpIST, 15, 15, 30, 20);
-        auto mathsol = matheuristic.solve(dist_bound, time_bound, false, "");
+        string fname = "/tmp/start_" + to_string(getpid());
+        ofstream warmFile;
+        warmFile.open(fname);
+        if( !warmFile ) {
+            cerr << "[ERROR] file could not be opened" << endl;
+        }
+        for (int i = 0; i < s.sequence.size(); i++){
+            warmFile << s.sequence.at(i);
+            if (i < s.sequence.size() - 1 )
+                warmFile << " ";
+        }
+        warmFile.close();
+
+        auto matheuristic = SolverVPLSHammingSX(rmpIST, 10, 10, 30, 60);
+        auto mathsol = matheuristic.solve(dist_bound, time_bound, true, fname);
         std::cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
 
         return final_sol;
