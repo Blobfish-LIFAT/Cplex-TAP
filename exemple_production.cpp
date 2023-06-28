@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     solver.setCplexSym(0);
     solver.setPricingItTimeout(12);
-    solver.setGlobalTimeout(1600);
+    solver.setGlobalTimeout(3600);
     solver.setSelectedConf("best");
     cplex_tap::Solution s = solver.solve();
 
@@ -301,6 +301,7 @@ int main(int argc, char* argv[]) {
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
+    /*
     //MIP
     start = clock();
 
@@ -314,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     end = clock();
     time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
-    cout << "[TIME] TOTAL " << time_to_sol << endl;
+    cout << "[TIME] TOTAL " << time_to_sol << endl;*/
 
     /*
      * Test staring pools

@@ -81,7 +81,7 @@ namespace cplex_tap {
         int it = 0;
         time_t start;
         start = clock();
-        while (it++ < 150) {
+        while (it++ < 100) {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
