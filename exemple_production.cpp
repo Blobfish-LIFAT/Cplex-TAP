@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     solver.setCplexSym(0);
     solver.setPricingItTimeout(12);
-    solver.setGlobalTimeout(3600);
+    solver.setGlobalTimeout(3600 - time_to_init - 600);
     solver.setSelectedConf("best");
     cplex_tap::Solution s = solver.solve();
 

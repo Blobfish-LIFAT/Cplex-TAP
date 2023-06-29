@@ -81,7 +81,7 @@ namespace cplex_tap {
         int it = 0;
         time_t start;
         start = clock();
-        while (it++ < 120) {
+        while (it++ < 150) {
 
             if (!NO_PRINT) std::cout << "[STEP] Building RMP model" << std::endl;
             Instance rmpIST = buildRMPInstance(rmpQSet);
@@ -720,11 +720,13 @@ namespace cplex_tap {
         std::cout << "[INFO][TIME] iterations " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
 
+        start = clock();
         Instance rmpIST = buildRMPInstance(rmpQSet);
         auto tapSolver = Solver(rmpIST);
         tapSolver.setTimeout(master_it_timeout);
         auto final_sol = tapSolver.solve(dist_bound, time_bound, false, "");
         std::cout << "[MASTER] " << final_sol.z << "|" << final_sol.optimal << endl;
+        std::cout << "[INFO][TIME] CPLEX " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
 
 
@@ -745,9 +747,11 @@ namespace cplex_tap {
         }
         warmFile.close();
 
+        start = ::clock();
         auto matheuristic = SolverVPLSHammingSX(rmpIST, 10, 10, 30, 60);
         auto mathsol = matheuristic.solve(dist_bound, time_bound, true, fname);
         std::cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
+        std::cout << "[INFO][TIME] math " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
         return final_sol;
 
