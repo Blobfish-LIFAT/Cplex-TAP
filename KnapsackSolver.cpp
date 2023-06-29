@@ -11,7 +11,7 @@ namespace cplex_tap {
         time_t start, end;
         start = clock();
 
-        //std::cout << "[INFO] KS Heuristic : Init |Q|=" << queries.size() << std::endl;
+        std::cout << "[INFO] KS Heuristic : Init |Q|=" << queries.size() << std::endl;
         int size = queries.size();
 
         std::vector<int> solution;
