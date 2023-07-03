@@ -206,6 +206,8 @@ int main(int argc, char* argv[]) {
     string solver_conf = argv[5];
     long rng_seed = stol(argv[6]);
 
+    int iters = stoi(argv[7]);
+
     auto cgIST = cplex_tap::CGTAPInstance(ist_path);
     vector<cplex_tap::Query> starting_queries;
 
@@ -288,12 +290,15 @@ int main(int argc, char* argv[]) {
     std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
 
     // LP
+    std::cout<< "--- Time to ITER ["<< iters <<"]---" << std::endl;
+
     start = clock();
 
     cplex_tap::pricingSolver solver = cplex_tap::pricingSolver(cgIST, ep_d, ep_t, starting_queries);
     solver.setCplexSym(0);
     solver.setPricingItTimeout(12);
-    solver.setGlobalTimeout(3600 - time_to_init - 600);
+    //solver.setGlobalTimeout(3600 - time_to_init - 600);
+    solver.setGlobalTimeout(iters - time_to_init);
     solver.setSelectedConf("best");
     cplex_tap::Solution s = solver.solve();
 
