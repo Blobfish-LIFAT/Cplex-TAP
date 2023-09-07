@@ -39,6 +39,8 @@ namespace cplex_tap {
         [[nodiscard]] double time(int i) const { return times[i]; }
         [[nodiscard]] double interest(int i) const { return interests[i]; }
 
+        //write
+        void write(std::string path);
 
     };
 }

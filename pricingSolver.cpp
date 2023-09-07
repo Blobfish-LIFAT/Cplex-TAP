@@ -10,6 +10,7 @@
 #include <numeric>
 #include "SolverVPLSHammingSX.h"
 #include "KnapsackSolver.h"
+#include "pstream.h"
 
 #define NO_PRINT true
 
@@ -706,6 +707,10 @@ namespace cplex_tap {
             }
         }
 
+        /**
+         *  END of pricing iterations
+         */
+
         if (!NO_PRINT) {
             std::cout << "[OBJ]";
             for (auto it = objValues.begin(); it != objValues.end(); ++it) {
@@ -729,11 +734,29 @@ namespace cplex_tap {
         std::cout << "[INFO][TIME] CPLEX " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
 
-
+        // Solve with h-KS
         auto ks_solver = cplex_tap::KnapsackSolver(pricingIST);
         cplex_tap::Solution s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
+        //Solve with h-tsp
+        string tmp_ist = "/tmp/ist_tmp_" + to_string(getpid());
+        string binPath = "~/tap_tsp_cpp";
+        rmpIST.write(tmp_ist);
+        std::vector<std::string> argv;
+        argv.push_back(binPath);
+        argv.push_back(tmp_ist);
+        argv.push_back(to_string(time_bound));
+        argv.push_back(to_string(dist_bound));
+
+        redi::ipstream in(binPath, argv, redi::pstreambuf::pstdout);
+
+        std::string msg;
+        while (std::getline(in, msg)){
+            if (true) std::cout << "  |" << msg << std::endl;
+        }
+
+        //Solve with matheuristic
         string fname = "/tmp/start_" + to_string(getpid());
         ofstream warmFile;
         warmFile.open(fname);

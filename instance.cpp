@@ -103,4 +103,36 @@ namespace cplex_tap {
         distances.clear();
     }
 
+    void Instance::write(std::string path) {
+        std::ofstream out(path);
+        using std::endl;
+
+        out << nbQueries << endl;
+
+        for (int i = 0; i < nbQueries; ++i) {
+            out << interests[i];
+            if (i < nbQueries - 1)
+                out << " ";
+        }
+        out << endl;
+
+        for (int i = 0; i < nbQueries; ++i) {
+            out << times[i];
+            if (i < nbQueries - 1)
+                out << " ";
+        }
+        out << endl;
+
+        for (int i = 0; i < nbQueries; ++i) {
+            for (int j = 0; j < nbQueries; ++j) {
+                out << distances[i][j];
+                if (j < nbQueries - 1)
+                    out << " ";
+            }
+            if (i < nbQueries - 1)
+                out << endl;
+        }
+
+    }
+
 }
