@@ -740,8 +740,9 @@ namespace cplex_tap {
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
         //Solve with h-tsp
+        std::cout << "[INFO] h-tsp " << endl;
         string tmp_ist = "/tmp/ist_tmp_" + to_string(getpid());
-        string binPath = "~/tap_tsp_cpp";
+        string binPath = "/users/21500078t/tap_tsp_cpp";
         rmpIST.write(tmp_ist);
         std::vector<std::string> argv;
         argv.push_back(binPath);
@@ -749,11 +750,16 @@ namespace cplex_tap {
         argv.push_back(to_string(time_bound));
         argv.push_back(to_string(dist_bound));
 
+        for (int i = 0; i < argv.size(); ++i) {
+            std::cout << argv[i] << " ";
+        }
+        std::cout << endl;
+
         redi::ipstream in(binPath, argv, redi::pstreambuf::pstdout);
 
         std::string msg;
         while (std::getline(in, msg)){
-            if (true) std::cout << "  |" << msg << std::endl;
+            std::cout << "  |" << msg << std::endl;
         }
 
         //Solve with matheuristic
