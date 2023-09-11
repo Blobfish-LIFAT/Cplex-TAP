@@ -762,6 +762,10 @@ namespace cplex_tap {
             std::cout << "  |" << msg << std::endl;
         }
 
+        bool cleanup = std::filesystem::remove(tmp_ist) && std::filesystem::remove(binPath);
+        if (!cleanup)
+            std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
+
         //Solve with matheuristic
         string fname = "/tmp/start_" + to_string(getpid());
         ofstream warmFile;
@@ -781,6 +785,10 @@ namespace cplex_tap {
         auto mathsol = matheuristic.solve(dist_bound, time_bound, true, fname);
         std::cout << "[MASTER][VPLS] " << mathsol.z << " | " << final_sol.optimal <<  " | " << mathsol.time << endl;
         std::cout << "[INFO][TIME] math " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
+
+        cleanup = std::filesystem::remove(fname);
+        if (!cleanup)
+            std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
 
         return final_sol;
 
