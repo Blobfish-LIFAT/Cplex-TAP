@@ -762,7 +762,7 @@ namespace cplex_tap {
             std::cout << "  |" << msg << std::endl;
         }
 
-        bool cleanup = std::filesystem::remove(tmp_ist) && std::filesystem::remove(binPath);
+        bool cleanup = std::filesystem::remove(tmp_ist);
         if (!cleanup)
             std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
 
