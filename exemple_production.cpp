@@ -12,6 +12,7 @@
 #include <regex>
 #include "solver.h"
 #include "InitTargets.h"
+#include "pstream.h"
 
 static cplex_tap::Instance buildRMPInstance(vector<cplex_tap::Query>& queries, cplex_tap::CGTAPInstance pricingIST) {
     vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
@@ -289,6 +290,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Generated " << starting_queries.size() << " queries" << std::endl;
     std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
 
+    /*
     // LP
     std::cout<< "--- Time to ITER ["<< iters <<"]---" << std::endl;
 
@@ -322,14 +324,43 @@ int main(int argc, char* argv[]) {
     time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
-    /*
-     * Test staring pools
-     *
+    */
+     //* Test staring pools
+
     auto solver = cplex_tap::KnapsackSolver(cgIST);
     cplex_tap::Solution s = solver.solve(starting_queries, ep_t, ep_d);
     std::cout << "[POOL][ks] - z*=" << s.z << std::endl;
 
-    const cplex_tap::Instance &rmpInstance = buildRMPInstance(starting_queries, cgIST);
+    cplex_tap::Instance rmpInstance = buildRMPInstance(starting_queries, cgIST);
+
+    //Solve with h-tsp
+    std::cout << "[INFO] h-tsp " << endl;
+    string tmp_ist = "/tmp/ist_tmp_" + to_string(getpid());
+    string binPath = "/users/21500078t/tap_tsp_cpp";
+    rmpInstance.write(tmp_ist);
+    std::vector<std::string> argv_;
+    argv_.push_back(binPath);
+    argv_.push_back(tmp_ist);
+    argv_.push_back(to_string(ep_t));
+    argv_.push_back(to_string(ep_d));
+
+    for (int i = 0; i < argv_.size(); ++i) {
+        std::cout << argv_[i] << " ";
+    }
+    std::cout << endl;
+
+    redi::ipstream in(binPath, argv_, redi::pstreambuf::pstdout);
+
+    std::string msg;
+    while (std::getline(in, msg)){
+        std::cout << "  |" << msg << std::endl;
+    }
+
+    bool cleanup = std::filesystem::remove(tmp_ist);
+    if (!cleanup)
+        std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
+
+
     if (starting_queries.size() < 1001) {
         auto solver_math = cplex_tap::SolverVPLSHammingSX(rmpInstance, 15, 15, 30, 20);
         s = solver_math.solve(ep_d, ep_t, false, "");
@@ -340,7 +371,7 @@ int main(int argc, char* argv[]) {
         auto solver_exact = cplex_tap::Solver(rmpInstance);
         s = solver_exact.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
-    }*/
+    }
 
 }
 
