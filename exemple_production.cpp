@@ -333,32 +333,7 @@ int main(int argc, char* argv[]) {
 
     cplex_tap::Instance rmpInstance = buildRMPInstance(starting_queries, cgIST);
 
-    //Solve with h-tsp
-    std::cout << "[INFO] h-tsp " << endl;
-    string tmp_ist = "/tmp/ist_tmp_" + to_string(getpid());
-    string binPath = "/users/21500078t/tap_tsp_cpp";
-    rmpInstance.write(tmp_ist);
-    std::vector<std::string> argv_;
-    argv_.push_back(binPath);
-    argv_.push_back(tmp_ist);
-    argv_.push_back(to_string(ep_t));
-    argv_.push_back(to_string(ep_d));
 
-    for (int i = 0; i < argv_.size(); ++i) {
-        std::cout << argv_[i] << " ";
-    }
-    std::cout << endl;
-
-    redi::ipstream in(binPath, argv_, redi::pstreambuf::pstdout);
-
-    std::string msg;
-    while (std::getline(in, msg)){
-        std::cout << "  |" << msg << std::endl;
-    }
-
-    bool cleanup = std::filesystem::remove(tmp_ist);
-    if (!cleanup)
-        std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
 
 
     if (starting_queries.size() < 1001) {
@@ -372,6 +347,37 @@ int main(int argc, char* argv[]) {
         s = solver_exact.solve(ep_d, ep_t, false, "");
         std::cout << "[POOL][cplex] - z*=" << s.z << std::endl;
     }
+
+    if (starting_queries.size() < 1001) {
+        //Solve with h-tsp
+        std::cout << "[INFO] h-tsp " << endl;
+        string tmp_ist = "/tmp/ist_tmp_" + to_string(getpid());
+        string binPath = "/users/21500078t/tap_tsp_cpp";
+        rmpInstance.write(tmp_ist);
+        std::vector<std::string> argv_;
+        argv_.push_back(binPath);
+        argv_.push_back(tmp_ist);
+        argv_.push_back(to_string(ep_t));
+        argv_.push_back(to_string(ep_d));
+
+        for (int i = 0; i < argv_.size(); ++i) {
+            std::cout << argv_[i] << " ";
+        }
+        std::cout << endl;
+
+        redi::ipstream in(binPath, argv_, redi::pstreambuf::pstdout);
+
+        std::string msg;
+        while (std::getline(in, msg)){
+            std::cout << "  |" << msg << std::endl;
+        }
+
+        bool cleanup = std::filesystem::remove(tmp_ist);
+        if (!cleanup)
+            std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
+    }
+
+
 
 }
 
