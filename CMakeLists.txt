@@ -52,7 +52,8 @@ endif ()
 file(GLOB SOURCE_FILES *.cpp)
 
 ######## Set executable file name, and add the source files for it.
-add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp RandomInit.h randThenSortInit.cpp randThenSortInit.h KnapsackSolver.cpp KnapsackSolver.h KSInit.h KMppInit.h InitTargets.h princingCPSolver.cpp princingCPSolver.h UserProfile.cpp UserProfile.h DiversificationInit.h IntensificationInit.h)
+add_executable(tap ${SOURCE_FILES} utils.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h pricingSolver.cpp pricingSolver.h CGTAPInstance.cpp CGTAPInstance.h Query.cpp Query.h JVMAdapter.cpp JVMAdapter.h ActiveDomains.h ActiveDomains.cpp RandomInit.h randThenSortInit.cpp randThenSortInit.h KnapsackSolver.cpp KnapsackSolver.h KSInit.h KMppInit.h InitTargets.h princingCPSolver.cpp princingCPSolver.h UserProfile.cpp UserProfile.h DiversificationInit.h IntensificationInit.h
+        CheckInsight.h)
 
 ######## Add Dependency Library
 target_link_libraries(tap Boost::filesystem)

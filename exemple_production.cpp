@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Generated " << starting_queries.size() << " queries" << std::endl;
     std::cout<< "--- INIT COMPLETE ["<< time_to_init <<"]---" << std::endl;
 
-    /*
+
     // LP
     std::cout<< "--- Time to ITER ["<< iters <<"]---" << std::endl;
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
-
+    /*
     //MIP
     start = clock();
 
@@ -324,8 +324,8 @@ int main(int argc, char* argv[]) {
     time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
     cout << "[TIME] TOTAL " << time_to_sol << endl;
 
-    */
-     //* Test staring pools
+
+     /* Test staring pools
 
     auto solver = cplex_tap::KnapsackSolver(cgIST);
     cplex_tap::Solution s = solver.solve(starting_queries, ep_t, ep_d);
@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
         bool cleanup = std::filesystem::remove(tmp_ist);
         if (!cleanup)
             std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
-    }
+    }*/
 
 
 

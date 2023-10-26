@@ -11,6 +11,7 @@
 #include "SolverVPLSHammingSX.h"
 #include "KnapsackSolver.h"
 #include "pstream.h"
+#include "CheckInsight.h"
 
 #define NO_PRINT true
 
@@ -51,7 +52,20 @@ namespace cplex_tap {
         }
 
         vector<Query> rmpQSet;
+        vector<Query> blacklist;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
+        blacklist.insert(blacklist.end(), extStarting.begin(), extStarting.end());
+
+        // Remove query with no supported insights
+        vector<Query> rmpQSet_clean;
+        vector<bool> insightsFound = CheckInsight::checkForInsights(rmpQSet, pricingIST);
+        for (int i = 0; i < rmpQSet.size(); ++i) {
+            if (insightsFound[i]){
+                rmpQSet_clean.emplace_back(rmpQSet.at(i));
+            }
+        }
+        rmpQSet = rmpQSet_clean;
+
 
         for (int qid = 0; qid < rmpQSet.size(); ++qid) {
             std::cout << rmpQSet[qid] << endl;
@@ -385,7 +399,7 @@ namespace cplex_tap {
             /*
              *  --- Constraints forbidding having same query as existing one ---
              */
-            for (auto q : rmpQSet) {
+            for (auto q : blacklist) {
                 int var_cnt = 0;
                 // GB Key
                 for (int i = 0; i < N_Dims; ++i) {
@@ -473,7 +487,7 @@ namespace cplex_tap {
              *  --- Constraints forbidding having symmetries of an existing query ---
              */
             if(confMap_[selectedConf][0] == 2) {
-                for (auto q: rmpQSet) {
+                for (auto q: blacklist) {
                     int var_cnt = 0;
                     // GB Key
                     for (int i = 0; i < N_Dims; ++i) {
@@ -685,7 +699,13 @@ namespace cplex_tap {
             time_t end = clock();
             double time_to_sol = (double)(end - start) / (double)CLOCKS_PER_SEC;
             if (!NO_PRINT) std::cout << "[TIME][ITER][s] " << time_to_sol << endl;
-            rmpQSet.emplace_back(picked);
+
+            //check new query for insights
+            bool insightFound = CheckInsight::checkForInsight(picked, pricingIST);
+            //cout << "           ------  " << insightFound << "  ------" << endl;
+            if (insightFound)
+                rmpQSet.emplace_back(picked);
+            blacklist.emplace_back(picked);
 
             cplex_solver.end();
             cplex.end();
