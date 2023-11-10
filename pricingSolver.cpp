@@ -57,14 +57,14 @@ namespace cplex_tap {
         blacklist.insert(blacklist.end(), extStarting.begin(), extStarting.end());
 
         // Remove query with no supported insights
-        vector<Query> rmpQSet_clean;
+        /*vector<Query> rmpQSet_clean;
         vector<bool> insightsFound = CheckInsight::checkForInsights(rmpQSet, pricingIST);
         for (int i = 0; i < rmpQSet.size(); ++i) {
             if (insightsFound[i]){
                 rmpQSet_clean.emplace_back(rmpQSet.at(i));
             }
         }
-        rmpQSet = rmpQSet_clean;
+        rmpQSet = rmpQSet_clean;*/
 
 
         for (int qid = 0; qid < rmpQSet.size(); ++qid) {
@@ -701,7 +701,7 @@ namespace cplex_tap {
             if (!NO_PRINT) std::cout << "[TIME][ITER][s] " << time_to_sol << endl;
 
             //check new query for insights
-            bool insightFound = CheckInsight::checkForInsight(picked, pricingIST);
+            bool insightFound = true;// CheckInsight::checkForInsight(picked, pricingIST);
             //cout << "           ------  " << insightFound << "  ------" << endl;
             if (insightFound)
                 rmpQSet.emplace_back(picked);
