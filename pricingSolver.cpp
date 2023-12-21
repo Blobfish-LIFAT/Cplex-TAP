@@ -12,6 +12,7 @@
 #include "KnapsackSolver.h"
 #include "pstream.h"
 #include "CheckInsight.h"
+#include "chrono"
 
 #define NO_PRINT true
 
@@ -760,7 +761,9 @@ namespace cplex_tap {
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
         //Remove query with no supported insights
-        start = clock();
+        using clk = std::chrono::system_clock;
+        using sec = std::chrono::duration<double>;
+        const auto before = clk::now();
         std::cout << "[insights][before] " << rmpQSet.size() << std::endl;
         vector<Query> rmpQSet_clean;
         vector<bool> insightsFound = CheckInsight::checkForInsights(rmpQSet, pricingIST);
@@ -771,7 +774,8 @@ namespace cplex_tap {
         }
         rmpQSet = rmpQSet_clean;
         std::cout << "[insights][after] " << rmpQSet.size() << std::endl;
-        std::cout << "[INFO][TIME] insights " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
+        const sec duration = clk::now() - before;
+        std::cout << "[INFO][TIME] insights " << duration.count() << endl;
 
         // Solve with h-KS
         s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
