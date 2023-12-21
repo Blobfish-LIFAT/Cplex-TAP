@@ -760,6 +760,7 @@ namespace cplex_tap {
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
         //Remove query with no supported insights
+        start = clock();
         std::cout << "[insights][before] " << rmpQSet.size() << std::endl;
         vector<Query> rmpQSet_clean;
         vector<bool> insightsFound = CheckInsight::checkForInsights(rmpQSet, pricingIST);
@@ -770,6 +771,7 @@ namespace cplex_tap {
         }
         rmpQSet = rmpQSet_clean;
         std::cout << "[insights][after] " << rmpQSet.size() << std::endl;
+        std::cout << "[INFO][TIME] insights " << (double)(::clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
         // Solve with h-KS
         s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
