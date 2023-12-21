@@ -759,6 +759,23 @@ namespace cplex_tap {
         cplex_tap::Solution s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
         std::cout << "[MASTER][KS] " << s.z << std::endl;
 
+        //Remove query with no supported insights
+        std::cout << "[insights][before] " << rmpQSet.size() << std::endl;
+        vector<Query> rmpQSet_clean;
+        vector<bool> insightsFound = CheckInsight::checkForInsights(rmpQSet, pricingIST);
+        for (int i = 0; i < rmpQSet.size(); ++i) {
+            if (insightsFound[i]){
+                rmpQSet_clean.emplace_back(rmpQSet.at(i));
+            }
+        }
+        rmpQSet = rmpQSet_clean;
+        std::cout << "[insights][after] " << rmpQSet.size() << std::endl;
+
+        // Solve with h-KS
+        s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
+        std::cout << "[MASTER][KS-2] " << s.z << std::endl;
+
+
         //Solve with h-tsp
         /*
         std::cout << "[INFO] h-tsp " << endl;
@@ -788,6 +805,7 @@ namespace cplex_tap {
             std::cerr << "[Warning] Couldn't delete temp files" << std::endl;*/
 
         //Solve with matheuristic
+        /*
         string fname = "/tmp/start_" + to_string(getpid());
         ofstream warmFile;
         warmFile.open(fname);
@@ -809,7 +827,7 @@ namespace cplex_tap {
 
         bool cleanup = std::filesystem::remove(fname);
         if (!cleanup)
-            std::cerr << "[Warning] Couldn't delete temp files" << std::endl;
+            std::cerr << "[Warning] Couldn't delete temp files" << std::endl;*/
 
         return final_sol;
 
