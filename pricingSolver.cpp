@@ -54,6 +54,7 @@ namespace cplex_tap {
 
         vector<Query> rmpQSet;
         vector<Query> blacklist;
+        vector<Query> generated;
         rmpQSet.insert(rmpQSet.end(), extStarting.begin(), extStarting.end());
         blacklist.insert(blacklist.end(), extStarting.begin(), extStarting.end());
 
@@ -707,6 +708,7 @@ namespace cplex_tap {
             if (insightFound)
                 rmpQSet.emplace_back(picked);
             blacklist.emplace_back(picked);
+            generated.emplace_back(picked);
 
             cplex_solver.end();
             cplex.end();
@@ -776,6 +778,15 @@ namespace cplex_tap {
         std::cout << "[insights][after] " << rmpQSet.size() << std::endl;
         const sec duration = clk::now() - before;
         std::cout << "[INFO][TIME] insights " << duration.count() << endl;
+
+        //part from IQG
+        int cnt = 0;
+        for (const auto & q : generated) {
+            if ( ! (std::find(rmpQSet.begin(), rmpQSet.end(), q) != rmpQSet.end()) )
+                cnt++;
+        }
+        std::cout << "[insights][iqg_gen_count] " << cnt << std::endl;
+
 
         // Solve with h-KS
         s = ks_solver.solve(rmpQSet, time_bound, dist_bound);
