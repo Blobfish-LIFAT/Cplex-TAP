@@ -105,7 +105,7 @@ namespace cplex_tap {
         if (!production)
             cplex.setParam(IloCplex::Param::Threads, 1);
         else
-            cplex.setParam(IloCplex::Param::Threads, 8);
+            cplex.setParam(IloCplex::Param::Threads, 16);
         // Export model to file
         if (debug) {
             cplex.exportModel("tap_debug_model.lp");
