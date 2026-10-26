@@ -9,9 +9,10 @@ namespace cplex_tap {
         env.out() << "  [INFO MIP Callback]" << " CLK " << clock() << " Z " << this_z << std::endl;
     }
 
+    template <typename WarmStartT>
     Solution
-    SolverVPLSHammingSX::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
-                                       bool seed, string warmStart) const {
+    SolverVPLSHammingSX::solve_and_print_internal(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
+                                                  bool seed, const WarmStartT &warmStart) const {
         std::cout << "CLK_RATE " << CLOCKS_PER_SEC << std::endl;
         std::cout << "Starting Model generation ...\n";
         // Init CPLEX environment and model objects
@@ -177,5 +178,17 @@ namespace cplex_tap {
         Solution result = Solution(time_to_sol, cplex.getObjValue(), get_solution(cplex, x));
         env.end();
         return result;
+    }
+
+    Solution
+    SolverVPLSHammingSX::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
+                                       bool seed, string warmStart) const {
+        return solve_and_print_internal(dist_bound, time_bound, progressive, debug, production, seed, warmStart);
+    }
+
+    Solution
+    SolverVPLSHammingSX::solve_and_print(int dist_bound, int time_bound, bool progressive, bool debug, bool production,
+                                       bool seed, const std::vector<int> &warm_start) const {
+        return solve_and_print_internal(dist_bound, time_bound, progressive, debug, production, seed, warm_start);
     }
 }
