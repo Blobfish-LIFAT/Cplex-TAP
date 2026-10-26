@@ -46,6 +46,10 @@ add_executable(tap ${SOURCE_FILES} utils.h SolverVPLS.cpp SolverVPLS.h GreedyHeu
 
 ######## Add Dependency Library
 target_link_libraries(tap ilocplex cplex-library cplex-concert)
+
+add_executable(tap_matheuristic ${SOURCE_FILES} utils.h SolverVPLS.cpp SolverVPLS.h GreedyHeuristic.h SolverVPLSDet.cpp SolverVPLSDet.h SolverVPLSHamming.cpp SolverVPLSHamming.h Element.h SolverVPLSHammingSX.cpp SolverVPLSHammingSX.h Solution.h
+        KSWarmStart.h)
+target_compile_definitions(tap_matheuristic PRIVATE MATHEURISTIC)
+target_link_libraries(tap_matheuristic ilocplex cplex-library cplex-concert)
+
 set(CMAKE_VERBOSE_MAKEFILE on)
-
-

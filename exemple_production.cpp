@@ -111,11 +111,8 @@ int experiments_vpls(char* argv[]){
 int production_matheuristic(char* argv[]) {
     using namespace cplex_tap;
     const auto tap = Instance(argv[3]);
-    const auto solver = Solver(tap);
 
-    //int budget = lround(stod(argv[1]) * tap.size() * 27.5f);
     int budget = lround(stod(argv[1]));
-    //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
     int dist_bound = lround( stod(argv[2]));
 
     int max_iters = stoi(argv[4]); // ex 5 iters
@@ -169,8 +166,10 @@ int run_debug() {
 
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
-    //run_debug();
-    //return experiments_vpls(argv);
+
+#ifdef MATHEURISTIC
     return production_matheuristic(argv);
-    //run_exact_test(argv);
+#else
+    return production(argv);
+#endif
 }
