@@ -7,6 +7,7 @@
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <chrono>
 
 using json = nlohmann::json;
 
@@ -42,17 +43,24 @@ namespace cplex_tap {
             };
 
             cpr::Response r = cpr::Post(cpr::Url{"http://localhost:4242/insight"}, cpr::Body(body.dump()),
-                                        cpr::Header{{"Content-Type", "application/json"}}, cpr::VerifySsl{false});
-            std::cout << "Query done, code " << r.status_code << endl;
+                                        cpr::Header{{"Content-Type", "application/json"}}, cpr::VerifySsl{false},
+                                        cpr::Timeout{10000});
 
-            json response = json::parse(r.text);
+            if (r.error.code != cpr::ErrorCode::OK || r.status_code != 200) {
+                std::cout << "[CheckInsight] Server error or timeout: " << r.error.message
+                          << " (CPR code: " << (int) r.error.code << ", HTTP status: " << r.status_code << ")" << std::endl;
+                return true;
+            }
 
-            std::cout << "Response Error: " << r.error.message << std::endl;
-            std::cout << "Response Error Code: " << (int) r.error.code << std::endl;
-            std::cout << "Response Status Code: " << r.status_code << std::endl;
-            std::cout << "Response Text: " << std::endl;
+            std::cout << "Query done, code " << r.status_code << std::endl;
 
-            return response["response"];
+            try {
+                json response = json::parse(r.text);
+                return response["response"];
+            } catch (const std::exception &e) {
+                std::cout << "[CheckInsight] Failed to parse response JSON: " << e.what() << std::endl;
+                return true;
+            }
         }
 
 
@@ -86,15 +94,28 @@ namespace cplex_tap {
             }
 
             cpr::Response r = cpr::Post(cpr::Url{"http://localhost:4242/insights"}, cpr::Body(body.dump()),
-                                        cpr::Header{{"Content-Type", "application/json"}}, cpr::VerifySsl{false});
-            cout << "Query done, code " << r.status_code << endl;
+                                        cpr::Header{{"Content-Type", "application/json"}}, cpr::VerifySsl{false},
+                                        cpr::Timeout{10000});
 
-            json response = json::parse(r.text);
-            vector<bool> times;
-            for (auto e: response) {
-                times.push_back(e);
+            if (r.error.code != cpr::ErrorCode::OK || r.status_code != 200) {
+                std::cout << "[CheckInsight] Server error or timeout: " << r.error.message
+                          << " (CPR code: " << (int) r.error.code << ", HTTP status: " << r.status_code << ")" << std::endl;
+                return vector<bool>(qs.size(), true);
             }
-            return response;
+
+            std::cout << "Query done, code " << r.status_code << std::endl;
+
+            try {
+                json response = json::parse(r.text);
+                vector<bool> times;
+                for (auto e: response) {
+                    times.push_back(e);
+                }
+                return times;
+            } catch (const std::exception &e) {
+                std::cout << "[CheckInsight] Failed to parse response JSON: " << e.what() << std::endl;
+                return vector<bool>(qs.size(), true);
+            }
         }
 
 
