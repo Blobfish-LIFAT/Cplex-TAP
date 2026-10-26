@@ -122,10 +122,10 @@ int production_matheuristic(char* argv[]) {
     int max_dist = stoi(argv[5]); // ex 25
 
     KSWarmStart ks_solver(tap);
-    Solution ks_solution = ks_solver.solve(budget, dist_bound);
+    Solution ks_solution = ks_solver.solve(dist_bound, budget);
     std::vector<int> warm_start = ks_solution.sequence;
     const auto solverRandomSX = SolverVPLSHammingSX(tap, max_iters,  max_dist, 20, 120);// 30 90
-    Solution sol = solverRandomSX.solve_and_print(dist_bound, budget, false, false, true, true, warm_start_path);
+    Solution sol = solverRandomSX.solve_and_print(dist_bound, budget, false, false, true, true, "TODO");
 
     return 0;
 }
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     std::cout.precision(17);
     //run_debug();
     //return experiments_vpls(argv);
-    return production(argv);
+    return production_matheuristic(argv);
     //run_exact_test(argv);
 }
 

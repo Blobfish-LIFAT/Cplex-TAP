@@ -177,6 +177,12 @@ public:
         clock_t end = clock();
         double time_to_sol = static_cast<double>(end - start) / CLOCKS_PER_SEC;
 
+        cout << "Solved initial solution using KS heuristic : z=" << z << " time=" << total_time << "/"<<time_bound << " dist=" << total_dist << "/" << dist_bound<< endl;
+        cout << "SOLUTION: ";
+        for (int i : solution)
+            std::cout << i << ' ';
+        std::cout << std::endl;
+
         return Solution(time_to_sol, z, solution);
     }
 
