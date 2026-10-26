@@ -24,12 +24,13 @@ endif ()
 # http lib
 include(FetchContent)
 FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
-        GIT_TAG 871ed52d350214a034f6ef8a3b8f51c5ce1bd400) # The commit hash for 1.9.0. Replace with the latest from: https://github.com/libcpr/cpr/releases
+        GIT_TAG b3755347973a23567e1f786615ebb480e1f704c4) # The commit hash for 1.9.0. Replace with the latest from: https://github.com/libcpr/cpr/releases
 FetchContent_MakeAvailable(cpr)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+set(BOOST_URL "https://archives.boost.io/release/1.71.0/source/boost_1_71_0.tar.bz2" CACHE STRING "Boost download URL" FORCE)
 add_subdirectory(boost-cmake)
 
 ######## Complier message
@@ -70,5 +71,3 @@ set(CMAKE_CXX_LINK_EXECUTABLE  "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 message("Sortie bin: ${CMAKE_BINARY_DIR}")
-
-
