@@ -116,7 +116,7 @@ int production(char* argv[]) {
     //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
     int dist_bound = lround( stod(argv[2]));
 
-    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, false, false, "");
+    Solution sol = solver.solve_and_print(dist_bound, budget, false, false, true, false, "");
 
     return 0;
 }
@@ -146,8 +146,8 @@ int run_debug() {
 int main(int argc, char* argv[]) {
     std::cout.precision(17);
     //run_debug();
-    return experiments_vpls(argv);
-    //return production(argv);
+    //return experiments_vpls(argv);
+    return production(argv);
     //run_exact_test(argv);
 }
 

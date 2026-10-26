@@ -10,6 +10,7 @@
 #  cplex-cp - the CP Optimizer library
 
 include(FindPackageHandleStandardArgs)
+include(CheckLibraryExists)
 
 # Find the path to CPLEX Studio.
 # CPLEX Studio 12.XX can be installed in the following default locations:
@@ -82,7 +83,7 @@ message(STATUS "CPLEX include dir: ${CPLEX_INCLUDE_DIR}")
 # Set up cplex library prefix path for windows
 if (WIN32)
     foreach (dir ${CPLEX_DIR})
-        file(GLOB CPLEX_LIB_SUFFIXS "${dir}/lib/*windows_vs*")
+        file(GLOB CPLEX_LIB_SUFFIXS "${dir}/lib/${CPLEX_ARCH}_windows_msvc*" "${dir}/lib/${CPLEX_ARCH}_windows_vs*" "${dir}/lib/*windows_msvc*" "${dir}/lib/*windows_vs*")
         list(SORT CPLEX_LIB_SUFFIXS)
         list(REVERSE CPLEX_LIB_SUFFIXS)
         if (CPLEX_LIB_SUFFIXS)
@@ -124,7 +125,7 @@ elseif (WIN32)
     set(CPLEX_LIBRARY ${CPLEX_LIB})
     find_win_cplex_library(CPLEX_LIB "${CPLEX_LIB_PATH_SUFFIXES_DEBUG}")
     set(CPLEX_LIBRARY_DEBUG ${CPLEX_LIB})
-    if (CPLEX_LIBRARY MATCHES ".*/(cplex.*)\\.lib")
+    if (CPLEX_LIBRARY MATCHES ".*/(cplex[^/\\\\]*)\\.lib")
         file(GLOB CPLEX_DLL_ "${CPLEX_DIR}/bin/*/${CMAKE_MATCH_1}.dll")
         set(CPLEX_DLL ${CPLEX_DLL_})
     endif ()
