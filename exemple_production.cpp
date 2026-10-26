@@ -106,6 +106,27 @@ int experiments_vpls(char* argv[]){
     csv.close();
 }
 
+int production_matheuristic(char* argv[]) {
+    using namespace cplex_tap;
+    const auto tap = Instance(argv[3]);
+    const auto solver = Solver(tap);
+
+    //int budget = lround(stod(argv[1]) * tap.size() * 27.5f);
+    int budget = lround(stod(argv[1]));
+    //int dist_bound = lround( stod(argv[2]) * tap.size() * 4.5);
+    int dist_bound = lround( stod(argv[2]));
+
+    int max_iters = stoi(argv[5]); // ex 5 iters
+    int max_dist = stoi(argv[6]); // ex 25
+
+    std::string warm_start_path = argv[4];
+
+    const auto solverRandomSX = SolverVPLSHammingSX(tap, max_iters,  max_dist, 20, 120);// 30 90
+    Solution sol = solverRandomSX.solve_and_print(dist_bound, budget, false, false, true, true, warm_start_path);
+
+    return 0;
+}
+
 int production(char* argv[]) {
     using namespace cplex_tap;
     const auto tap = Instance(argv[3]);
