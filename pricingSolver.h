@@ -6,6 +6,7 @@
 #include "CGTAPInstance.h"
 #include <iostream>
 #include <cstring>
+#include <map>
 #include <ilcplex/ilocplex.h>
 #include "Solution.h"
 #include "Query.h"

@@ -12,7 +12,9 @@
 #include <regex>
 #include "solver.h"
 #include "InitTargets.h"
+#ifndef _WIN32
 #include "pstream.h"
+#endif
 
 static cplex_tap::Instance buildRMPInstance(vector<cplex_tap::Query>& queries, cplex_tap::CGTAPInstance pricingIST) {
     vector<double> interest = JVMAdapter::getInterest(queries, pricingIST);
@@ -149,8 +151,8 @@ vector<cplex_tap::Query> getAllQueries(const cplex_tap::CGTAPInstance *ist) {
             if (i != j){
                 for (int k = 0; k < ist->getAdSize(j); ++k) {
                     for (int l = k+1; l < ist->getAdSize(j); ++l) {
-                        vector<pair<string, int> > lPred = {{ist->getDimName(j), l}};
-                        vector<pair<string, int> > rPred = {{ist->getDimName(j), k}};
+                        vector<pair<string, int> > lPred = {{ist->getDimName(j), l}} ;
+                        vector<pair<string, int> > rPred = {{ist->getDimName(j), k}} ;
                         n++;
                         queries.emplace_back(cplex_tap::Query(ist->getTableName(), "sum", ist->getDimName(i), ist->getMeasureName(0), ist->getMeasureName(0), lPred, rPred));
                     }
@@ -380,6 +382,3 @@ int main(int argc, char* argv[]) {
 
 
 }
-
-
-

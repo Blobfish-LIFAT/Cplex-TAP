@@ -10,7 +10,9 @@
 #include <numeric>
 #include "SolverVPLSHammingSX.h"
 #include "KnapsackSolver.h"
+#ifndef _WIN32
 #include "pstream.h"
+#endif
 #include "CheckInsight.h"
 #include "chrono"
 

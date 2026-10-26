@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <ostream>
 #include <boost/functional/hash.hpp>
 
 #ifndef CPLEX_TEST_QUERY_H

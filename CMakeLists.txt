@@ -4,6 +4,10 @@ project(cplex_test)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 17)
 
+if (MSVC)
+    add_compile_definitions(_HAS_STD_BYTE=0)
+endif ()
+
 ######## Cplex Dependency
 find_package(CPLEX REQUIRED)
 if (CPLEX_FOUND)
@@ -65,7 +69,9 @@ target_link_libraries(tap nlohmann_json::nlohmann_json)
 #add_dependencies(tap eigen)
 
 ####### Fix linker issue on ubuntu
-set(CMAKE_CXX_LINK_EXECUTABLE  "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+if (UNIX)
+    set(CMAKE_CXX_LINK_EXECUTABLE  "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+endif ()
 
 ###### Verbose ON/OFF
 set(CMAKE_VERBOSE_MAKEFILE on)
