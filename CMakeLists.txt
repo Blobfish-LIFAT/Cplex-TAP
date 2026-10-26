@@ -8,6 +8,11 @@ if (MSVC)
     add_compile_definitions(_HAS_STD_BYTE=0)
 endif ()
 
+######## Set output directories.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/lib)
+
 ######## Cplex Dependency
 find_package(CPLEX REQUIRED)
 if (CPLEX_FOUND)
@@ -44,11 +49,6 @@ message(STATUS "System: ${CMAKE_SYSTEM}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
-######## Set output directories.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../build/lib)
-
 if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ldl")
 endif ()
@@ -67,6 +67,23 @@ target_link_libraries(tap ilocplex cplex-library cplex-concert cplex-cp)
 target_link_libraries(tap cpr::cpr)
 target_link_libraries(tap nlohmann_json::nlohmann_json)
 #add_dependencies(tap eigen)
+
+####### Copy required runtime DLLs on Windows (cpr.dll, libcurl.dll, cplex2220.dll)
+if (WIN32)
+    add_custom_command(TARGET tap POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E $<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:tap>>,copy_if_different,true>
+            $<TARGET_RUNTIME_DLLS:tap>
+            $<TARGET_FILE_DIR:tap>
+        COMMAND_EXPAND_LISTS
+    )
+    if (CPLEX_DLL)
+        add_custom_command(TARGET tap POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CPLEX_DLL}"
+                $<TARGET_FILE_DIR:tap>
+        )
+    endif ()
+endif ()
 
 ####### Fix linker issue on ubuntu
 if (UNIX)
